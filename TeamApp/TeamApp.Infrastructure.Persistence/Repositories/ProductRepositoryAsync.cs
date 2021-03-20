@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Domain.Entities;
-using TeamApp.Infrastructure.Persistence.Contexts;
+using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Infrastructure.Persistence.Repository;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
@@ -11,7 +11,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
     {
         private readonly DbSet<Product> _products;
 
-        public ProductRepositoryAsync(ApplicationDbContext dbContext) : base(dbContext)
+        public ProductRepositoryAsync(KhoaLuanContext dbContext) : base(dbContext)
         {
             _products = dbContext.Set<Product>();
         }
