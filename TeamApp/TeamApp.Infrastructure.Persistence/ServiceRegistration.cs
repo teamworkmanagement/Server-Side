@@ -24,7 +24,7 @@ namespace TeamApp.Infrastructure.Persistence
             else
             {
                 services.AddDbContext<ApplicationDbContext>(options =>
-               options.UseSqlServer(
+               options.UseMySQL(
                    configuration.GetConnectionString("DefaultConnection"),
                    b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
             }

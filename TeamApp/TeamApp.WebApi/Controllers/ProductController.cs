@@ -26,17 +26,6 @@ namespace TeamApp.WebApi.Controllers.v1
         }
 
         // POST api/<controller>
-        [HttpGet("/getall")]
-        
-        public IActionResult GetAll()
-        {
-            return Ok(
-                new
-                {
-                    id = 10,
-                    name = "dzungnguyen",
-                });
-        }
         [HttpPost]
         public IActionResult Update([FromForm] Product product)
         {
