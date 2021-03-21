@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Text.Json.Serialization;
 
 namespace TeamApp.Infrastructure.Persistence.Entities
 {
@@ -17,6 +18,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             Team = new HashSet<Team>();
         }
 
+        
         public string UserId { get; set; }
         public string UserEmail { get; set; }
         public string UserPassword { get; set; }
