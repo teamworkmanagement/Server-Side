@@ -4,34 +4,107 @@ using System.Text;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Domain.Models.Team;
+using TeamApp.Infrastructure.Persistence.Entities;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class TeamRepository : ITeamRepository
     {
-        public Task<string> AddTeam(TeamRequest teamReq)
+        private readonly KhoaLuanContext _dbContext;
+        public TeamRepository(KhoaLuanContext dbContext)
         {
-            throw new NotImplementedException();
+            _dbContext = dbContext;
+        }
+        public async Task<string> AddTeam(TeamRequest teamReq)
+        {
+            var entity = new Team
+            {
+                TeamId = new Guid().ToString(),
+                TeamLeaderId = teamReq.TeamLeaderId,
+                TeamName = teamReq.TeamName,
+                TeamDescription = teamReq.TeamDescription,
+                TeamCreatedAt = DateTime.Now,
+                TeamCode = teamReq.TeamCode,
+                TeamIsDeleted = false,
+            };
+            await _dbContext.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+            return entity.TeamId;
         }
 
-        public Task<bool> DeleteTeam(string teamId)
+        public async Task<bool> DeleteTeam(string teamId)
         {
-            throw new NotImplementedException();
+            var entity = await _dbContext.Team.FindAsync(teamId);
+            if (entity == null)
+                return false;
+
+            entity.TeamIsDeleted = true;
+            _dbContext.Team.Update(entity);
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
 
-        public Task<TeamResponse> GetById(string teamId)
+        public async Task<TeamResponse> GetById(string teamId)
         {
-            throw new NotImplementedException();
+            var entity = await _dbContext.Team.FindAsync(teamId);
+            if (entity == null)
+                return null;
+
+            return new TeamResponse
+            {
+                TeamId = entity.TeamId,
+                TeamLeaderId = entity.TeamLeaderId,
+                TeamName = entity.TeamName,
+                TeamDescription = entity.TeamDescription,
+                TeamCreatedAt = entity.TeamCreatedAt,
+                TeamCode = entity.TeamCode,
+                TeamIsDeleted = entity.TeamIsDeleted,
+            };
         }
 
-        public Task<List<TeamResponse>> GetByUserId(string userId)
+        public async Task<List<TeamResponse>> GetByUserId(string userId)
         {
-            throw new NotImplementedException();
+            var query = from p in _dbContext.Participation
+                        join t in _dbContext.Team on p.ParticipationTeamId equals t.TeamId
+                        join u in _dbContext.User on p.ParticipationUserId equals u.UserId
+                        select new { t, u };
+
+            var outPut = await query.Where(x => x.u.UserId == userId).Select(entity => new TeamResponse
+            {
+                TeamId = entity.t.TeamId,
+                TeamLeaderId = entity.t.TeamLeaderId,
+                TeamName = entity.t.TeamName,
+                TeamDescription = entity.t.TeamDescription,
+                TeamCreatedAt = entity.t.TeamCreatedAt,
+                TeamCode = entity.t.TeamCode,
+                TeamIsDeleted = entity.t.TeamIsDeleted,
+            }).ToListAsync();
+
+            return outPut;
         }
 
-        public Task<bool> UpdateTeam(string teamId, TeamRequest teamReq)
+        public async Task<bool> UpdateTeam(string teamId, TeamRequest teamReq)
         {
-            throw new NotImplementedException();
+            var entity = await _dbContext.Team.FindAsync(teamId);
+            if (entity == null)
+                return false;
+
+            entity = new Team
+            {
+                TeamId = teamId,
+                TeamLeaderId = teamReq.TeamLeaderId,
+                TeamName = teamReq.TeamName,
+                TeamDescription = teamReq.TeamDescription,
+                TeamCreatedAt = teamReq.TeamCreatedAt,
+                TeamCode = teamReq.TeamCode,
+                TeamIsDeleted = teamReq.TeamIsDeleted
+            };
+
+            _dbContext.Team.Update(entity);
+            await _dbContext.SaveChangesAsync();
+            return true;
         }
     }
 }
