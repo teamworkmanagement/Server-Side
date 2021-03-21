@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
+using TeamApp.Domain.Models.HandleTask;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -17,16 +18,34 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("getalltest")]
-        public IActionResult TestFunc()
+        [HttpGet("bytaskid/{taskId}")]
+        public async Task<IActionResult> GetAllByTaskId(string taskId)
         {
-            var ctrlName = ControllerContext.ActionDescriptor.ControllerName;
-            return Ok(
-                new
-                {
-                    Name = "Nguyen Tien Dung",
-                    ControllerName = ctrlName,
-                });
+            return Ok(await _repo.GetAllByTaskId(taskId));
+        }
+
+        [HttpGet("byuserid/{userId}")]
+        public async Task<IActionResult> GetAllByUserId(string userId)
+        {
+            return Ok(await _repo.GetAllByUserId(userId));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddHandleTask([FromForm] HandleTaskRequest handleTaskReq)
+        {
+            return Ok(await _repo.AddHandleTask(handleTaskReq));
+        }
+
+        [HttpPut("{handleTaskId}")]
+        public async Task<IActionResult> UpdateHandleTask(string handleTaskId, [FromForm] HandleTaskRequest handleTaskReq)
+        {
+            return Ok(await _repo.UpdateHandleTask(handleTaskId, handleTaskReq));
+        }
+
+        [HttpDelete("{handleTaskId}")]
+        public async Task<IActionResult> DeleteHandleTask(string handleTaskId)
+        {
+            return Ok(await _repo.DeleteHandleTask(handleTaskId));
         }
     }
 }

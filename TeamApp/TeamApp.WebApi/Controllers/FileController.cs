@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
+using TeamApp.Domain.Models.File;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -17,16 +18,16 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("getalltest")]
-        public IActionResult TestFunc()
+        [HttpGet("{fileId}")]
+        public async Task<IActionResult> GetById(string fileId)
         {
-            var ctrlName = ControllerContext.ActionDescriptor.ControllerName;
-            return Ok(
-                new
-                {
-                    Name = "Nguyen Tien Dung",
-                    ControllerName = ctrlName,
-                });
+            return Ok(await _repo.GetById(fileId));
+        }
+
+        [HttpPost("{taskId}")]
+        public async Task<IActionResult> AddFile(string taskId, [FromForm] FileRequest fileReq)
+        {
+            return Ok(await _repo.AddFile(taskId, fileReq));
         }
     }
 }

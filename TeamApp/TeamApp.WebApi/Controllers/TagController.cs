@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
+using TeamApp.Domain.Models.Tag;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -17,16 +18,16 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("getalltest")]
-        public IActionResult TestFunc()
+        [HttpGet("{tagId}")]
+        public async Task<IActionResult> GetById(string tagId)
         {
-            var ctrlName = ControllerContext.ActionDescriptor.ControllerName;
-            return Ok(
-                new
-                {
-                    Name = "Nguyen Tien Dung",
-                    ControllerName = ctrlName,
-                });
+            return Ok(await _repo.GetById(tagId));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddTag([FromForm] TagObject tagObj)
+        {
+            return Ok(await _repo.AddTag(tagObj));
         }
     }
 }

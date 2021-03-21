@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
+using TeamApp.Domain.Models.GroupChat;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -17,16 +18,28 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("getalltest")]
-        public IActionResult TestFunc()
+        [HttpGet("byuserid/{userId}")]
+        public async Task<IActionResult> GetAllByUserId(string userId)
         {
-            var ctrlName = ControllerContext.ActionDescriptor.ControllerName;
-            return Ok(
-                new
-                {
-                    Name = "Nguyen Tien Dung",
-                    ControllerName = ctrlName,
-                });
+            return Ok(await _repo.GetAllByUserId(userId));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddGroupChat([FromForm] GroupChatRequest grChatReq)
+        {
+            return Ok(await _repo.AddGroupChat(grChatReq));
+        }
+
+        [HttpPut("{grChatId}")]
+        public async Task<IActionResult> UpdateGroupChat(string grChatId, [FromForm] GroupChatRequest grChatReq)
+        {
+            return Ok(await _repo.UpdateGroupChat(grChatId, grChatReq));
+        }
+
+        [HttpDelete("{grChatId}")]
+        public async Task<IActionResult> DeleteGroupChat(string grChatId)
+        {
+            return Ok(await _repo.DeleteGroupChat(grChatId));
         }
     }
 }

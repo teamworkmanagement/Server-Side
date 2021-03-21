@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using TeamApp.Application.Filters;
+using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 using TeamApp.Domain.Models.Message;
 
-namespace TeamApp.Application.Interfaces.Repositories
+namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class MessageRepository : IMessageRepository
     {

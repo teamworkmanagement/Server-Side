@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 
-namespace TeamApp.Domain.Models.HanldeTask
+namespace TeamApp.Domain.Models.HandleTask
 {
     public class HandleTaskRequest
     {

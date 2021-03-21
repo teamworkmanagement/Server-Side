@@ -17,16 +17,22 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("getalltest")]
-        public IActionResult TestFunc()
+        [HttpGet("byteamid/{teamId}")]
+        public async Task<IActionResult> GetByTeamId(string teamId)
         {
-            var ctrlName = ControllerContext.ActionDescriptor.ControllerName;
-            return Ok(
-                new
-                {
-                    Name = "Nguyen Tien Dung",
-                    ControllerName = ctrlName,
-                });
+            return Ok(await _repo.GetAllByTeamId(teamId));
+        }
+
+        [HttpGet("team/{userId}")]
+        public async Task<IActionResult> GetTeamByUserId(string userId)
+        {
+            return Ok(await _repo.GetTeamByUserId(userId));
+        }
+
+        [HttpDelete("{userId}/{teamId}")]
+        public async Task<IActionResult> DeleteParticipation(string userId, string teamId)
+        {
+            return Ok(await _repo.DeleteParticipation(userId, teamId));
         }
     }
 }

@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.Filters;
 using TeamApp.Application.Interfaces.Repositories;
+using TeamApp.Domain.Models.Message;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -17,16 +19,28 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("getalltest")]
-        public IActionResult TestFunc()
+        [HttpGet("byuserid/{userId}")]
+        public async Task<IActionResult> GetAllByUserId(string userId)
         {
-            var ctrlName = ControllerContext.ActionDescriptor.ControllerName;
-            return Ok(
-                new
-                {
-                    Name = "Nguyen Tien Dung",
-                    ControllerName = ctrlName,
-                });
+            return Ok(await _repo.GetAllByUserId(userId));
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetPaging([FromQuery] RequestParameter parameter)
+        {
+            return Ok(await _repo.GetPaging(parameter));
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddMessage([FromForm] MessageRequest msgReq)
+        {
+            return Ok(await _repo.AddMessage(msgReq));
+        }
+
+        [HttpDelete("{msgId}")]
+        public async Task<IActionResult> DeleteMessage(string msgId)
+        {
+            return Ok(await _repo.DeleteMessage(msgId));
         }
     }
 }

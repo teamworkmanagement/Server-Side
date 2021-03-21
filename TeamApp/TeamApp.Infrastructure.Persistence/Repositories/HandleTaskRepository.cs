@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.HanldeTask;
+using TeamApp.Domain.Models.HandleTask;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
