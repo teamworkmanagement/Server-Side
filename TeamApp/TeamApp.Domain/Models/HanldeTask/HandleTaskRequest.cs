@@ -4,7 +4,7 @@ using System.Text;
 
 namespace TeamApp.Domain.Models.HanldeTask
 {
-    public class HanldeTaskRequest
+    public class HandleTaskRequest
     {
         public string HandleTaskUserId { get; set; }
         public string HandleTaskTaskId { get; set; }

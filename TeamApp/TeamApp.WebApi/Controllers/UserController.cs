@@ -1,9 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.EntityFrameworkCore;
 using System.Threading.Tasks;
-using TeamApp.Application.Wrappers;
-using TeamApp.Domain.Entities;
-using TeamApp.Infrastructure.Persistence.Entities;
+using TeamApp.Application.Interfaces.Repositories;
+
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -11,22 +9,17 @@ namespace TeamApp.WebApi.Controllers
     [Route("api/[controller]")]
     public class UserController : ControllerBase
     {
-        private readonly KhoaLuanContext _dbContext;
-        public UserController(KhoaLuanContext dbContext)
+        private readonly IUserRepository _repo;
+        public UserController(IUserRepository repo)
         {
-            _dbContext = dbContext;
+            _repo = repo;
         }
 
-        [HttpGet("/getall")]
+        [HttpGet("getall")]
         public async Task<IActionResult> GetAll()
         {
-            var outPut = await _dbContext.User.ToListAsync();
+            var outPut = await _repo.GetAll();
             return Ok(outPut);
-        }
-        [HttpGet]
-        public async Task<IActionResult> GetById([FromQuery] string id)
-        {            
-            return Ok();
         }
     }
 }

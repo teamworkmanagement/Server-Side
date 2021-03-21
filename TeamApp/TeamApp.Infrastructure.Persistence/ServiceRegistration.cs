@@ -5,7 +5,6 @@ using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Infrastructure.Persistence.Repositories;
-using TeamApp.Infrastructure.Persistence.Repository;
 
 namespace TeamApp.Infrastructure.Persistence
 {
@@ -25,8 +24,7 @@ namespace TeamApp.Infrastructure.Persistence
                    configuration.GetConnectionString("DefaultConnection")));
             }
             #region Repositories
-            services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));
-            services.AddTransient<IProductRepositoryAsync, ProductRepositoryAsync>();
+            services.AddTransient<IUserRepository, UserRepository>();
             #endregion
         }
     }
