@@ -25,6 +25,19 @@ namespace TeamApp.Infrastructure.Persistence
             }
             #region Repositories
             services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<ITeamRepository, TeamRepository>();
+            services.AddTransient<IParticipationRepository, ParticipationRepository>();
+            services.AddTransient<ITaskRepository, TaskRepository>();
+            services.AddTransient<IPostRepository, PostRepository>();
+            services.AddTransient<ICommentRepository, CommentRepository>();
+            services.AddTransient<ITagRepository, TagRepository>();
+            services.AddTransient<IHandleTaskRepository, HandleTaskRepository>();
+            services.AddTransient<INotificationRepository, NotificationRepository>();
+            services.AddTransient<ITaskVersionRepository, TaskVersionRepository>();
+            services.AddTransient<IFileRepository, FileRepository>();
+            services.AddTransient<IGroupChatRepository, GroupChatRepository>();
+            services.AddTransient<IGroupChatUserRepository, GroupChatUserRepository>();
+            services.AddTransient<IMessageRepository, MessageRepository>();
             #endregion
         }
     }
