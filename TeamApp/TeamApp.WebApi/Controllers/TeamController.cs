@@ -1,25 +1,20 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
-
 
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class UserController : ControllerBase
+    public class TeamController : ControllerBase
     {
-        private readonly IUserRepository _repo;
-        public UserController(IUserRepository repo)
+        private readonly ITeamRepository _repo;
+        public TeamController(ITeamRepository repo)
         {
             _repo = repo;
-        }
-
-        [HttpGet("getall")]
-        public async Task<IActionResult> GetAll()
-        {
-            var outPut = await _repo.GetAll();
-            return Ok(outPut);
         }
 
         [HttpGet("getalltest")]
