@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Domain.Models.GroupChatUser;
 
-namespace TeamApp.Application.Interfaces.Repositories
+namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class GroupChatUserRepository : IGroupChatUserRepository
     {

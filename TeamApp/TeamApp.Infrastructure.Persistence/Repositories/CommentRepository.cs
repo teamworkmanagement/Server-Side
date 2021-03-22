@@ -6,44 +6,146 @@ using TeamApp.Application.Filters;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 using TeamApp.Domain.Models.Comment;
+using TeamApp.Infrastructure.Persistence.Entities;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class CommentRepository : ICommentRepository
     {
-        public Task<string> AddComment(CommentRequest cmtReq)
+        private readonly KhoaLuanContext _dbContext;
+
+        public CommentRepository(KhoaLuanContext dbContext)
         {
-            throw new NotImplementedException();
+            _dbContext = dbContext;
         }
 
-        public Task<bool> DeleteComment(string cmtId)
+        public async Task<string> AddComment(CommentRequest cmtReq)
         {
-            throw new NotImplementedException();
+            var entity = new Comment
+            {
+                CommentId = new Guid().ToString(),
+                CommentPostId = cmtReq.CommentPostId,
+                CommentUserId = cmtReq.CommentUserId,
+                CommentContent = cmtReq.CommentContent,
+                CommentCreatedAt = cmtReq.CommentCreatedAt,
+                CommentIsDeleted = cmtReq.CommentIsDeleted,
+            };
+
+            await _dbContext.Comment.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+
+            return entity.CommentId;
         }
 
-        public Task<List<CommentResponse>> GetAllByTeamId(string teamId)
+        public async Task<bool> DeleteComment(string cmtId)
         {
-            throw new NotImplementedException();
+            var entity = await _dbContext.Comment.FindAsync(cmtId);
+            if (entity == null)
+                return false;
+            entity.CommentIsDeleted = true;
+            _dbContext.Comment.Update(entity);
+            await _dbContext.SaveChangesAsync();
+
+            return true;
         }
 
-        public Task<List<CommentResponse>> GetAllByUserId(string userId)
+        public async Task<List<CommentResponse>> GetAllByTeamId(string teamId)
         {
-            throw new NotImplementedException();
+            var query = from c in _dbContext.Comment
+                        join p in _dbContext.Post on c.CommentPostId equals p.PostId
+                        where p.PostTeamId == teamId
+                        select c;
+
+            var outPut = await query.Select(x => new CommentResponse
+            {
+                CommentId = x.CommentId,
+                CommentPostId = x.CommentPostId,
+                CommentUserId = x.CommentUserId,
+                CommentContent = x.CommentContent,
+                CommentCreatedAt = x.CommentCreatedAt,
+                CommentIsDeleted = x.CommentIsDeleted,
+            }).ToListAsync();
+
+            return outPut;
         }
 
-        public Task<List<CommentResponse>> GetAllByUserTeamId(string userId, string teamId)
+        public async Task<List<CommentResponse>> GetAllByUserId(string userId)
         {
-            throw new NotImplementedException();
+            var query = from c in _dbContext.Comment
+                        join p in _dbContext.Post on c.CommentPostId equals p.PostId
+                        where p.PostUserId == userId
+                        select c;
+
+            var outPut = await query.Select(x => new CommentResponse
+            {
+                CommentId = x.CommentId,
+                CommentPostId = x.CommentPostId,
+                CommentUserId = x.CommentUserId,
+                CommentContent = x.CommentContent,
+                CommentCreatedAt = x.CommentCreatedAt,
+                CommentIsDeleted = x.CommentIsDeleted,
+            }).ToListAsync();
+
+            return outPut;
         }
 
-        public Task<PagedResponse<CommentResponse>> GetPaging(RequestParameter parameter)
+        public async Task<List<CommentResponse>> GetAllByUserTeamId(string userId, string teamId)
         {
-            throw new NotImplementedException();
+            var query = from c in _dbContext.Comment
+                        join p in _dbContext.Post on c.CommentPostId equals p.PostId
+                        where p.PostTeamId == teamId && p.PostUserId == userId
+                        select c;
+
+            var outPut = await query.Select(x => new CommentResponse
+            {
+                CommentId = x.CommentId,
+                CommentPostId = x.CommentPostId,
+                CommentUserId = x.CommentUserId,
+                CommentContent = x.CommentContent,
+                CommentCreatedAt = x.CommentCreatedAt,
+                CommentIsDeleted = x.CommentIsDeleted,
+            }).ToListAsync();
+
+            return outPut;
         }
 
-        public Task<bool> UpdateComment(string cmtId, CommentRequest cmtReq)
+        public async Task<PagedResponse<CommentResponse>> GetPaging(RequestParameter parameter)
         {
-            throw new NotImplementedException();
+            var query = _dbContext.Comment.Skip(parameter.PageSize * parameter.PageNumber).Take(parameter.PageSize);
+
+            var entityList = await query.Select(x => new CommentResponse
+            {
+                CommentId = x.CommentId,
+                CommentPostId = x.CommentPostId,
+                CommentUserId = x.CommentUserId,
+                CommentContent = x.CommentContent,
+                CommentCreatedAt = x.CommentCreatedAt,
+                CommentIsDeleted = x.CommentIsDeleted,
+            }).ToListAsync();
+
+            var outPut = new PagedResponse<CommentResponse>(entityList, parameter.PageNumber, parameter.PageSize, await query.CountAsync());
+
+            return outPut;
+        }
+
+        public async Task<bool> UpdateComment(string cmtId, CommentRequest cmtReq)
+        {
+            var entity = await _dbContext.Comment.FindAsync(cmtId);
+            if (entity == null)
+                return false;
+
+            entity.CommentPostId = cmtReq.CommentPostId;
+            entity.CommentUserId = cmtReq.CommentUserId;
+            entity.CommentContent = cmtReq.CommentContent;
+            entity.CommentCreatedAt = cmtReq.CommentCreatedAt;
+            entity.CommentIsDeleted = cmtReq.CommentIsDeleted;
+
+            _dbContext.Comment.Update(entity);
+            await _dbContext.SaveChangesAsync();
+
+            return true;
         }
     }
 }

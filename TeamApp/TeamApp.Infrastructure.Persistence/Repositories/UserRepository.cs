@@ -113,18 +113,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (entity == null)
                 return false;
 
-            entity = new User
-            {
-                UserId = userId,
-                UserEmail = user.UserEmail,
-                UserPassword = user.UserPassword,
-                UserFullname = user.UserFullname,
-                UserDateOfBirth = user.UserDateOfBirth,
-                UsePhoneNumber = user.UsePhoneNumber,
-                UserImageUrl = user.UserImageUrl,
-                UserCreatedAt = user.UserCreatedAt,
-                UserIsThemeLight = user.UserIsThemeLight
-            };
+
+
+            entity.UserId = userId;
+            entity.UserEmail = user.UserEmail;
+            entity.UserPassword = user.UserPassword;
+            entity.UserFullname = user.UserFullname;
+            entity.UserDateOfBirth = user.UserDateOfBirth;
+            entity.UsePhoneNumber = user.UsePhoneNumber;
+            entity.UserImageUrl = user.UserImageUrl;
+            entity.UserCreatedAt = user.UserCreatedAt;
+            entity.UserIsThemeLight = user.UserIsThemeLight;
+
             _dbContext.User.Update(entity);
             await _dbContext.SaveChangesAsync();
             return true;
