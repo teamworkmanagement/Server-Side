@@ -8,7 +8,6 @@ using System.Threading;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces;
 using TeamApp.Domain.Entities;
-using TeamApp.Infrastructure.Persistence.ConfigurationsFluent;
 
 namespace TeamApp.Infrastructure.Persistence.Contexts
 {
@@ -25,14 +24,12 @@ namespace TeamApp.Infrastructure.Persistence.Contexts
         public DbSet<Student> Students { get; set; }
 
         public override Task<int> SaveChangesAsync(CancellationToken cancellationToken = new CancellationToken())
-        {
-            
+        {            
             return base.SaveChangesAsync(cancellationToken);
         }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.ApplyConfiguration(new StudentConfiguration());
         }
     }
 }

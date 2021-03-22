@@ -1,14 +1,10 @@
 ﻿using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Collections.Generic;
-using System.Text;
 using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Infrastructure.Persistence.Contexts;
+using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Infrastructure.Persistence.Repositories;
-using TeamApp.Infrastructure.Persistence.Repository;
 
 namespace TeamApp.Infrastructure.Persistence
 {
@@ -18,19 +14,30 @@ namespace TeamApp.Infrastructure.Persistence
         {
             if (configuration.GetValue<bool>("UseInMemoryDatabase"))
             {
-                services.AddDbContext<ApplicationDbContext>(options =>
+                services.AddDbContext<KhoaLuanContext>(options =>
                     options.UseInMemoryDatabase("ApplicationDb"));
             }
             else
             {
-                services.AddDbContext<ApplicationDbContext>(options =>
-               options.UseMySQL(
-                   configuration.GetConnectionString("DefaultConnection"),
-                   b => b.MigrationsAssembly(typeof(ApplicationDbContext).Assembly.FullName)));
+                services.AddDbContext<KhoaLuanContext>(options =>
+               options.UseMySql(
+                   configuration.GetConnectionString("DefaultConnection")));
             }
             #region Repositories
-            services.AddTransient(typeof(IGenericRepositoryAsync<>), typeof(GenericRepositoryAsync<>));
-            services.AddTransient<IProductRepositoryAsync, ProductRepositoryAsync>();
+            services.AddTransient<IUserRepository, UserRepository>();
+            services.AddTransient<ITeamRepository, TeamRepository>();
+            services.AddTransient<IParticipationRepository, ParticipationRepository>();
+            services.AddTransient<ITaskRepository, TaskRepository>();
+            services.AddTransient<IPostRepository, PostRepository>();
+            services.AddTransient<ICommentRepository, CommentRepository>();
+            services.AddTransient<ITagRepository, TagRepository>();
+            services.AddTransient<IHandleTaskRepository, HandleTaskRepository>();
+            services.AddTransient<INotificationRepository, NotificationRepository>();
+            services.AddTransient<ITaskVersionRepository, TaskVersionRepository>();
+            services.AddTransient<IFileRepository, FileRepository>();
+            services.AddTransient<IGroupChatRepository, GroupChatRepository>();
+            services.AddTransient<IGroupChatUserRepository, GroupChatUserRepository>();
+            services.AddTransient<IMessageRepository, MessageRepository>();
             #endregion
         }
     }

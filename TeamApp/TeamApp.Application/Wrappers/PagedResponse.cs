@@ -4,19 +4,19 @@ using System.Text;
 
 namespace TeamApp.Application.Wrappers
 {
-    public class PagedResponse<T> : Response<T>
+    public class PagedResponse<T>
     {
         public int PageNumber { get; set; }
         public int PageSize { get; set; }
+        public int TotalRecords { get; set; }
+        public List<T> Items { set; get; }
 
-        public PagedResponse(T data, int pageNumber, int pageSize)
+        public PagedResponse(List<T> items, int pageNumber, int pageSize, int totalRecords)
         {
             this.PageNumber = pageNumber;
             this.PageSize = pageSize;
-            this.Data = data;
-            this.Message = null;
-            this.Succeeded = true;
-            this.Errors = null;
+            this.Items = items;
+            this.TotalRecords = totalRecords;
         }
     }
 }
