@@ -4,29 +4,64 @@ using System.Text;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Domain.Models.GroupChat;
+using TeamApp.Infrastructure.Persistence.Entities;
+using Task = System.Threading.Tasks.Task;
+using System.Linq;
+using Microsoft.EntityFrameworkCore;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class GroupChatRepository : IGroupChatRepository
     {
-        public Task<string> AddGroupChat(GroupChatRequest grChatReq)
+        private readonly KhoaLuanContext _dbContext;
+        public async Task<string> AddGroupChat(GroupChatRequest grChatReq)
         {
-            throw new NotImplementedException();
+            var entity = new GroupChat
+            {
+                GroupChatId = new Guid().ToString(),
+                GroupChatName = grChatReq.GroupChatName,
+                GroupChatUpdatedAt = grChatReq.GroupChatUpdatedAt,
+            };
+
+            await _dbContext.GroupChat.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+
+            return entity.GroupChatId;
         }
 
-        public Task<bool> DeleteGroupChat(string grChatId)
+        public async Task<bool> DeleteGroupChat(string grChatId)
         {
-            throw new NotImplementedException();
+            return await Task.FromResult(false);
         }
 
-        public Task<List<GroupChatResponse>> GetAllByUserId(string userId)
+        public async Task<List<GroupChatResponse>> GetAllByUserId(string userId)
         {
-            throw new NotImplementedException();
+            var query = from gc in _dbContext.GroupChat
+                        join grc in _dbContext.GroupChatUser on gc.GroupChatId equals grc.GroupChatUserGroupChatId
+                        where grc.GroupChatUserId == userId
+                        select gc;
+
+            return await query.Select(x => new GroupChatResponse
+            {
+                GroupChatId = x.GroupChatId,
+                GroupChatName = x.GroupChatName,
+                GroupChatUpdatedAt = x.GroupChatUpdatedAt,
+            }).ToListAsync();
         }
 
-        public Task<bool> UpdateGroupChat(string grchatId, GroupChatRequest grChatReq)
+        public async Task<bool> UpdateGroupChat(string grchatId, GroupChatRequest grChatReq)
         {
-            throw new NotImplementedException();
+            var entity = await _dbContext.GroupChat.FindAsync(grchatId);
+            if (entity == null)
+                return false;
+
+            entity.GroupChatName = grChatReq.GroupChatName;
+            entity.GroupChatUpdatedAt = grChatReq.GroupChatUpdatedAt;
+
+            _dbContext.GroupChat.Update(entity);
+            await _dbContext.SaveChangesAsync();
+
+            return true;
         }
     }
 }
