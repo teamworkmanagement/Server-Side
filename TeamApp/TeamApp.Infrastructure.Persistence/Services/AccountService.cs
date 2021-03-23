@@ -39,7 +39,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             this._emailService = emailService;
         }
 
-        public async Task<Response<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, string ipAddress)
+        public async Task<ApiResponse<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, string ipAddress)
         {
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
@@ -66,10 +66,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
             response.IsVerified = user.EmailConfirmed;
             var refreshToken = GenerateRefreshToken(ipAddress);
             response.RefreshToken = refreshToken.Token;
-            return new Response<AuthenticationResponse>(response, $"Authenticated {user.UserName}");
+            return new ApiResponse<AuthenticationResponse>(response, $"Authenticated {user.UserName}");
         }
 
-        public async Task<Response<string>> RegisterAsync(RegisterRequest request, string origin)
+        public async Task<ApiResponse<string>> RegisterAsync(RegisterRequest request, string origin)
         {
             var userWithSameEmail = await _userManager.FindByEmailAsync(request.Email);
             if (userWithSameEmail != null)
@@ -93,7 +93,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     var verificationUri = await SendVerificationEmail(user, origin);
                     //TODO: Attach Email Service here and configure it via appsettings
                     await _emailService.SendAsync(new Application.DTOs.Email.EmailRequest() { From = "KDSoftVerify", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
-                    return new Response<string>(user.Id, message: $"User Registered. Please confirm your account by visiting this URL {verificationUri}");
+                    return new ApiResponse<string>(user.Id, message: $"User Registered. Please confirm your account by visiting this URL {verificationUri}");
                 }
                 else
                 {
@@ -160,14 +160,14 @@ namespace TeamApp.Infrastructure.Persistence.Services
             return verificationUri;
         }
 
-        public async Task<Response<string>> ConfirmEmailAsync(string userId, string code)
+        public async Task<ApiResponse<string>> ConfirmEmailAsync(string userId, string code)
         {
             var user = await _userManager.FindByIdAsync(userId);
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
             var result = await _userManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
-                return new Response<string>(user.Id, message: $"Account Confirmed for {user.Email}. You can now use the /api/Account/authenticate endpoint.");
+                return new ApiResponse<string>(user.Id, message: $"Account Confirmed for {user.Email}. You can now use the /api/Account/authenticate endpoint.");
             }
             else
             {
@@ -205,14 +205,14 @@ namespace TeamApp.Infrastructure.Persistence.Services
             await _emailService.SendAsync(emailRequest);
         }
 
-        public async Task<Response<string>> ResetPassword(ResetPasswordRequest model)
+        public async Task<ApiResponse<string>> ResetPassword(ResetPasswordRequest model)
         {
             var account = await _userManager.FindByEmailAsync(model.Email);
             if (account == null) throw new ApiException($"No Accounts Registered with {model.Email}.");
             var result = await _userManager.ResetPasswordAsync(account, model.Token, model.Password);
             if (result.Succeeded)
             {
-                return new Response<string>(model.Email, message: $"Password Resetted.");
+                return new ApiResponse<string>(model.Email, message: $"Password Resetted.");
             }
             else
             {

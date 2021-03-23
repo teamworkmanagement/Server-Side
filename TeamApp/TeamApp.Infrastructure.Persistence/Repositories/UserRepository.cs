@@ -19,28 +19,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<string> AddUser(UserRequest user)
-        {
-            var userEntity = new User
-            {
-                
-            };
-            await _dbContext.User.AddAsync(userEntity);
-            await _dbContext.SaveChangesAsync();
-            return "";
-        }
 
         public async Task<bool> DeleteUser(string userId)
         {
             return await System.Threading.Tasks.Task.FromResult(false);
-        }
-
-        public async Task<List<UserResponse>> GetAll()
-        {
-            return await _dbContext.User.Select(x => new UserResponse
-            {
-                
-            }).ToListAsync();
         }
 
         public async Task<List<UserResponse>> GetAllByTeamId(string teamId)

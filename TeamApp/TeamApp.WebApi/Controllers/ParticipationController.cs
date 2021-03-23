@@ -3,7 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Paricipation;
 using TeamApp.Application.Interfaces.Repositories;
+using TeamApp.Application.Wrappers;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -20,19 +22,43 @@ namespace TeamApp.WebApi.Controllers
         [HttpGet("byteamid/{teamId}")]
         public async Task<IActionResult> GetByTeamId(string teamId)
         {
-            return Ok(await _repo.GetAllByTeamId(teamId));
+            var res = await _repo.GetAllByTeamId(teamId);
+
+            var outPut = new ApiResponse<List<ParticipationResponse>>
+            {
+                Data = res,
+                Succeeded = true,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpGet("team/{userId}")]
         public async Task<IActionResult> GetTeamByUserId(string userId)
         {
-            return Ok(await _repo.GetTeamByUserId(userId));
+            var res = await _repo.GetTeamByUserId(userId);
+
+            var outPut = new ApiResponse<List<string>>
+            {
+                Data = res,
+                Succeeded = true,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpDelete("{userId}/{teamId}")]
         public async Task<IActionResult> DeleteParticipation(string userId, string teamId)
         {
-            return Ok(await _repo.DeleteParticipation(userId, teamId));
+            var res = await _repo.DeleteParticipation(userId, teamId);
+
+            var outPut = new ApiResponse<bool>
+            {
+                Data = res,
+                Succeeded = res,
+            };
+
+            return Ok(outPut);
         }
     }
 }

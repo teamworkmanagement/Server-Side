@@ -10,10 +10,10 @@ namespace TeamApp.Application.Interfaces
 {
     public interface IAccountService
     {
-        Task<Response<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, string ipAddress);
-        Task<Response<string>> RegisterAsync(RegisterRequest request, string origin);
-        Task<Response<string>> ConfirmEmailAsync(string userId, string code);
+        Task<ApiResponse<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, string ipAddress);
+        Task<ApiResponse<string>> RegisterAsync(RegisterRequest request, string origin);
+        Task<ApiResponse<string>> ConfirmEmailAsync(string userId, string code);
         Task ForgotPassword(ForgotPasswordRequest model, string origin);
-        Task<Response<string>> ResetPassword(ResetPasswordRequest model);
+        Task<ApiResponse<string>> ResetPassword(ResetPasswordRequest model);
     }
 }
