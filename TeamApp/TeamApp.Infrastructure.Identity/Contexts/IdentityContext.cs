@@ -24,7 +24,69 @@ namespace TeamApp.Infrastructure.Identity.Contexts
                 entity.Property(m => m.Id).HasMaxLength(50);
                 entity.Property(m => m.NormalizedEmail).HasMaxLength(50);
                 entity.Property(m => m.NormalizedUserName).HasMaxLength(50);
+
+
             });
+
+            builder.Entity<ApplicationUser>().Ignore(c => c.AccessFailedCount)
+                                           .Ignore(c => c.LockoutEnabled)
+                                           
+                                           .Ignore(c => c.TwoFactorEnabled)
+                                           
+                                           
+                                           .Ignore(c=>c.AccessFailedCount);
+
+            builder.Entity<ApplicationUser>(entity =>
+            {
+                entity.HasKey(e => e.Id);
+
+                entity.Property(e => e.Id)
+                    .HasColumnName("user_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.PhoneNumber)
+                    .HasColumnName("use_phone_number")
+                    .HasColumnType("varchar(20)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnName("user_created_at")
+                    .HasColumnType("timestamp");
+
+                entity.Property(e => e.Dob)
+                    .HasColumnName("user_date_of_birth")
+                    .HasColumnType("timestamp");
+
+                entity.Property(e => e.Email)
+                    .HasColumnName("user_email")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FullName)
+                    .HasColumnName("user_fullname")
+                    .HasColumnType("varchar(100)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.ImageUrl)
+                    .HasColumnName("user_image_url")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.IsThemeLight).HasColumnName("user_is_theme_light");
+
+                entity.Property(e => e.PasswordHash)
+                    .HasColumnName("user_password")
+                    .HasColumnType("varchar(500)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+            }
+           );
 
             builder.Entity<IdentityRole>(entity =>
             {

@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Paricipation;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.Paricipation;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
@@ -52,10 +52,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var query = from p in _dbContext.Participation
                         join t in _dbContext.Team on p.ParticipationTeamId equals t.TeamId
-                        join u in _dbContext.User on p.ParticipationUserId equals u.UserId
+                        join u in _dbContext.User on p.ParticipationUserId equals u.Id
                         select new { t, u };
 
-            var outPut = await query.Where(x => x.u.UserId == userId).Select(x => x.t.TeamId).ToListAsync();
+            var outPut = await query.Where(x => x.u.Id == userId).Select(x => x.t.TeamId).ToListAsync();
 
             return outPut;
         }

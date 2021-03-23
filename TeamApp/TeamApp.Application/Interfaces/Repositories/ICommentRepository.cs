@@ -2,9 +2,10 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Comment;
 using TeamApp.Application.Filters;
 using TeamApp.Application.Wrappers;
-using TeamApp.Domain.Models.Comment;
+
 
 namespace TeamApp.Application.Interfaces.Repositories
 {

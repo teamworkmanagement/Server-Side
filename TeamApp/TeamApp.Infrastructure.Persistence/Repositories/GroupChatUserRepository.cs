@@ -4,8 +4,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.GroupChatUser;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.GroupChatUser;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories

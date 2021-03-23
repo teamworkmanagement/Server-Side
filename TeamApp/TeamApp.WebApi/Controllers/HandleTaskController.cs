@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.HandleTask;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.HandleTask;
+using TeamApp.Application.Wrappers;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -21,31 +22,74 @@ namespace TeamApp.WebApi.Controllers
         [HttpGet("bytaskid/{taskId}")]
         public async Task<IActionResult> GetAllByTaskId(string taskId)
         {
-            return Ok(await _repo.GetAllByTaskId(taskId));
+            var res = await _repo.GetAllByTaskId(taskId);
+
+            var outPut = new ApiResponse<List<HandleTaskResponse>>
+            {
+                Data = res,
+                Succeeded = true,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpGet("byuserid/{userId}")]
         public async Task<IActionResult> GetAllByUserId(string userId)
         {
-            return Ok(await _repo.GetAllByUserId(userId));
+            var res = await _repo.GetAllByUserId(userId);
+
+            var outPut = new ApiResponse<List<HandleTaskResponse>>
+            {
+                Data = res,
+                Succeeded = true,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddHandleTask([FromForm] HandleTaskRequest handleTaskReq)
         {
-            return Ok(await _repo.AddHandleTask(handleTaskReq));
+            var res = await _repo.AddHandleTask(handleTaskReq);
+
+            var outPut = new ApiResponse<string>
+            {
+                Data = res,
+                Succeeded = res == null ? false : true,
+                Message = res == null ? "Thêm thất bại" : null,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpPut("{handleTaskId}")]
         public async Task<IActionResult> UpdateHandleTask(string handleTaskId, [FromForm] HandleTaskRequest handleTaskReq)
         {
-            return Ok(await _repo.UpdateHandleTask(handleTaskId, handleTaskReq));
+            var res = await _repo.UpdateHandleTask(handleTaskId, handleTaskReq);
+
+            var outPut = new ApiResponse<bool>
+            {
+                Data = res,
+                Succeeded = res,
+                Message = !res ? "Sửa thất bại" : null,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpDelete("{handleTaskId}")]
         public async Task<IActionResult> DeleteHandleTask(string handleTaskId)
         {
-            return Ok(await _repo.DeleteHandleTask(handleTaskId));
+            var res = await _repo.DeleteHandleTask(handleTaskId);
+
+            var outPut = new ApiResponse<bool>
+            {
+                Data = res,
+                Succeeded = res,
+                Message = !res ? "Xóa thất bại" : null,
+            };
+
+            return Ok(outPut);
         }
     }
 }

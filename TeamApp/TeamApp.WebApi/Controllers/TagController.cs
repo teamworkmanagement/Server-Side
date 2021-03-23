@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Tag;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.Tag;
+using TeamApp.Application.Wrappers;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -21,13 +22,31 @@ namespace TeamApp.WebApi.Controllers
         [HttpGet("{tagId}")]
         public async Task<IActionResult> GetById(string tagId)
         {
-            return Ok(await _repo.GetById(tagId));
+            var res = await _repo.GetById(tagId);
+
+            var outPut = new ApiResponse<TagObject>
+            {
+                Data = res,
+                Succeeded = res == null ? false : true,
+                Message = res == null ? "Tag không tồn tại" : null,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddTag([FromForm] TagObject tagObj)
         {
-            return Ok(await _repo.AddTag(tagObj));
+            var res = await _repo.AddTag(tagObj);
+
+            var outPut = new ApiResponse<string>
+            {
+                Data = res,
+                Succeeded = res == null ? false : true,
+                Message = res == null ? "Thêm thất bại" : null,
+            };
+
+            return Ok(outPut);
         }
     }
 }

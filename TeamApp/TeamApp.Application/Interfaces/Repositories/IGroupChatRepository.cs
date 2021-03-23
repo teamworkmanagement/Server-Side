@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using TeamApp.Domain.Models.GroupChat;
+using TeamApp.Application.DTOs.GroupChat;
 
 namespace TeamApp.Application.Interfaces.Repositories
 {

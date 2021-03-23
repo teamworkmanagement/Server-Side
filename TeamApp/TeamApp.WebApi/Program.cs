@@ -13,12 +13,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Infrastructure.Identity;
 using TeamApp.Infrastructure.Identity.Models;
+using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.WebApi
 {
     public class Program
     {
-        public async static Task Main(string[] args)
+        public async static System.Threading.Tasks.Task Main(string[] args)
         {
             //Read Configuration from appSettings
             var config = new ConfigurationBuilder()
@@ -36,7 +37,7 @@ namespace TeamApp.WebApi
                 var loggerFactory = services.GetRequiredService<ILoggerFactory>();
                 try
                 {
-                    var userManager = services.GetRequiredService<UserManager<ApplicationUser>>();
+                    var userManager = services.GetRequiredService<UserManager<User>>();
                     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
                     //Seed data

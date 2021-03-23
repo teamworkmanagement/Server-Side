@@ -26,19 +26,16 @@ namespace TeamApp.Infrastructure.Identity.Services
     public class AccountService : IAccountService
     {
         private readonly UserManager<ApplicationUser> _userManager;
-        private readonly RoleManager<IdentityRole> _roleManager;
         private readonly SignInManager<ApplicationUser> _signInManager;
         private readonly IEmailService _emailService;
         private readonly JWTSettings _jwtSettings;
 
         public AccountService(UserManager<ApplicationUser> userManager,
-            RoleManager<IdentityRole> roleManager,
             IOptions<JWTSettings> jwtSettings,
             SignInManager<ApplicationUser> signInManager,
             IEmailService emailService)
         {
             _userManager = userManager;
-            _roleManager = roleManager;
             _jwtSettings = jwtSettings.Value;
             _signInManager = signInManager;
             this._emailService = emailService;
@@ -76,33 +73,38 @@ namespace TeamApp.Infrastructure.Identity.Services
 
         public async Task<Response<string>> RegisterAsync(RegisterRequest request, string origin)
         {
-            var userWithSameUserName = await _userManager.FindByNameAsync(request.UserName);
-            if (userWithSameUserName != null)
+            var userWithSameEmail = await _userManager.FindByEmailAsync(request.Email);
+            if (userWithSameEmail != null)
             {
-                throw new ApiException($"Username '{request.UserName}' is already taken.");
+                throw new ApiException($"Username '{request.Email}' is already taken.");
             }
             var user = new ApplicationUser
             {
                 Email = request.Email,
-                FirstName = request.FirstName,
-                LastName = request.LastName,
-                UserName = request.UserName
+                FullName = request.FullName,
+                UserName = request.Email,
+                CreatedAt = DateTime.UtcNow,
             };
-            var userWithSameEmail = await _userManager.FindByEmailAsync(request.Email);
+
             if (userWithSameEmail == null)
             {
                 var result = await _userManager.CreateAsync(user, request.Password);
                 if (result.Succeeded)
                 {
-                    await _userManager.AddToRoleAsync(user, Roles.Basic.ToString());
+                    //await _userManager.AddToRoleAsync(user, Roles.Basic.ToString());
                     var verificationUri = await SendVerificationEmail(user, origin);
                     //TODO: Attach Email Service here and configure it via appsettings
-                    await _emailService.SendAsync(new Application.DTOs.Email.EmailRequest() { From = "mail@codewithmukesh.com", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
+                    await _emailService.SendAsync(new Application.DTOs.Email.EmailRequest() { From = "KDSoftVerify", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
                     return new Response<string>(user.Id, message: $"User Registered. Please confirm your account by visiting this URL {verificationUri}");
                 }
                 else
                 {
-                    throw new ApiException($"{result.Errors}");
+                    var errStr = "";
+                    foreach (var e in result.Errors)
+                    {
+                        errStr += e.Description;
+                    }
+                    throw new ApiException($"{errStr}");
                 }
             }
             else
@@ -114,14 +116,6 @@ namespace TeamApp.Infrastructure.Identity.Services
         private async Task<JwtSecurityToken> GenerateJWToken(ApplicationUser user)
         {
             var userClaims = await _userManager.GetClaimsAsync(user);
-            var roles = await _userManager.GetRolesAsync(user);
-
-            var roleClaims = new List<Claim>();
-
-            for (int i = 0; i < roles.Count; i++)
-            {
-                roleClaims.Add(new Claim("roles", roles[i]));
-            }
 
             string ipAddress = IpHelper.GetIpAddress();
 
@@ -133,8 +127,7 @@ namespace TeamApp.Infrastructure.Identity.Services
                 new Claim("uid", user.Id),
                 new Claim("ip", ipAddress)
             }
-            .Union(userClaims)
-            .Union(roleClaims);
+            .Union(userClaims);
 
             var symmetricSecurityKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key));
             var signingCredentials = new SigningCredentials(symmetricSecurityKey, SecurityAlgorithms.HmacSha256);

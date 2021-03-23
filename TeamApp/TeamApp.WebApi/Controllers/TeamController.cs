@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.Team;
+using TeamApp.Application.Wrappers;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -21,31 +22,75 @@ namespace TeamApp.WebApi.Controllers
         [HttpGet("byuserid/{userId}")]
         public async Task<IActionResult> GetByUserId(string userId)
         {
-            return Ok(await _repo.GetByUserId(userId));
+            var res = await _repo.GetByUserId(userId);
+
+            var outPut = new ApiResponse<List<TeamResponse>>
+            {
+                Data = res,
+                Succeeded = true,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpGet("{teamId}")]
         public async Task<IActionResult> GetById(string teamId)
         {
-            return Ok(await _repo.GetById(teamId));
+            var res = await _repo.GetById(teamId);
+
+            var outPut = new ApiResponse<TeamResponse>
+            {
+                Data = res,
+                Succeeded = res == null ? false : true,
+                Message = res == null ? "Không tồn tại" : null,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpPost]
         public async Task<IActionResult> AddTeam([FromForm] TeamRequest teamReq)
         {
-            return Ok(await _repo.AddTeam(teamReq));
+            var res = await _repo.AddTeam(teamReq);
+
+            var outPut = new ApiResponse<string>
+            {
+                Data = res,
+                Succeeded = res == null ? false : true,
+                Message = res == null ? "Thêm lỗi" : null,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpPut]
         public async Task<IActionResult> UpdateTeam([FromForm] string teamId, [FromForm] TeamRequest teamReq)
         {
-            return Ok(await _repo.UpdateTeam(teamId, teamReq));
+            var res = await _repo.UpdateTeam(teamId, teamReq);
+
+            var outPut = new ApiResponse<bool>
+            {
+                Data = res,
+                Succeeded = res,
+                Message = !res ? "Update lỗi" : null,
+            };
+
+            return Ok(outPut);
         }
 
         [HttpDelete("{teamId}")]
         public async Task<IActionResult> DeleteById(string teamId)
         {
-            return Ok(await _repo.DeleteTeam(teamId));
+            var res = await _repo.DeleteTeam(teamId);
+
+            var outPut = new ApiResponse<bool>
+            {
+                Data = res,
+                Succeeded = res,
+                Message = !res ? "Xóa lỗi" : null,
+            };
+
+            return Ok(outPut);
         }
 
 

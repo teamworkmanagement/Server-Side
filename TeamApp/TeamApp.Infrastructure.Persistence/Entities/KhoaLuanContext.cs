@@ -1,10 +1,12 @@
 ﻿using System;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace TeamApp.Infrastructure.Persistence.Entities
 {
-    public partial class KhoaLuanContext : DbContext
+    public partial class KhoaLuanContext : IdentityDbContext<User>
     {
         public KhoaLuanContext()
         {
@@ -37,6 +39,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
+            base.OnModelCreating(modelBuilder);
+
             modelBuilder.Entity<Comment>(entity =>
             {
                 entity.ToTable("comment");
@@ -610,51 +614,96 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             {
                 entity.ToTable("user");
 
-                entity.Property(e => e.UserId)
+                entity.Property(e => e.Id)
                     .HasColumnName("user_id")
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.UsePhoneNumber)
+                entity.Property(e => e.PhoneNumber)
                     .HasColumnName("use_phone_number")
                     .HasColumnType("varchar(20)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.UserCreatedAt)
+                entity.Property(e => e.CreatedAt)
                     .HasColumnName("user_created_at")
                     .HasColumnType("timestamp");
 
-                entity.Property(e => e.UserDateOfBirth)
+                entity.Property(e => e.Dob)
                     .HasColumnName("user_date_of_birth")
                     .HasColumnType("timestamp");
 
-                entity.Property(e => e.UserEmail)
+                entity.Property(e => e.Email)
                     .HasColumnName("user_email")
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.UserFullname)
+                entity.Property(e => e.FullName)
                     .HasColumnName("user_fullname")
                     .HasColumnType("varchar(100)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.UserImageUrl)
+                entity.Property(e => e.ImageUrl)
                     .HasColumnName("user_image_url")
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.UserIsThemeLight).HasColumnName("user_is_theme_light");
+                entity.Property(e => e.IsThemeLight).HasColumnName("user_is_theme_light");
 
-                entity.Property(e => e.UserPassword)
+                entity.Property(e => e.PasswordHash)
                     .HasColumnName("user_password")
-                    .HasColumnType("varchar(50)")
+                    .HasColumnType("varchar(500)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
+            });
+
+
+            modelBuilder.Entity<IdentityRole>(entity =>
+            {
+                entity.ToTable(name: "Role");
+                entity.Property(m => m.Id).HasMaxLength(85);
+                entity.Property(m => m.NormalizedName).HasMaxLength(85);
+            });
+            modelBuilder.Entity<IdentityUserRole<string>>(entity =>
+            {
+                entity.ToTable("UserRoles");
+                entity.Property(m => m.RoleId).HasMaxLength(50);
+                entity.Property(m => m.UserId).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<IdentityUserClaim<string>>(entity =>
+            {
+                entity.ToTable("UserClaims");
+                entity.Property(m => m.Id).HasMaxLength(50);
+                entity.Property(m => m.UserId).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<IdentityUserLogin<string>>(entity =>
+            {
+                entity.ToTable("UserLogins");
+                entity.HasKey(e => e.UserId);
+                entity.Property(m => m.LoginProvider).HasMaxLength(50);
+                entity.Property(m => m.ProviderKey).HasMaxLength(50);
+                entity.Property(m => m.UserId).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<IdentityRoleClaim<string>>(entity =>
+            {
+                entity.ToTable("RoleClaims");
+                entity.Property(e => e.Id).HasMaxLength(50);
+                entity.Property(m => m.RoleId).HasMaxLength(50);
+            });
+
+            modelBuilder.Entity<IdentityUserToken<string>>(entity =>
+            {
+                entity.ToTable("UserTokens");
+                entity.Property(m => m.UserId).HasMaxLength(50);
+                entity.Property(m => m.LoginProvider).HasMaxLength(50);
+                entity.Property(m => m.Name).HasMaxLength(50);
             });
 
             OnModelCreatingPartial(modelBuilder);

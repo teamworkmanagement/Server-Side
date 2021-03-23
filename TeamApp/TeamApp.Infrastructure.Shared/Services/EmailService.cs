@@ -1,8 +1,6 @@
-﻿using MailKit.Net.Smtp;
-using MailKit.Security;
-using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using MimeKit;
+using System.Net.Mail;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Email;
 using TeamApp.Application.Exceptions;
@@ -22,23 +20,20 @@ namespace TeamApp.Infrastructure.Shared.Services
             _logger = logger;
         }
 
-        public async Task SendAsync(EmailRequest request)
+        public Task SendAsync(EmailRequest request)
         {
             try
             {
                 // create message
-                var email = new MimeMessage();
-                email.Sender = MailboxAddress.Parse(request.From ?? _mailSettings.EmailFrom);
-                email.To.Add(MailboxAddress.Parse(request.To));
-                email.Subject = request.Subject;
-                var builder = new BodyBuilder();
-                builder.HtmlBody = request.Body;
-                email.Body = builder.ToMessageBody();
-                using var smtp = new SmtpClient();
-                smtp.Connect(_mailSettings.SmtpHost, _mailSettings.SmtpPort, SecureSocketOptions.StartTls);
-                smtp.Authenticate(_mailSettings.SmtpUser, _mailSettings.SmtpPass);
-                await smtp.SendAsync(email);
-                smtp.Disconnect(true);
+                MailMessage mail = new MailMessage("kdsoftverify@gmail.com", request.To, "Xác nhận OTP", request.Body);
+                mail.IsBodyHtml = true;
+                SmtpClient client = new SmtpClient("smtp.gmail.com");
+                client.Host = "smtp.gmail.com";
+                client.UseDefaultCredentials = false;
+                client.Port = 587;
+                client.Credentials = new System.Net.NetworkCredential(_mailSettings.EmailFrom, _mailSettings.SmtpPass);
+                client.EnableSsl = true;
+                client.Send(mail);
 
             }
             catch (System.Exception ex)
@@ -46,6 +41,7 @@ namespace TeamApp.Infrastructure.Shared.Services
                 _logger.LogError(ex.Message, ex);
                 throw new ApiException(ex.Message);
             }
+            return Task.CompletedTask;
         }
     }
 }
