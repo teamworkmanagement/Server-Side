@@ -3,9 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.Task;
-using TeamApp.Domain.Models.User;
 using TeamApp.Infrastructure.Persistence.Entities;
 using Task = TeamApp.Infrastructure.Persistence.Entities.Task;
 

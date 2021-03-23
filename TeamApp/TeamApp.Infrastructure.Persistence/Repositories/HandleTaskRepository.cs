@@ -3,10 +3,10 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.HandleTask;
 using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using TeamApp.Application.DTOs.HandleTask;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {

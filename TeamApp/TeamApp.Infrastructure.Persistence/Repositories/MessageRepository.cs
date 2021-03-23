@@ -5,10 +5,10 @@ using System.Threading.Tasks;
 using TeamApp.Application.Filters;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
-using TeamApp.Domain.Models.Message;
 using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using TeamApp.Application.DTOs.Message;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {

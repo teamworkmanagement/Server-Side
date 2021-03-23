@@ -1,7 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.User;
 
 namespace TeamApp.WebApi.Controllers
 {

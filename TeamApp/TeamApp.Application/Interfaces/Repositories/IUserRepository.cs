@@ -1,10 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Text;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using TeamApp.Domain.Models;
-using TeamApp.Domain.Models.Task;
-using TeamApp.Domain.Models.User;
+using TeamApp.Application.DTOs.User;
 
 namespace TeamApp.Application.Interfaces.Repositories
 {

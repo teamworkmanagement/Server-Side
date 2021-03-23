@@ -2,7 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
-using TeamApp.Domain.Models.Tag;
+using TeamApp.Application.DTOs.Tag;
 
 namespace TeamApp.Application.Interfaces.Repositories
 {

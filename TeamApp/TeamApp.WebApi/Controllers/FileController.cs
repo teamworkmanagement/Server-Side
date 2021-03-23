@@ -3,8 +3,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.File;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.File;
 
 namespace TeamApp.WebApi.Controllers
 {

@@ -2,8 +2,8 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Tag;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.Tag;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories

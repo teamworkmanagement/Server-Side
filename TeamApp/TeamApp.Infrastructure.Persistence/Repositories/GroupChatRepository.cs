@@ -3,11 +3,11 @@ using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.GroupChat;
 using TeamApp.Infrastructure.Persistence.Entities;
 using Task = System.Threading.Tasks.Task;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using TeamApp.Application.DTOs.GroupChat;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {

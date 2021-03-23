@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Comment;
 using TeamApp.Application.Filters;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.Comment;
 
 namespace TeamApp.WebApi.Controllers
 {

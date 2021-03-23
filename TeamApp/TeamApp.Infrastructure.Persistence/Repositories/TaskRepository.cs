@@ -4,10 +4,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Task;
 using TeamApp.Application.Filters;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
-using TeamApp.Domain.Models.Task;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories

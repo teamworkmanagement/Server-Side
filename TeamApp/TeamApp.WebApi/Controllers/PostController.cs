@@ -3,9 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Post;
 using TeamApp.Application.Filters;
 using TeamApp.Application.Interfaces.Repositories;
-using TeamApp.Domain.Models.Post;
 
 namespace TeamApp.WebApi.Controllers
 {
