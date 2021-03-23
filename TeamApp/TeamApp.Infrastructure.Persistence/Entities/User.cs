@@ -1,10 +1,12 @@
-﻿using System;
+﻿using Microsoft.AspNetCore.Identity;
+using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
+using TeamApp.Application.DTOs.Account;
 
 namespace TeamApp.Infrastructure.Persistence.Entities
 {
-    public partial class User
+    public partial class User : IdentityUser
     {
         public User()
         {
@@ -18,16 +20,14 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             Team = new HashSet<Team>();
         }
 
-        
-        public string UserId { get; set; }
-        public string UserEmail { get; set; }
-        public string UserPassword { get; set; }
-        public string UserFullname { get; set; }
-        public DateTime? UserDateOfBirth { get; set; }
-        public string UsePhoneNumber { get; set; }
-        public string UserImageUrl { get; set; }
-        public DateTime? UserCreatedAt { get; set; }
-        public bool? UserIsThemeLight { get; set; }
+
+        public string FullName { get; set; }
+        public DateTime? Dob { get; set; }
+        public string ImageUrl { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public bool? IsThemeLight { get; set; }
+
+
 
         public virtual ICollection<Comment> Comment { get; set; }
         public virtual ICollection<GroupChatUser> GroupChatUser { get; set; }
@@ -37,5 +37,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<Participation> Participation { get; set; }
         public virtual ICollection<Post> Post { get; set; }
         public virtual ICollection<Team> Team { get; set; }
+        public List<RefreshToken> RefreshTokens { get; set; }
+
+
+        public bool OwnsToken(string token)
+        {
+            return this.RefreshTokens?.Find(x => x.Token == token) != null;
+        }
     }
 }

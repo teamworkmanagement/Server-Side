@@ -68,10 +68,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var query = from p in _dbContext.Participation
                         join t in _dbContext.Team on p.ParticipationTeamId equals t.TeamId
-                        join u in _dbContext.User on p.ParticipationUserId equals u.UserId
+                        join u in _dbContext.User on p.ParticipationUserId equals u.Id
                         select new { t, u };
 
-            var outPut = await query.Where(x => x.u.UserId == userId).Select(entity => new TeamResponse
+            var outPut = await query.Where(x => x.u.Id == userId).Select(entity => new TeamResponse
             {
                 TeamId = entity.t.TeamId,
                 TeamLeaderId = entity.t.TeamLeaderId,

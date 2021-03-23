@@ -37,7 +37,7 @@ namespace TeamApp.Infrastructure.Identity
                     configuration.GetConnectionString("IdentityConnection"),
                     b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)));
             }
-            services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<IdentityContext>().AddDefaultTokenProviders();
+            /*services.AddIdentity<ApplicationUser, IdentityRole>().AddEntityFrameworkStores<IdentityContext>().AddDefaultTokenProviders();
             #region Services
             services.AddTransient<IAccountService, AccountService>();
             #endregion
@@ -87,7 +87,7 @@ namespace TeamApp.Infrastructure.Identity
                             return context.Response.WriteAsync(result);
                         },
                     };
-                });
+                });*/
         }
     }
 }

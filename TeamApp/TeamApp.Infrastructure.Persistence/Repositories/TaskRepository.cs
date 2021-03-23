@@ -81,10 +81,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entityList = from ta in _dbContext.Task
                              join p in _dbContext.Participation on ta.TaskTeamId equals p.ParticipationTeamId
-                             join u in _dbContext.User on p.ParticipationUserId equals u.UserId
+                             join u in _dbContext.User on p.ParticipationUserId equals u.Id
                              select new { ta, u };
 
-            entityList = entityList.Where(x => x.u.UserId == userId);
+            entityList = entityList.Where(x => x.u.Id == userId);
 
             var outPut = await entityList.Select(x => new TaskResponse
             {
@@ -107,10 +107,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entityList = from ta in _dbContext.Task
                              join p in _dbContext.Participation on ta.TaskTeamId equals p.ParticipationTeamId
-                             join u in _dbContext.User on p.ParticipationUserId equals u.UserId
+                             join u in _dbContext.User on p.ParticipationUserId equals u.Id
                              select new { ta, u };
 
-            entityList = entityList.Where(x => x.u.UserId == userId && x.ta.TaskTeamId == teamId);
+            entityList = entityList.Where(x => x.u.Id == userId && x.ta.TaskTeamId == teamId);
 
             var outPut = await entityList.Select(x => new TaskResponse
             {
