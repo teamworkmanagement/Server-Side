@@ -8,8 +8,11 @@ namespace TeamApp.Infrastructure.Identity.Models
 {
     public class ApplicationUser : IdentityUser
     {
-        public string FirstName { get; set; }
-        public string LastName { get; set; }
+        public string FullName { get; set; }
+        public DateTime? Dob { get; set; }
+        public string ImageUrl { get; set; }
+        public DateTime? CreatedAt { get; set; }
+        public bool IsThemeLight { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; }
         public bool OwnsToken(string token)
         {

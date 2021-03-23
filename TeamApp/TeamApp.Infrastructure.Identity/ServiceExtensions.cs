@@ -33,7 +33,7 @@ namespace TeamApp.Infrastructure.Identity
             else
             {
                 services.AddDbContext<IdentityContext>(options =>
-                options.UseMySQL(
+                options.UseMySql(
                     configuration.GetConnectionString("IdentityConnection"),
                     b => b.MigrationsAssembly(typeof(IdentityContext).Assembly.FullName)));
             }
