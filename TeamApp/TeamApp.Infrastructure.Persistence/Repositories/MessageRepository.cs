@@ -68,9 +68,15 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }).ToListAsync();
         }
 
-        public async Task<PagedResponse<MessageResponse>> GetPaging(RequestParameter parameter)
+        public async Task<PagedResponse<MessageResponse>> GetPaging(MessageRequestParameter parameter)
         {
-            var query = _dbContext.Message.Skip(parameter.PageNumber * parameter.PageSize).Take(parameter.PageSize);
+            var group = await _dbContext.GroupChat.FindAsync(parameter.GroupId);
+            if (group == null) return null;
+
+            var query = _dbContext.Message
+                .Where(x => x.MessageGroupChatId == parameter.GroupId)
+                .Skip(parameter.PageNumber * parameter.PageSize)
+                .Take(parameter.PageSize);
 
             var items = await query.Select(x => new MessageResponse
             {

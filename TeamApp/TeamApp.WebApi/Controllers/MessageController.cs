@@ -29,13 +29,14 @@ namespace TeamApp.WebApi.Controllers
             {
                 Data = res,
                 Succeeded = true,
+                Message = res == null ? "Nhóm không tồn tại" : null,
             };
 
             return Ok(outPut);
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetPaging([FromQuery] RequestParameter parameter)
+        public async Task<IActionResult> GetPaging([FromQuery] MessageRequestParameter parameter)
         {
             var res = await _repo.GetPaging(parameter);
 
