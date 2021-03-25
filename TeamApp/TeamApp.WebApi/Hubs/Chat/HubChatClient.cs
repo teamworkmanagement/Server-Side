@@ -1,23 +1,54 @@
-﻿using Microsoft.AspNetCore.SignalR;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
+using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.WebApi.Hubs.Chat
 {
+    [Authorize]
     public class HubChatClient : Hub<IHubChatClient>
     {
-        public override Task OnConnectedAsync()
+        private readonly KhoaLuanContext _dbContext;
+        public HubChatClient(KhoaLuanContext dbContext)
         {
-            Console.WriteLine("Connected " + Context.ConnectionId);
-            return base.OnConnectedAsync();
+            _dbContext = dbContext;
+        }
+        public override async System.Threading.Tasks.Task OnConnectedAsync()
+        {
+            var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Console.WriteLine($"Connected {Context.ConnectionId}, Usename {userName}");
+            var userId = await _dbContext.User.Where(x => x.UserName == userName).FirstOrDefaultAsync();
+
+            var uc = new UserConnection
+            {
+                ConnectionId = Context.ConnectionId,
+                UserName = userName,
+                UserId = userId.Id,
+            };
+
+            await _dbContext.UserConnection.AddAsync(uc);
+            await _dbContext.SaveChangesAsync();
+
+            await base.OnConnectedAsync();
         }
 
-        public override Task OnDisconnectedAsync(Exception exception)
+        public override async System.Threading.Tasks.Task OnDisconnectedAsync(Exception exception)
         {
-            Console.WriteLine("Disconnected " + Context.ConnectionId);
-            return base.OnDisconnectedAsync(exception);
+            var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
+            Console.WriteLine($"Disconnected {Context.ConnectionId}, Username {userName}");
+
+            var userCon = await _dbContext.UserConnection.Where(x => x.UserName == userName && x.ConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
+
+            _dbContext.UserConnection.Remove(userCon);
+
+            await _dbContext.SaveChangesAsync();
+
+            await base.OnDisconnectedAsync(exception);
         }
     }
 }

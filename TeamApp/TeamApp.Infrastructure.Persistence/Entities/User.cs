@@ -38,6 +38,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<Post> Post { get; set; }
         public virtual ICollection<Team> Team { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; }
+        public List<UserConnection> UserConnections { get; set; }
 
 
         public bool OwnsToken(string token)

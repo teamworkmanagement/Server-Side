@@ -31,6 +31,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<TaskVersion> TaskVersion { get; set; }
         public virtual DbSet<Team> Team { get; set; }
         public virtual DbSet<User> User { get; set; }
+        public virtual DbSet<UserConnection> UserConnection { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -40,6 +41,17 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<UserConnection>(entity =>
+            {
+                entity.ToTable("user_connection");
+                entity.HasKey(e => new { e.UserId, e.ConnectionId });
+                entity.Property(e => e.ConnectionId)
+                    .HasColumnName("user_connection_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+            });
 
             modelBuilder.Entity<Comment>(entity =>
             {
