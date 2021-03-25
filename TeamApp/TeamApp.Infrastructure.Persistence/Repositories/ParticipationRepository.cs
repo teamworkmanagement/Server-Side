@@ -12,8 +12,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class ParticipationRepository : IParticipationRepository
     {
-        private readonly KhoaLuanContext _dbContext;
-        public ParticipationRepository(KhoaLuanContext dbContext)
+        private readonly TeamAppContext _dbContext;
+        public ParticipationRepository(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }

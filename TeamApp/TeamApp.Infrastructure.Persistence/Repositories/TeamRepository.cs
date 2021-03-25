@@ -12,8 +12,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class TeamRepository : ITeamRepository
     {
-        private readonly KhoaLuanContext _dbContext;
-        public TeamRepository(KhoaLuanContext dbContext)
+        private readonly TeamAppContext _dbContext;
+        public TeamRepository(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }

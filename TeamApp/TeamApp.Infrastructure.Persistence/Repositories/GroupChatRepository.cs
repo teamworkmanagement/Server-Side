@@ -13,7 +13,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class GroupChatRepository : IGroupChatRepository
     {
-        private readonly KhoaLuanContext _dbContext;
+        private readonly TeamAppContext _dbContext;
         public async Task<string> AddGroupChat(GroupChatRequest grChatReq)
         {
             var entity = new GroupChat

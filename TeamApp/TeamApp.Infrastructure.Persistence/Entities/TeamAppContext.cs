@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace TeamApp.Infrastructure.Persistence.Entities
 {
-    public partial class KhoaLuanContext : IdentityDbContext<User>
+    public partial class TeamAppContext : IdentityDbContext<User>
     {
-        public KhoaLuanContext()
+        public TeamAppContext()
         {
         }
 
-        public KhoaLuanContext(DbContextOptions<KhoaLuanContext> options)
+        public TeamAppContext(DbContextOptions<TeamAppContext> options)
             : base(options)
         {
         }
@@ -31,6 +31,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<TaskVersion> TaskVersion { get; set; }
         public virtual DbSet<Team> Team { get; set; }
         public virtual DbSet<User> User { get; set; }
+        public virtual DbSet<UserConnection> UserConnection { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -704,6 +705,16 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(m => m.UserId).HasMaxLength(50);
                 entity.Property(m => m.LoginProvider).HasMaxLength(50);
                 entity.Property(m => m.Name).HasMaxLength(50);
+            });
+
+
+            modelBuilder.Entity<UserConnection>(e =>
+            {
+                e.ToTable("user_connection");
+                e.HasKey(m => new { m.UserId, m.ConnectionId });
+                e.Property(m => m.ConnectionId).HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
             });
 
             OnModelCreatingPartial(modelBuilder);

@@ -10,9 +10,11 @@ namespace TeamApp.WebApi.Services
 {
     public class AuthenticatedUserService : IAuthenticatedUserService
     {
-        public AuthenticatedUserService(IHttpContextAccessor httpContextAccessor)
+        private readonly IHttpContextAccessor httpContextAccessor;
+        public AuthenticatedUserService(IHttpContextAccessor _httpContextAccessor)
         {
-            UserId = httpContextAccessor.HttpContext?.User?.FindFirstValue("uid");
+            httpContextAccessor = _httpContextAccessor;
+            //UserId = httpContextAccessor.HttpContext?.User?.FindFirst(ClaimTypes.NameIdentifier).Value;
         }
 
         public string UserId { get; }

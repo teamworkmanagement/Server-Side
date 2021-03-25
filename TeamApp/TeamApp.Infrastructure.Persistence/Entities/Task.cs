@@ -11,6 +11,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             TaskVersion = new HashSet<TaskVersion>();
         }
 
+        public static System.Threading.Tasks.Task CompletedTask { get; internal set; }
         public string TaskId { get; set; }
         public string TaskName { get; set; }
         public string TaskDescription { get; set; }

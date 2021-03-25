@@ -3,9 +3,12 @@
 using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System;
@@ -26,12 +29,12 @@ namespace TeamApp.Infrastructure.Persistence
         {
             if (configuration.GetValue<bool>("UseInMemoryDatabase"))
             {
-                services.AddDbContext<KhoaLuanContext>(options =>
+                services.AddDbContext<TeamAppContext>(options =>
                     options.UseInMemoryDatabase("ApplicationDb"));
             }
             else
             {
-                services.AddDbContext<KhoaLuanContext>(options =>
+                services.AddDbContext<TeamAppContext>(options =>
                options.UseMySql(
                    configuration.GetConnectionString("DefaultConnection")));
             }
@@ -56,7 +59,12 @@ namespace TeamApp.Infrastructure.Persistence
         }
         public static void ConfigAuthService(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<KhoaLuanContext>().AddDefaultTokenProviders();
+
+            //services.TryAddEnumerable(
+              //  ServiceDescriptor.Singleton<IPostConfigureOptions<JwtBearerOptions>,
+                //    ConfigureJwtBearerOptions>());
+
+            services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<TeamAppContext>().AddDefaultTokenProviders();
             #region Services
             services.AddTransient<IAccountService, AccountService>();
             #endregion
@@ -90,14 +98,7 @@ namespace TeamApp.Infrastructure.Persistence
                             c.Response.ContentType = "text/plain";
                             return c.Response.WriteAsync(c.Exception.ToString());
                         },
-                        OnChallenge = context =>
-                        {
-                            context.HandleResponse();
-                            context.Response.StatusCode = 401;
-                            context.Response.ContentType = "application/json";
-                            var result = JsonConvert.SerializeObject(new ApiResponse<string>("You are not Authorized"));
-                            return context.Response.WriteAsync(result);
-                        },
+                        
                         OnForbidden = context =>
                         {
                             context.Response.StatusCode = 403;
@@ -105,6 +106,27 @@ namespace TeamApp.Infrastructure.Persistence
                             var result = JsonConvert.SerializeObject(new ApiResponse<string>("You are not authorized to access this resource"));
                             return context.Response.WriteAsync(result);
                         },
+                        /*OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubchat"))
+                            {
+                                 
+                                context.Token = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJzdWIiOiJkdW5naGt1aXRAZ21haWwuY29tIiwianRpIjoiOTc4MDcxZjQtYjk0OC00NTdjLWE5ZWEtYWY0ZjJjZWVkZTViIiwiZW1haWwiOiJkdW5naGt1aXRAZ21haWwuY29tIiwidWlkIjoiYzg1M2JiYTctNTAwMy00NTE4LTllNDctNGY1OWMyOTU0NjE1IiwiaXAiOiIxOTIuMTY4LjEzOS4yIiwiZXhwIjoxNjE2Njc3MzY2LCJpc3MiOiJDb3JlSWRlbnRpdHkiLCJhdWQiOiJDb3JlSWRlbnRpdHlVc2VyIn0.FY-i0_Qmp5mkKVPSRShiNOgbCvXEzvXONnDTCDGufZg";
+                            }
+
+                            return Task.CompletedTask;
+                        },*/
+                        /*OnChallenge = context =>
+                        {
+                            context.HandleResponse();
+                            context.Response.StatusCode = 401;
+                            context.Response.ContentType = "application/json";
+                            var result = JsonConvert.SerializeObject(new ApiResponse<string>("You are not Authorized"));
+                            return context.Response.WriteAsync(result);
+                        },*/
                     };
                 });
         }
