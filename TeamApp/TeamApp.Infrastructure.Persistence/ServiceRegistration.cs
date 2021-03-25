@@ -105,6 +105,17 @@ namespace TeamApp.Infrastructure.Persistence
                             var result = JsonConvert.SerializeObject(new ApiResponse<string>("You are not authorized to access this resource"));
                             return context.Response.WriteAsync(result);
                         },
+                        OnMessageReceived = context =>
+                        {
+                            var accessToken = context.Request.Query["access_token"];
+                            var path = context.HttpContext.Request.Path;
+                            if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubchat"))
+                            {
+
+                                context.Token = accessToken;
+                            }
+                            return System.Threading.Tasks.Task.CompletedTask;
+                        }
                     };
                 });
         }

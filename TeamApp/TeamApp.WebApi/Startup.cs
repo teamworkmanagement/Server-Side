@@ -9,6 +9,7 @@ using TeamApp.Infrastructure.Identity;
 using TeamApp.Infrastructure.Persistence;
 using TeamApp.Infrastructure.Shared;
 using TeamApp.WebApi.Extensions;
+using TeamApp.WebApi.Hubs.Chat;
 using TeamApp.WebApi.Services;
 
 namespace TeamApp.WebApi
@@ -29,6 +30,19 @@ namespace TeamApp.WebApi
             services.AddSwaggerExtension();
             services.AddControllers();
             services.AddHealthChecks();
+
+            services.AddSignalR();
+            services.AddCors(options =>
+            {
+                options.AddPolicy("ClientPermission", policy =>
+                {
+                    policy.AllowAnyHeader()
+                        .AllowAnyMethod()
+                        .WithOrigins("http://localhost:3000")
+                        .AllowCredentials();
+                });
+            });
+
             services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
         }
 
@@ -44,6 +58,7 @@ namespace TeamApp.WebApi
                 app.UseHsts();
             }
             app.UseHttpsRedirection();
+            app.UseCors("ClientPermission");
             app.UseRouting();
             app.UseAuthentication();
             app.UseAuthorization();
@@ -54,6 +69,7 @@ namespace TeamApp.WebApi
             app.UseEndpoints(endpoints =>
              {
                  endpoints.MapControllers();
+                 endpoints.MapHub<HubChatClient>("/hubchat");
              });
         }
     }
