@@ -7,7 +7,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
-    [DbContext(typeof(KhoaLuanContext))]
+    [DbContext(typeof(TeamAppContext))]
     partial class KhoaLuanContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)

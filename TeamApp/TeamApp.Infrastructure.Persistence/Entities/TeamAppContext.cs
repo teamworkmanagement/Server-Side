@@ -6,13 +6,13 @@ using Microsoft.EntityFrameworkCore.Metadata;
 
 namespace TeamApp.Infrastructure.Persistence.Entities
 {
-    public partial class KhoaLuanContext : IdentityDbContext<User>
+    public partial class TeamAppContext : IdentityDbContext<User>
     {
-        public KhoaLuanContext()
+        public TeamAppContext()
         {
         }
 
-        public KhoaLuanContext(DbContextOptions<KhoaLuanContext> options)
+        public TeamAppContext(DbContextOptions<TeamAppContext> options)
             : base(options)
         {
         }

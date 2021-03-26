@@ -12,9 +12,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class UserRepository : IUserRepository
     {
-        private readonly KhoaLuanContext _dbContext;
+        private readonly TeamAppContext _dbContext;
 
-        public UserRepository(KhoaLuanContext dbContext)
+        public UserRepository(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }

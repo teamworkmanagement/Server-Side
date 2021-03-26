@@ -14,9 +14,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class CommentRepository : ICommentRepository
     {
-        private readonly KhoaLuanContext _dbContext;
+        private readonly TeamAppContext _dbContext;
 
-        public CommentRepository(KhoaLuanContext dbContext)
+        public CommentRepository(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }

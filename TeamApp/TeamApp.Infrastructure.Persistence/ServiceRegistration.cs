@@ -26,12 +26,12 @@ namespace TeamApp.Infrastructure.Persistence
         {
             if (configuration.GetValue<bool>("UseInMemoryDatabase"))
             {
-                services.AddDbContext<KhoaLuanContext>(options =>
+                services.AddDbContext<TeamAppContext>(options =>
                     options.UseInMemoryDatabase("ApplicationDb"));
             }
             else
             {
-                services.AddDbContext<KhoaLuanContext>(options =>
+                services.AddDbContext<TeamAppContext>(options =>
                options.UseMySql(
                    configuration.GetConnectionString("DefaultConnection")));
             }
@@ -56,7 +56,7 @@ namespace TeamApp.Infrastructure.Persistence
         }
         public static void ConfigAuthService(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<KhoaLuanContext>().AddDefaultTokenProviders();
+            services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<TeamAppContext>().AddDefaultTokenProviders();
             #region Services
             services.AddTransient<IAccountService, AccountService>();
             #endregion
@@ -90,14 +90,14 @@ namespace TeamApp.Infrastructure.Persistence
                             c.Response.ContentType = "text/plain";
                             return c.Response.WriteAsync(c.Exception.ToString());
                         },
-                        OnChallenge = context =>
+                        /*OnChallenge = context =>
                         {
                             context.HandleResponse();
                             context.Response.StatusCode = 401;
                             context.Response.ContentType = "application/json";
                             var result = JsonConvert.SerializeObject(new ApiResponse<string>("You are not Authorized"));
                             return context.Response.WriteAsync(result);
-                        },
+                        },*/
                         OnForbidden = context =>
                         {
                             context.Response.StatusCode = 403;

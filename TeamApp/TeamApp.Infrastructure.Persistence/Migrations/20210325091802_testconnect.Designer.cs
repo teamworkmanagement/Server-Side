@@ -8,7 +8,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
-    [DbContext(typeof(KhoaLuanContext))]
+    [DbContext(typeof(TeamAppContext))]
     [Migration("20210325091802_testconnect")]
     partial class testconnect
     {

@@ -12,9 +12,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class TaskVersionRepository : ITaskVersionRepository
     {
-        private readonly KhoaLuanContext _dbContext;
+        private readonly TeamAppContext _dbContext;
 
-        public TaskVersionRepository(KhoaLuanContext dbContext)
+        public TaskVersionRepository(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }

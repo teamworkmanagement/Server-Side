@@ -10,9 +10,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class TagRepository : ITagRepository
     {
-        private readonly KhoaLuanContext _dbContext;
+        private readonly TeamAppContext _dbContext;
 
-        public TagRepository(KhoaLuanContext dbContext)
+        public TagRepository(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }

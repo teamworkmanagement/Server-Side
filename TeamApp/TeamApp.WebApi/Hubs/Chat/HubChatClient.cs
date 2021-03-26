@@ -13,8 +13,8 @@ namespace TeamApp.WebApi.Hubs.Chat
     [Authorize]
     public class HubChatClient : Hub<IHubChatClient>
     {
-        private readonly KhoaLuanContext _dbContext;
-        public HubChatClient(KhoaLuanContext dbContext)
+        private readonly TeamAppContext _dbContext;
+        public HubChatClient(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }
