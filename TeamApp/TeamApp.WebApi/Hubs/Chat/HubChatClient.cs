@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TeamApp.Infrastructure.Persistence.Entities;
+using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.WebApi.Hubs.Chat
 {
@@ -18,17 +19,17 @@ namespace TeamApp.WebApi.Hubs.Chat
         {
             _dbContext = dbContext;
         }
-        public override async System.Threading.Tasks.Task OnConnectedAsync()
+        public override async Task OnConnectedAsync()
         {
             var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
             Console.WriteLine($"Connected {Context.ConnectionId}, Usename {userName}");
-            var userId = await _dbContext.User.Where(x => x.UserName == userName).FirstOrDefaultAsync();
+            var user = await _dbContext.User.Where(x => x.UserName == userName).FirstOrDefaultAsync();
 
             var uc = new UserConnection
             {
                 ConnectionId = Context.ConnectionId,
                 UserName = userName,
-                UserId = userId.Id,
+                UserId = user.Id,
             };
 
             await _dbContext.UserConnection.AddAsync(uc);

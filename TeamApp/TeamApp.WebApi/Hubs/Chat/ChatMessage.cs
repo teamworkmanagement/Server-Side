@@ -7,6 +7,8 @@ namespace TeamApp.WebApi.Hubs.Chat
 {
     public class ChatMessage
     {
+        public string GroupId { get; set; }
+        public string UserId { get; set; }
         public string UserName { get; set; }
         public string Message { get; set; }
     }
