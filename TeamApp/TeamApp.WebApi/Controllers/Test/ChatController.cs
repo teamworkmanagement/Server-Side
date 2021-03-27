@@ -46,13 +46,13 @@ namespace TeamApp.WebApi.Controllers.Test
             {
                 if (f.d.UserId != message.UserId)
                 {
-                    Console.WriteLine("shit " + f.d.ConnectionId);
-                    await _chatHub.Groups.AddToGroupAsync(f.d.ConnectionId, groupId);
-                }    
-                    
+                    //await _chatHub.Groups.AddToGroupAsync(f.d.ConnectionId, groupId);
+                    _chatHub.Clients.Client(f.d.ConnectionId).NhanMessage(message);
+                }
+
             }
 
-            await _chatHub.Clients.Groups(groupId).NhanMessage(message);
+            //await _chatHub.Clients.Groups(groupId).NhanMessage(message);
         }
     }
 }
