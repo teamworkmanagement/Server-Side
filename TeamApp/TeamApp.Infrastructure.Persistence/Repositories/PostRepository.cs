@@ -14,9 +14,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class PostRepository : IPostRepository
     {
-        private readonly KhoaLuanContext _dbContext;
+        private readonly TeamAppContext _dbContext;
 
-        public PostRepository(KhoaLuanContext dbContext)
+        public PostRepository(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }

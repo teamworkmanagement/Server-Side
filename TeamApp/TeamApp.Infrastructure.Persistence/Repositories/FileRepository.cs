@@ -10,9 +10,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class FileRepository : IFileRepository
     {
-        private readonly KhoaLuanContext _dbContext;
+        private readonly TeamAppContext _dbContext;
 
-        public FileRepository(KhoaLuanContext dbContext)
+        public FileRepository(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }

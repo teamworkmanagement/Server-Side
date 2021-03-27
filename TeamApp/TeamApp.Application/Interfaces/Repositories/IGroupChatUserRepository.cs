@@ -10,6 +10,6 @@ namespace TeamApp.Application.Interfaces.Repositories
     {
         Task<List<GroupChatUserResponse>> GetByUserId(string userId);
         Task<string> AddGroupChatUser(GroupChatUserRequest grChatUserReq);
-        Task<bool> DeleteGroupChatUser(string grChatUserId,string grChatUserUserId);
+        Task<bool> DeleteGroupChatUser(string groupId,string userId);
     }
 }

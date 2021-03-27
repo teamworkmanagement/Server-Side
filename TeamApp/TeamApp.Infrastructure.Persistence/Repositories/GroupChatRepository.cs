@@ -13,14 +13,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class GroupChatRepository : IGroupChatRepository
     {
-        private readonly KhoaLuanContext _dbContext;
+        private readonly TeamAppContext _dbContext;
+        public GroupChatRepository(TeamAppContext dbContext)
+        {
+            _dbContext = dbContext;
+        }
         public async Task<string> AddGroupChat(GroupChatRequest grChatReq)
         {
             var entity = new GroupChat
             {
-                GroupChatId = new Guid().ToString(),
+                GroupChatId = Guid.NewGuid().ToString(),
                 GroupChatName = grChatReq.GroupChatName,
-                GroupChatUpdatedAt = grChatReq.GroupChatUpdatedAt,
+                GroupChatUpdatedAt = DateTime.UtcNow,
             };
 
             await _dbContext.GroupChat.AddAsync(entity);
@@ -38,10 +42,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var query = from gc in _dbContext.GroupChat
                         join grc in _dbContext.GroupChatUser on gc.GroupChatId equals grc.GroupChatUserGroupChatId
-                        where grc.GroupChatUserId == userId
-                        select gc;
+                        select new { gc, grc };
 
-            return await query.Select(x => new GroupChatResponse
+            var outPut = query.Where(x => x.grc.GroupChatUserUserId == userId).Select(x => x.gc);
+
+
+            return await outPut.Select(x => new GroupChatResponse
             {
                 GroupChatId = x.GroupChatId,
                 GroupChatName = x.GroupChatName,

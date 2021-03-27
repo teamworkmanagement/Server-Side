@@ -9,13 +9,16 @@ namespace TeamApp.WebApi.Controllers.Test
 {
     [ApiController]
     [Route("api/[controller]")]
-    public class TestController: ControllerBase
+    public class TestController : ControllerBase
     {
-        [Authorize]
+        //[Authorize]
         [HttpGet]
         public IActionResult ShowTest()
         {
-            return Ok("Okela");
+            return Ok(new
+            {
+                Text = "Okela",
+            });
         }
     }
 }

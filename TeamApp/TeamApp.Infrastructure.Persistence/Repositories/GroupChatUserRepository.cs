@@ -12,9 +12,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class GroupChatUserRepository : IGroupChatUserRepository
     {
-        private readonly KhoaLuanContext _dbContext;
+        private readonly TeamAppContext _dbContext;
 
-        public GroupChatUserRepository(KhoaLuanContext dbContext)
+        public GroupChatUserRepository(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }
@@ -22,10 +22,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new GroupChatUser
             {
-                GroupChatUserId = new Guid().ToString(),
+                GroupChatUserId = Guid.NewGuid().ToString(),
                 GroupChatUserUserId = grChatUserReq.GroupChatUserUserId,
                 GroupChatUserGroupChatId = grChatUserReq.GroupChatUserGroupChatId,
-                GroupChatUserIsDeleted = grChatUserReq.GroupChatUserIsDeleted,
+                GroupChatUserIsDeleted = false,
             };
 
             await _dbContext.GroupChatUser.AddAsync(entity);
@@ -34,9 +34,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return entity.GroupChatUserId;
         }
 
-        public async Task<bool> DeleteGroupChatUser(string grChatUserId, string grChatUserUserId)
+        public async Task<bool> DeleteGroupChatUser(string groupId, string userId)
         {
-            var entity = await _dbContext.GroupChatUser.Where(x => x.GroupChatUserId == grChatUserId && x.GroupChatUserUserId == grChatUserUserId).FirstOrDefaultAsync();
+            var entity = await _dbContext.GroupChatUser.Where(x => x.GroupChatUserUserId == userId && x.GroupChatUserGroupChatId == groupId).FirstOrDefaultAsync();
+
             if (entity == null)
                 return false;
 
