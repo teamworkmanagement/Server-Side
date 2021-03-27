@@ -68,17 +68,35 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }).ToListAsync();
         }
 
+        public async Task<List<MessageResponse>> GetByGroupId(string groupId)
+        {
+            var query = from m in _dbContext.Message
+                        where m.MessageGroupChatId == groupId
+                        select m;
+
+            return await query.Select(x => new MessageResponse
+            {
+                MessageId = x.MessageId,
+                MessageUserId = x.MessageUserId,
+                MessageGroupChatId = x.MessageGroupChatId,
+                MessageContent = x.MessageContent,
+                MessageCreatedAt = x.MessageCreatedAt,
+                MessageIsDeleted = x.MessageIsDeleted,
+            }).OrderBy(x => x.MessageCreatedAt).ToListAsync();
+        }
+
         public async Task<PagedResponse<MessageResponse>> GetPaging(MessageRequestParameter parameter)
         {
             var group = await _dbContext.GroupChat.FindAsync(parameter.GroupId);
             if (group == null) return null;
 
             var query = _dbContext.Message
-                .Where(x => x.MessageGroupChatId == parameter.GroupId)
-                .Skip(parameter.PageNumber * parameter.PageSize)
+                .Where(x => x.MessageGroupChatId == parameter.GroupId).OrderByDescending(x => x.MessageCreatedAt);
+            
+            var outPut = query.Skip((parameter.PageNumber - 1) * parameter.PageSize)
                 .Take(parameter.PageSize);
 
-            var items = await query.Select(x => new MessageResponse
+            var items = await outPut.Select(x => new MessageResponse
             {
                 MessageId = x.MessageId,
                 MessageUserId = x.MessageUserId,
@@ -87,6 +105,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MessageCreatedAt = x.MessageCreatedAt,
                 MessageIsDeleted = x.MessageIsDeleted,
             }).ToListAsync();
+
+            items.Reverse();
 
             return new PagedResponse<MessageResponse>(items, parameter.PageNumber, parameter.PageSize, items.Count());
         }

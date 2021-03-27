@@ -7,21 +7,19 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Source", "Source", "{8BF738
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "WebApi", "WebApi", "{090320F4-C15C-4490-B7F1-B31BF8BC6D18}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamApp.WebApi", "TeamApp\TeamApp.WebApi\TeamApp.WebApi.csproj", "{2DB9AA7B-1DBC-4A60-A20F-90BA7732378F}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeamApp.WebApi", "TeamApp\TeamApp.WebApi\TeamApp.WebApi.csproj", "{2DB9AA7B-1DBC-4A60-A20F-90BA7732378F}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Core", "Core", "{C70795AE-45B9-4A8A-8CEE-5127A1A12107}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamApp.Application", "TeamApp\TeamApp.Application\TeamApp.Application.csproj", "{18D255B4-F185-4B91-8F97-A6A12D456F28}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeamApp.Application", "TeamApp\TeamApp.Application\TeamApp.Application.csproj", "{18D255B4-F185-4B91-8F97-A6A12D456F28}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamApp.Domain", "TeamApp\TeamApp.Domain\TeamApp.Domain.csproj", "{C7FFACD9-4B75-4A4C-9AEF-0E1030E4EF9E}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeamApp.Domain", "TeamApp\TeamApp.Domain\TeamApp.Domain.csproj", "{C7FFACD9-4B75-4A4C-9AEF-0E1030E4EF9E}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Infrastructure", "Infrastructure", "{DDDFD11C-5043-4C2C-9BD7-0B7B87DF5A2B}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamApp.Infrastructure.Identity", "TeamApp\TeamApp.Infrastructure.Identity\TeamApp.Infrastructure.Identity.csproj", "{F7BD70CD-8CF8-4DC3-BCFB-E6F7769A0D99}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeamApp.Infrastructure.Persistence", "TeamApp\TeamApp.Infrastructure.Persistence\TeamApp.Infrastructure.Persistence.csproj", "{1C0A9475-7EBA-498E-A148-1A7219F4176A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamApp.Infrastructure.Persistence", "TeamApp\TeamApp.Infrastructure.Persistence\TeamApp.Infrastructure.Persistence.csproj", "{1C0A9475-7EBA-498E-A148-1A7219F4176A}"
-EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TeamApp.Infrastructure.Shared", "TeamApp\TeamApp.Infrastructure.Shared\TeamApp.Infrastructure.Shared.csproj", "{5DB556DE-37A3-4BD0-8D9C-144BDB6F34B9}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TeamApp.Infrastructure.Shared", "TeamApp\TeamApp.Infrastructure.Shared\TeamApp.Infrastructure.Shared.csproj", "{5DB556DE-37A3-4BD0-8D9C-144BDB6F34B9}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -41,10 +39,6 @@ Global
 		{C7FFACD9-4B75-4A4C-9AEF-0E1030E4EF9E}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{C7FFACD9-4B75-4A4C-9AEF-0E1030E4EF9E}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{C7FFACD9-4B75-4A4C-9AEF-0E1030E4EF9E}.Release|Any CPU.Build.0 = Release|Any CPU
-		{F7BD70CD-8CF8-4DC3-BCFB-E6F7769A0D99}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{F7BD70CD-8CF8-4DC3-BCFB-E6F7769A0D99}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{F7BD70CD-8CF8-4DC3-BCFB-E6F7769A0D99}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{F7BD70CD-8CF8-4DC3-BCFB-E6F7769A0D99}.Release|Any CPU.Build.0 = Release|Any CPU
 		{1C0A9475-7EBA-498E-A148-1A7219F4176A}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{1C0A9475-7EBA-498E-A148-1A7219F4176A}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{1C0A9475-7EBA-498E-A148-1A7219F4176A}.Release|Any CPU.ActiveCfg = Release|Any CPU
@@ -64,7 +58,6 @@ Global
 		{18D255B4-F185-4B91-8F97-A6A12D456F28} = {C70795AE-45B9-4A8A-8CEE-5127A1A12107}
 		{C7FFACD9-4B75-4A4C-9AEF-0E1030E4EF9E} = {C70795AE-45B9-4A8A-8CEE-5127A1A12107}
 		{DDDFD11C-5043-4C2C-9BD7-0B7B87DF5A2B} = {8BF73877-E9DC-4EAC-9DF9-6FDC8598F71F}
-		{F7BD70CD-8CF8-4DC3-BCFB-E6F7769A0D99} = {DDDFD11C-5043-4C2C-9BD7-0B7B87DF5A2B}
 		{1C0A9475-7EBA-498E-A148-1A7219F4176A} = {DDDFD11C-5043-4C2C-9BD7-0B7B87DF5A2B}
 		{5DB556DE-37A3-4BD0-8D9C-144BDB6F34B9} = {DDDFD11C-5043-4C2C-9BD7-0B7B87DF5A2B}
 	EndGlobalSection

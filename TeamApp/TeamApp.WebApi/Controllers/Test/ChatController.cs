@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.Message;
 using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.WebApi.Hubs.Chat;
 using Task = System.Threading.Tasks.Task;
@@ -51,6 +52,19 @@ namespace TeamApp.WebApi.Controllers.Test
                 }
 
             }
+
+            var grMes = new Message
+            {
+                MessageId = Guid.NewGuid().ToString(),
+                MessageUserId = message.UserId,
+                MessageGroupChatId = message.GroupId,
+                MessageContent = message.Message,
+                MessageCreatedAt = DateTime.UtcNow,
+                MessageIsDeleted = false,
+            };
+
+            await _dbContext.Message.AddAsync(grMes);
+            await _dbContext.SaveChangesAsync();
 
             //await _chatHub.Clients.Groups(groupId).NhanMessage(message);
         }
