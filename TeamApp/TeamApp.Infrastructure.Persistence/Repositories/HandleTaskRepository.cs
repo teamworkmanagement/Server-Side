@@ -22,7 +22,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new HandleTask
             {
-                HandleTaskId = new Guid().ToString(),
+                HandleTaskId = Guid.NewGuid().ToString(),
                 HandleTaskUserId = handleTaskReq.HandleTaskUserId,
                 HandleTaskTaskId = handleTaskReq.HandleTaskTaskId,
                 HandleTaskCreatedAt = handleTaskReq.HandleTaskCreatedAt,

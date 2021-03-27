@@ -24,7 +24,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new Entities.Task
             {
-                TaskId = new Guid().ToString(),
+                TaskId = Guid.NewGuid().ToString(),
                 TaskName = taskReq.TaskName,
                 TaskDescription = taskReq.TaskDescription,
                 TaskPoint = taskReq.TaskPoint,

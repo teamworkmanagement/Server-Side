@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
@@ -14,6 +15,7 @@ using TeamApp.Application.DTOs.Account;
 using TeamApp.Application.DTOs.Email;
 using TeamApp.Application.Exceptions;
 using TeamApp.Application.Interfaces;
+using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 using TeamApp.Domain.Settings;
 using TeamApp.Infrastructure.Persistence.Entities;
@@ -27,16 +29,19 @@ namespace TeamApp.Infrastructure.Persistence.Services
         private readonly SignInManager<User> _signInManager;
         private readonly IEmailService _emailService;
         private readonly JWTSettings _jwtSettings;
+        private readonly TeamAppContext _dbContext;
 
         public AccountService(UserManager<User> userManager,
             IOptions<JWTSettings> jwtSettings,
             SignInManager<User> signInManager,
-            IEmailService emailService)
+            IEmailService emailService,
+            TeamAppContext dbContext)
         {
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
             _signInManager = signInManager;
             this._emailService = emailService;
+            _dbContext = dbContext;
         }
 
         public async Task<ApiResponse<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, string ipAddress)
@@ -65,7 +70,12 @@ namespace TeamApp.Infrastructure.Persistence.Services
             //response.Roles = rolesList.ToList();
             response.IsVerified = user.EmailConfirmed;
             var refreshToken = GenerateRefreshToken(ipAddress);
+            refreshToken.UserId = user.Id;
             response.RefreshToken = refreshToken.Token;
+
+            await _dbContext.RefreshToken.AddAsync(refreshToken);
+            await _dbContext.SaveChangesAsync();
+
             return new ApiResponse<AuthenticationResponse>(response, $"Authenticated {user.UserName}");
         }
 
@@ -179,6 +189,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
         {
             return new RefreshToken
             {
+                Id = Guid.NewGuid().ToString(),
                 Token = RandomTokenString(),
                 Expires = DateTime.UtcNow.AddDays(7),
                 Created = DateTime.UtcNow,
@@ -218,6 +229,57 @@ namespace TeamApp.Infrastructure.Persistence.Services
             {
                 throw new ApiException($"Error occured while reseting the password.");
             }
+        }
+
+        public async Task<ApiResponse<TokenModel>> Refresh(TokenModel tokenModel)
+        {
+            var principal = GetPrincipalFromExpiredToken(tokenModel.AccessToken);
+            var userId = principal.Claims.ToList()[3].Value;
+            var user = await _dbContext.User.FindAsync(userId);
+
+            var tokenObj = await _dbContext.RefreshToken.Where(x => x.UserId == userId
+            && x.Token == tokenModel.RefreshToken && x.Expires > DateTime.UtcNow).FirstOrDefaultAsync();
+
+            if (tokenModel == null)
+                throw new ApiException("Refresh token not match for this user");
+
+            var jwtSecurityToken = await GenerateJWToken(user);
+            var refreshObj = GenerateRefreshToken(IpHelper.GetIpAddress());
+            refreshObj.UserId = userId;
+
+            await _dbContext.RefreshToken.AddAsync(refreshObj);
+            await _dbContext.SaveChangesAsync();
+
+            var outPut = new ApiResponse<TokenModel>
+            {
+                Succeeded = true,
+                Data = new TokenModel
+                {
+                    RefreshToken = refreshObj.Token,
+                    AccessToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                }
+            };
+
+            return outPut;
+        }
+
+        public ClaimsPrincipal GetPrincipalFromExpiredToken(string token)
+        {
+            var tokenValidationParameters = new TokenValidationParameters
+            {
+                ValidateAudience = false, //you might want to validate the audience and issuer depending on your use case
+                ValidateIssuer = false,
+                ValidateIssuerSigningKey = true,
+                IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_jwtSettings.Key)),
+                ValidateLifetime = false //here we are saying that we don't care about the token's expiration date
+            };
+            var tokenHandler = new JwtSecurityTokenHandler();
+            SecurityToken securityToken;
+            var principal = tokenHandler.ValidateToken(token, tokenValidationParameters, out securityToken);
+            var jwtSecurityToken = securityToken as JwtSecurityToken;
+            if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
+                throw new SecurityTokenException("Invalid token");
+            return principal;
         }
     }
 }

@@ -32,6 +32,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<Team> Team { get; set; }
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<UserConnection> UserConnection { get; set; }
+        public virtual DbSet<RefreshToken> RefreshToken { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

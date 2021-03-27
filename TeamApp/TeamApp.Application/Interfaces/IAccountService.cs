@@ -15,5 +15,6 @@ namespace TeamApp.Application.Interfaces
         Task<ApiResponse<string>> ConfirmEmailAsync(string userId, string code);
         Task ForgotPassword(ForgotPasswordRequest model, string origin);
         Task<ApiResponse<string>> ResetPassword(ResetPasswordRequest model);
+        Task<ApiResponse<TokenModel>> Refresh(TokenModel tokenModel);
     }
 }

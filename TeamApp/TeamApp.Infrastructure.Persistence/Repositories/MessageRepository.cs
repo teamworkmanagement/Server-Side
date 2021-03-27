@@ -24,7 +24,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new Message
             {
-                MessageId = new Guid().ToString(),
+                MessageId = Guid.NewGuid().ToString(),
                 MessageUserId = msgReq.MessageUserId,
                 MessageGroupChatId = msgReq.MessageGroupChatId,
                 MessageContent = msgReq.MessageContent,

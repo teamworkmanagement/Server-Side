@@ -18,7 +18,7 @@ namespace TeamApp.WebApi.Controllers.Test
         {
             authenticatedUserService = _authenticatedUserService;
         }
-        //[Authorize]
+        [Authorize]
         [HttpGet]
         public IActionResult ShowTest()
         {
