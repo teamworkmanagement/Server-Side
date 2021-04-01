@@ -4,13 +4,13 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
-using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
+using System.Web;
 using TeamApp.Application.DTOs.Account;
 using TeamApp.Application.DTOs.Email;
 using TeamApp.Application.Exceptions;
@@ -280,6 +280,65 @@ namespace TeamApp.Infrastructure.Persistence.Services
             if (jwtSecurityToken == null || !jwtSecurityToken.Header.Alg.Equals(SecurityAlgorithms.HmacSha256, StringComparison.InvariantCultureIgnoreCase))
                 throw new SecurityTokenException("Invalid token");
             return principal;
+        }
+
+        public async Task<ApiResponse<AuthenticationResponse>> SocialLogin(SocialRequest request, string ipAddress)
+        {
+            AuthenticationResponse response = new AuthenticationResponse();
+            var userWithSameEmail = await _dbContext.User.Where(x => x.Email == request.Email).FirstOrDefaultAsync();
+            //đã đăng nhập với social
+            if (userWithSameEmail != null && userWithSameEmail.PasswordHash == "social")
+            {
+                //đã login trước, cấp token
+                JwtSecurityToken jwtSecurityToken = await GenerateJWToken(userWithSameEmail);
+
+                response.Id = userWithSameEmail.Id;
+                response.JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+                response.Email = userWithSameEmail.Email;
+                response.UserName = userWithSameEmail.UserName;
+
+                response.IsVerified = userWithSameEmail.EmailConfirmed;
+                var refreshToken = GenerateRefreshToken(ipAddress);
+                refreshToken.UserId = userWithSameEmail.Id;
+                response.RefreshToken = refreshToken.Token;
+
+                await _dbContext.RefreshToken.AddAsync(refreshToken);
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                var user = new User
+                {
+                    Id = request.Id.ToString(),
+                    Email = request.Email,
+                    FullName = request.FullName,
+                    ImageUrl = HttpUtility.UrlEncode(request.ImageUrl),
+                    CreatedAt = DateTime.UtcNow,
+                    EmailConfirmed = true,
+                    PasswordHash = "social",
+                    UserName = request.Email,
+                };
+
+                var a = await _dbContext.User.AddAsync(user);
+                var b = await _dbContext.SaveChangesAsync();
+
+                var entity = await _userManager.FindByIdAsync(request.Id);
+
+                JwtSecurityToken jwtSecurityToken = await GenerateJWToken(entity);
+                response.Id = entity.Id;
+                response.JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+                response.Email = entity.Email;
+                response.IsVerified = entity.EmailConfirmed;
+                var refreshToken = GenerateRefreshToken(ipAddress);
+                refreshToken.UserId = entity.Id;
+                response.RefreshToken = refreshToken.Token;
+
+                await _dbContext.RefreshToken.AddAsync(refreshToken);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            return new ApiResponse<AuthenticationResponse>(response);
+
         }
     }
 }

@@ -38,5 +38,6 @@ namespace TeamApp.WebApi.Controllers.Test
                     UserId = authenticatedUserService.UserId,
                 });
         }
+
     }
 }

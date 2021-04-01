@@ -661,7 +661,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
                 entity.Property(e => e.ImageUrl)
                     .HasColumnName("user_image_url")
-                    .HasColumnType("varchar(50)")
+                    .HasColumnType("varchar(500)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
