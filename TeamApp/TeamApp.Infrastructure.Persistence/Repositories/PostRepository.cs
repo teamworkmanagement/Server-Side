@@ -24,7 +24,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new Post
             {
-                PostId = new Guid().ToString(),
+                PostId = Guid.NewGuid().ToString(),
                 PostUserId = postReq.PostUserId,
                 PostTeamId = postReq.PostTeamId,
                 PostContent = postReq.PostContent,

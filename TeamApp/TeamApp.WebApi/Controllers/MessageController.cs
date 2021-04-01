@@ -78,5 +78,16 @@ namespace TeamApp.WebApi.Controllers
 
             return Ok(outPut);
         }
+
+        [HttpGet("groupid/{groupId}")]
+        public async Task<IActionResult> GetByGroupId(string groupId)
+        {
+            var outPut = await _repo.GetByGroupId(groupId);
+            return Ok(new ApiResponse<List<MessageResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
+        }
     }
 }

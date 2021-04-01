@@ -24,7 +24,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var entity = new File
             {
-                FileId = new Guid().ToString(),
+                FileId = Guid.NewGuid().ToString(),
                 FileName = fileReq.FileName,
                 FileType = fileReq.FileType,
                 FileUrl = fileReq.FileUrl,

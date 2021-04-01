@@ -10,6 +10,7 @@ namespace TeamApp.Application.Interfaces.Repositories
 {
     public interface IMessageRepository
     {
+        Task<List<MessageResponse>> GetByGroupId(string groupId);
         Task<List<MessageResponse>> GetAllByUserId(string userId);
         Task<PagedResponse<MessageResponse>> GetPaging(MessageRequestParameter parameter);
         Task<string> AddMessage(MessageRequest msgReq);

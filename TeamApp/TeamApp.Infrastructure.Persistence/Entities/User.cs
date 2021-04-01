@@ -18,6 +18,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             Participation = new HashSet<Participation>();
             Post = new HashSet<Post>();
             Team = new HashSet<Team>();
+            RefreshTokens = new List<RefreshToken>();
         }
 
 

@@ -25,7 +25,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new Comment
             {
-                CommentId = new Guid().ToString(),
+                CommentId = Guid.NewGuid().ToString(),
                 CommentPostId = cmtReq.CommentPostId,
                 CommentUserId = cmtReq.CommentUserId,
                 CommentContent = cmtReq.CommentContent,

@@ -20,7 +20,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new Tag
             {
-                TagId = new Guid().ToString(),
+                TagId = Guid.NewGuid().ToString(),
                 TagContent = tagObj.TagContent,
                 TagLink = tagObj.TagLink,
             };

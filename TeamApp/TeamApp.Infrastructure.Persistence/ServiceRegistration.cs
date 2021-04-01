@@ -88,7 +88,8 @@ namespace TeamApp.Infrastructure.Persistence
                             c.NoResult();
                             c.Response.StatusCode = 500;
                             c.Response.ContentType = "text/plain";
-                            return c.Response.WriteAsync(c.Exception.ToString());
+                            var responseModel = new ApiResponse<string>() { Succeeded = false, Message = c.Exception.ToString(), };
+                            return c.Response.WriteAsync(JsonConvert.SerializeObject(responseModel));
                         },
                         /*OnChallenge = context =>
                         {

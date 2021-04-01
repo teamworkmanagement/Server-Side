@@ -21,7 +21,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new Team
             {
-                TeamId = new Guid().ToString(),
+                TeamId = Guid.NewGuid().ToString(),
                 TeamLeaderId = teamReq.TeamLeaderId,
                 TeamName = teamReq.TeamName,
                 TeamDescription = teamReq.TeamDescription,

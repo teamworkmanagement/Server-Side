@@ -54,5 +54,17 @@ namespace TeamApp.WebApi.Controllers
             else
                 return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
         }
+
+        [HttpPost("refresh")]
+        public async Task<IActionResult> Refresh([FromBody] TokenModel tokenModel)
+        {
+            return Ok(await _accountService.Refresh(tokenModel));
+        }
+
+        [HttpPost("social-login")]
+        public async Task<IActionResult> LoginSocial([FromBody] SocialRequest request)
+        {
+            return Ok(await _accountService.SocialLogin(request, GenerateIPAddress()));
+        }
     }
 }

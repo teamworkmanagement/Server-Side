@@ -40,7 +40,6 @@
 
   <ItemGroup>
     <ProjectReference Include="..\TeamApp.Application\TeamApp.Application.csproj" />
-    <ProjectReference Include="..\TeamApp.Infrastructure.Identity\TeamApp.Infrastructure.Identity.csproj" />
     <ProjectReference Include="..\TeamApp.Infrastructure.Persistence\TeamApp.Infrastructure.Persistence.csproj" />
     <ProjectReference Include="..\TeamApp.Infrastructure.Shared\TeamApp.Infrastructure.Shared.csproj" />
   </ItemGroup>

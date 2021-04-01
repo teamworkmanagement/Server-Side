@@ -5,7 +5,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using TeamApp.Application;
 using TeamApp.Application.Interfaces;
-using TeamApp.Infrastructure.Identity;
 using TeamApp.Infrastructure.Persistence;
 using TeamApp.Infrastructure.Shared;
 using TeamApp.WebApi.Extensions;
@@ -24,7 +23,6 @@ namespace TeamApp.WebApi
         public void ConfigureServices(IServiceCollection services)
         {
             services.AddApplicationLayer();
-            services.AddIdentityInfrastructure(_config);
             services.AddPersistenceInfrastructure(_config);
             services.AddSharedInfrastructure(_config);
             services.AddSwaggerExtension();

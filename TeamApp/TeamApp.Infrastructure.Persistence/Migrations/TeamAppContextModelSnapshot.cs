@@ -8,7 +8,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    partial class KhoaLuanContextModelSnapshot : ModelSnapshot
+    partial class TeamAppContextModelSnapshot : ModelSnapshot
     {
         protected override void BuildModel(ModelBuilder modelBuilder)
         {
@@ -153,43 +153,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.HasKey("UserId", "LoginProvider", "Name");
 
                     b.ToTable("UserTokens");
-                });
-
-            modelBuilder.Entity("TeamApp.Application.DTOs.Account.RefreshToken", b =>
-                {
-                    b.Property<int>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int");
-
-                    b.Property<DateTime>("Created")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("CreatedByIp")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<DateTime>("Expires")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("ReplacedByToken")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<DateTime?>("Revoked")
-                        .HasColumnType("datetime(6)");
-
-                    b.Property<string>("RevokedByIp")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("Token")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
-
-                    b.Property<string>("UserId")
-                        .HasColumnType("varchar(50)");
-
-                    b.HasKey("Id");
-
-                    b.HasIndex("UserId");
-
-                    b.ToTable("RefreshToken");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Comment", b =>
@@ -548,6 +511,42 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.ToTable("post");
                 });
 
+            modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.RefreshToken", b =>
+                {
+                    b.Property<string>("Id")
+                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
+
+                    b.Property<DateTime>("Created")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("CreatedByIp")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<DateTime>("Expires")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("ReplacedByToken")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<DateTime?>("Revoked")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<string>("RevokedByIp")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<string>("Token")
+                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+
+                    b.Property<string>("UserId")
+                        .HasColumnType("varchar(50)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.ToTable("RefreshToken");
+                });
+
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Tag", b =>
                 {
                     b.Property<string>("TagId")
@@ -782,7 +781,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("ImageUrl")
                         .HasColumnName("user_image_url")
-                        .HasColumnType("varchar(50)")
+                        .HasColumnType("varchar(500)")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
@@ -911,13 +910,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .IsRequired();
                 });
 
-            modelBuilder.Entity("TeamApp.Application.DTOs.Account.RefreshToken", b =>
-                {
-                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", null)
-                        .WithMany("RefreshTokens")
-                        .HasForeignKey("UserId");
-                });
-
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Comment", b =>
                 {
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Post", "CommentPost")
@@ -1002,6 +994,13 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .WithMany("Post")
                         .HasForeignKey("PostUserId")
                         .HasConstraintName("post_ibfk_1");
+                });
+
+            modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.RefreshToken", b =>
+                {
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "User")
+                        .WithMany("RefreshTokens")
+                        .HasForeignKey("UserId");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Task", b =>

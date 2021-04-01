@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
-    public partial class testconnect : Migration
+    public partial class RefreshToken : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
