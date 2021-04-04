@@ -9,6 +9,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string GroupChatUserUserId { get; set; }
         public string GroupChatUserGroupChatId { get; set; }
         public bool? GroupChatUserIsDeleted { get; set; }
+        public bool? GroupChatUserSeen { get; set; }
 
         public virtual GroupChat GroupChatUserGroupChat { get; set; }
         public virtual User GroupChatUserUser { get; set; }

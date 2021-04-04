@@ -53,13 +53,14 @@ namespace TeamApp.WebApi.Controllers.Test
 
             }
 
+            var date = Application.Utils.Extensions.UnixTimeStampToDateTime(message.TimeSend);
             var grMes = new Message
             {
                 MessageId = Guid.NewGuid().ToString(),
                 MessageUserId = message.UserId,
                 MessageGroupChatId = message.GroupId,
                 MessageContent = message.Message,
-                MessageCreatedAt = DateTime.UtcNow,
+                MessageCreatedAt = date,
                 MessageIsDeleted = false,
             };
 

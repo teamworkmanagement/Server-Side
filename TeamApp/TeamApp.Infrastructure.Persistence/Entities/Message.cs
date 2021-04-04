@@ -11,6 +11,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string MessageContent { get; set; }
         public DateTime? MessageCreatedAt { get; set; }
         public bool? MessageIsDeleted { get; set; }
+        public bool? IsMessage { get; set; }
+        public bool? IsFile { get; set; }
 
         public virtual GroupChat MessageGroupChat { get; set; }
         public virtual User MessageUser { get; set; }
