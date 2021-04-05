@@ -10,7 +10,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/groupchatuser")]
     public class GroupChatUserController : ControllerBase
     {
         private readonly IGroupChatUserRepository _repo;
@@ -43,6 +43,19 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = res,
                 Message = res ? "Xóa thành công" : "Xóa thất bại",
                 Data = res,
+            });
+        }
+
+        [HttpPut("toggle-seen")]
+        public async Task<IActionResult> ToggleSeen(GroupChatUserSeenRequest request)
+        {
+            var outPut = await _repo.ToggleSeen(request);
+
+            return Ok(new ApiResponse<bool>
+            {
+                Succeeded = outPut,
+                Data = outPut,
+                Message = outPut ? "Cập nhật thành công" : "Cập nhật thất bại",
             });
         }
     }

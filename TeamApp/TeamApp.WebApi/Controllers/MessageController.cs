@@ -11,7 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/message")]
     public class MessageController : ControllerBase
     {
         private readonly IMessageRepository _repo;

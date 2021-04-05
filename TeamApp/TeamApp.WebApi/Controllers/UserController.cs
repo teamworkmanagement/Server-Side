@@ -6,7 +6,7 @@ using TeamApp.Application.Interfaces.Repositories;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/user")]
     public class UserController : ControllerBase
     {
         private readonly IUserRepository _repo;

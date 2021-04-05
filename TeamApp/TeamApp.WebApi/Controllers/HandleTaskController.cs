@@ -10,7 +10,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/handletask")]
     public class HandleTaskController : ControllerBase
     {
         private readonly IHandleTaskRepository _repo;

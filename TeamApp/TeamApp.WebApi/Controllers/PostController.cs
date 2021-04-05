@@ -11,7 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/post")]
     public class PostController : ControllerBase
     {
         private readonly IPostRepository _repo;

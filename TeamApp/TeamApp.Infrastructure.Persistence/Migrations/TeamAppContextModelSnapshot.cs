@@ -41,7 +41,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .IsUnique()
                         .HasName("RoleNameIndex");
 
-                    b.ToTable("Role");
+                    b.ToTable("role");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityRoleClaim<string>", b =>
@@ -66,7 +66,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("RoleClaims");
+                    b.ToTable("role_claims");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserClaim<string>", b =>
@@ -91,7 +91,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("UserClaims");
+                    b.ToTable("user_claims");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserLogin<string>", b =>
@@ -113,7 +113,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("UserId");
 
-                    b.ToTable("UserLogins");
+                    b.ToTable("user_logins");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserRole<string>", b =>
@@ -130,7 +130,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("RoleId");
 
-                    b.ToTable("UserRoles");
+                    b.ToTable("user_roles");
                 });
 
             modelBuilder.Entity("Microsoft.AspNetCore.Identity.IdentityUserToken<string>", b =>
@@ -152,7 +152,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.HasKey("UserId", "LoginProvider", "Name");
 
-                    b.ToTable("UserTokens");
+                    b.ToTable("user_tokens");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Comment", b =>
@@ -180,6 +180,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.Property<string>("CommentPostId")
                         .HasColumnName("comment_post_id")
                         .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("CommentType")
+                        .HasColumnName("comment_type")
+                        .HasColumnType("enum('text','file')")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
@@ -272,6 +278,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasColumnName("group_chat_user_is_deleted")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool?>("GroupChatUserSeen")
+                        .HasColumnName("group_chat_user_seen")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("GroupChatUserUserId")
                         .HasColumnName("group_chat_user_user_id")
                         .HasColumnType("varchar(50)")
@@ -336,6 +346,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<bool?>("IsMessage")
+                        .HasColumnName("is_message")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("MessageContent")
                         .HasColumnName("message_content")
                         .HasColumnType("text")
@@ -355,6 +369,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.Property<bool?>("MessageIsDeleted")
                         .HasColumnName("message_is_deleted")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("MessageType")
+                        .HasColumnName("message_type")
+                        .HasColumnType("enum('text','file')")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
 
                     b.Property<string>("MessageUserId")
                         .HasColumnName("message_user_id")
@@ -544,7 +564,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("UserId");
 
-                    b.ToTable("RefreshToken");
+                    b.ToTable("refresh_token");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Tag", b =>
@@ -788,6 +808,9 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.Property<bool?>("IsThemeLight")
                         .HasColumnName("user_is_theme_light")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<DateTime?>("LastTimeOnline")
+                        .HasColumnType("datetime(6)");
 
                     b.Property<bool>("LockoutEnabled")
                         .HasColumnType("tinyint(1)");

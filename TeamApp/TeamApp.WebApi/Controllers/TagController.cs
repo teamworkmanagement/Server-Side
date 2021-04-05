@@ -10,7 +10,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/tag")]
     public class TagController : ControllerBase
     {
         private readonly ITagRepository _repo;

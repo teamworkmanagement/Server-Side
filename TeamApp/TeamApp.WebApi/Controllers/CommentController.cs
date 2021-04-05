@@ -11,7 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/comment")]
     public class CommentController : ControllerBase
     {
         private readonly ICommentRepository _repo;

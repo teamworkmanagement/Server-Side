@@ -10,7 +10,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/groupchat")]
     public class GroupChatController : ControllerBase
     {
         private readonly IGroupChatRepository _repo;

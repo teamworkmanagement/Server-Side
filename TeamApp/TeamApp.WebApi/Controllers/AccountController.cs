@@ -9,7 +9,7 @@ using TeamApp.Application.Interfaces;
 
 namespace TeamApp.WebApi.Controllers
 {
-    [Route("api/[controller]")]
+    [Route("api/account")]
     [ApiController]
     public class AccountController : ControllerBase
     {

@@ -11,6 +11,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string CommentContent { get; set; }
         public DateTime? CommentCreatedAt { get; set; }
         public bool? CommentIsDeleted { get; set; }
+        public string CommentType { get; set; }
 
         public virtual Post CommentPost { get; set; }
         public virtual User CommentUser { get; set; }

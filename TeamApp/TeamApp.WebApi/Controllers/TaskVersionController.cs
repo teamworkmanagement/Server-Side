@@ -10,7 +10,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/taskver")]
     public class TaskVersionController : ControllerBase
     {
         private readonly ITaskVersionRepository _repo;

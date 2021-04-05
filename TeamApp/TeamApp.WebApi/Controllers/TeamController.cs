@@ -10,7 +10,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/team")]
     public class TeamController : ControllerBase
     {
         private readonly ITeamRepository _repo;
