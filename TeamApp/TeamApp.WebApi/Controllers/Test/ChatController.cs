@@ -14,7 +14,7 @@ using Task = System.Threading.Tasks.Task;
 namespace TeamApp.WebApi.Controllers.Test
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/chat")]
     public class ChatController : ControllerBase
     {
         private readonly TeamAppContext _dbContext;

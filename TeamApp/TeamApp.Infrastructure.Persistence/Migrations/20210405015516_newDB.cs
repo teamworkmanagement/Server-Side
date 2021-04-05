@@ -4,7 +4,7 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
-    public partial class RefreshToken : Migration
+    public partial class newDB : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
@@ -48,7 +48,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "Role",
+                name: "role",
                 columns: table => new
                 {
                     Id = table.Column<string>(maxLength: 85, nullable: false),
@@ -58,7 +58,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_Role", x => x.Id);
+                    table.PrimaryKey("PK_role", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -111,11 +111,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     user_date_of_birth = table.Column<DateTime>(type: "timestamp", nullable: true),
-                    user_image_url = table.Column<string>(type: "varchar(50)", nullable: true)
+                    user_image_url = table.Column<string>(type: "varchar(500)", nullable: true)
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     user_created_at = table.Column<DateTime>(type: "timestamp", nullable: true),
-                    user_is_theme_light = table.Column<bool>(nullable: true)
+                    user_is_theme_light = table.Column<bool>(nullable: true),
+                    LastTimeOnline = table.Column<DateTime>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -123,7 +124,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RoleClaims",
+                name: "role_claims",
                 columns: table => new
                 {
                     Id = table.Column<int>(maxLength: 50, nullable: false)
@@ -134,11 +135,11 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RoleClaims", x => x.Id);
+                    table.PrimaryKey("PK_role_claims", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RoleClaims_Role_RoleId",
+                        name: "FK_role_claims_role_RoleId",
                         column: x => x.RoleId,
-                        principalTable: "Role",
+                        principalTable: "role",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                 });
@@ -156,7 +157,8 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     group_chat_user_group_chat_id = table.Column<string>(type: "varchar(50)", nullable: true)
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    group_chat_user_is_deleted = table.Column<bool>(nullable: true)
+                    group_chat_user_is_deleted = table.Column<bool>(nullable: true),
+                    group_chat_user_seen = table.Column<bool>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -192,7 +194,11 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     message_created_at = table.Column<DateTime>(type: "timestamp", nullable: true),
-                    message_is_deleted = table.Column<bool>(nullable: true)
+                    message_is_deleted = table.Column<bool>(nullable: true),
+                    is_message = table.Column<bool>(nullable: true),
+                    message_type = table.Column<string>(type: "enum('text','file')", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -243,11 +249,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "RefreshToken",
+                name: "refresh_token",
                 columns: table => new
                 {
-                    Id = table.Column<int>(nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    Id = table.Column<string>(nullable: false),
                     Token = table.Column<string>(nullable: true),
                     Expires = table.Column<DateTime>(nullable: false),
                     Created = table.Column<DateTime>(nullable: false),
@@ -259,9 +264,9 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_RefreshToken", x => x.Id);
+                    table.PrimaryKey("PK_refresh_token", x => x.Id);
                     table.ForeignKey(
-                        name: "FK_RefreshToken_user_UserId",
+                        name: "FK_refresh_token_user_UserId",
                         column: x => x.UserId,
                         principalTable: "user",
                         principalColumn: "user_id",
@@ -302,6 +307,27 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "user_claims",
+                columns: table => new
+                {
+                    Id = table.Column<int>(maxLength: 50, nullable: false)
+                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
+                    UserId = table.Column<string>(maxLength: 50, nullable: false),
+                    ClaimType = table.Column<string>(nullable: true),
+                    ClaimValue = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_user_claims", x => x.Id);
+                    table.ForeignKey(
+                        name: "FK_user_claims_user_UserId",
+                        column: x => x.UserId,
+                        principalTable: "user",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Cascade);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "user_connection",
                 columns: table => new
                 {
@@ -323,28 +349,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserClaims",
-                columns: table => new
-                {
-                    Id = table.Column<int>(maxLength: 50, nullable: false)
-                        .Annotation("MySql:ValueGenerationStrategy", MySqlValueGenerationStrategy.IdentityColumn),
-                    UserId = table.Column<string>(maxLength: 50, nullable: false),
-                    ClaimType = table.Column<string>(nullable: true),
-                    ClaimValue = table.Column<string>(nullable: true)
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_UserClaims", x => x.Id);
-                    table.ForeignKey(
-                        name: "FK_UserClaims_user_UserId",
-                        column: x => x.UserId,
-                        principalTable: "user",
-                        principalColumn: "user_id",
-                        onDelete: ReferentialAction.Cascade);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "UserLogins",
+                name: "user_logins",
                 columns: table => new
                 {
                     UserId = table.Column<string>(maxLength: 50, nullable: false),
@@ -354,9 +359,9 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserLogins", x => x.UserId);
+                    table.PrimaryKey("PK_user_logins", x => x.UserId);
                     table.ForeignKey(
-                        name: "FK_UserLogins_user_UserId",
+                        name: "FK_user_logins_user_UserId",
                         column: x => x.UserId,
                         principalTable: "user",
                         principalColumn: "user_id",
@@ -364,7 +369,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserRoles",
+                name: "user_roles",
                 columns: table => new
                 {
                     UserId = table.Column<string>(maxLength: 50, nullable: false),
@@ -372,15 +377,15 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserRoles", x => new { x.UserId, x.RoleId });
+                    table.PrimaryKey("PK_user_roles", x => new { x.UserId, x.RoleId });
                     table.ForeignKey(
-                        name: "FK_UserRoles_Role_RoleId",
+                        name: "FK_user_roles_role_RoleId",
                         column: x => x.RoleId,
-                        principalTable: "Role",
+                        principalTable: "role",
                         principalColumn: "Id",
                         onDelete: ReferentialAction.Cascade);
                     table.ForeignKey(
-                        name: "FK_UserRoles_user_UserId",
+                        name: "FK_user_roles_user_UserId",
                         column: x => x.UserId,
                         principalTable: "user",
                         principalColumn: "user_id",
@@ -388,7 +393,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
-                name: "UserTokens",
+                name: "user_tokens",
                 columns: table => new
                 {
                     UserId = table.Column<string>(maxLength: 50, nullable: false),
@@ -398,9 +403,9 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 },
                 constraints: table =>
                 {
-                    table.PrimaryKey("PK_UserTokens", x => new { x.UserId, x.LoginProvider, x.Name });
+                    table.PrimaryKey("PK_user_tokens", x => new { x.UserId, x.LoginProvider, x.Name });
                     table.ForeignKey(
-                        name: "FK_UserTokens_user_UserId",
+                        name: "FK_user_tokens_user_UserId",
                         column: x => x.UserId,
                         principalTable: "user",
                         principalColumn: "user_id",
@@ -531,7 +536,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     comment_created_at = table.Column<DateTime>(type: "timestamp", nullable: true),
-                    comment_is_deleted = table.Column<bool>(nullable: true)
+                    comment_is_deleted = table.Column<bool>(nullable: true),
+                    comment_type = table.Column<string>(type: "enum('text','file')", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -685,19 +693,19 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 column: "post_user_id");
 
             migrationBuilder.CreateIndex(
-                name: "IX_RefreshToken_UserId",
-                table: "RefreshToken",
+                name: "IX_refresh_token_UserId",
+                table: "refresh_token",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
                 name: "RoleNameIndex",
-                table: "Role",
+                table: "role",
                 column: "NormalizedName",
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_RoleClaims_RoleId",
-                table: "RoleClaims",
+                name: "IX_role_claims_RoleId",
+                table: "role_claims",
                 column: "RoleId");
 
             migrationBuilder.CreateIndex(
@@ -727,13 +735,13 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 unique: true);
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserClaims_UserId",
-                table: "UserClaims",
+                name: "IX_user_claims_UserId",
+                table: "user_claims",
                 column: "UserId");
 
             migrationBuilder.CreateIndex(
-                name: "IX_UserRoles_RoleId",
-                table: "UserRoles",
+                name: "IX_user_roles_RoleId",
+                table: "user_roles",
                 column: "RoleId");
         }
 
@@ -761,10 +769,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 name: "participation");
 
             migrationBuilder.DropTable(
-                name: "RefreshToken");
+                name: "refresh_token");
 
             migrationBuilder.DropTable(
-                name: "RoleClaims");
+                name: "role_claims");
 
             migrationBuilder.DropTable(
                 name: "tag");
@@ -773,19 +781,19 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 name: "task_version");
 
             migrationBuilder.DropTable(
+                name: "user_claims");
+
+            migrationBuilder.DropTable(
                 name: "user_connection");
 
             migrationBuilder.DropTable(
-                name: "UserClaims");
+                name: "user_logins");
 
             migrationBuilder.DropTable(
-                name: "UserLogins");
+                name: "user_roles");
 
             migrationBuilder.DropTable(
-                name: "UserRoles");
-
-            migrationBuilder.DropTable(
-                name: "UserTokens");
+                name: "user_tokens");
 
             migrationBuilder.DropTable(
                 name: "post");
@@ -797,7 +805,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 name: "task");
 
             migrationBuilder.DropTable(
-                name: "Role");
+                name: "role");
 
             migrationBuilder.DropTable(
                 name: "team");

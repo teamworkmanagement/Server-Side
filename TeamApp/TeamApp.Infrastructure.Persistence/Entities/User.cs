@@ -27,6 +27,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string ImageUrl { get; set; }
         public DateTime? CreatedAt { get; set; }
         public bool? IsThemeLight { get; set; }
+        public DateTime? LastTimeOnline { get; set; }
 
 
 

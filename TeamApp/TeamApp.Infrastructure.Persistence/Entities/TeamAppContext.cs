@@ -43,6 +43,11 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         {
             base.OnModelCreating(modelBuilder);
 
+            modelBuilder.Entity<RefreshToken>(entity =>
+            {
+                entity.ToTable("refresh_token");
+            });
+
             modelBuilder.Entity<UserConnection>(entity =>
             {
                 entity.ToTable("user_connection");
@@ -91,6 +96,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.CommentUserId)
                     .HasColumnName("comment_user_id")
                     .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.CommentType)
+                    .HasColumnName("comment_type")
+                    .HasColumnType("enum('text','file')")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
@@ -185,6 +196,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.GroupChatUserSeen).HasColumnName("group_chat_user_seen");
+
                 entity.HasOne(d => d.GroupChatUserGroupChat)
                     .WithMany(p => p.GroupChatUser)
                     .HasForeignKey(d => d.GroupChatUserGroupChatId)
@@ -273,7 +286,15 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.MessageType)
+                    .HasColumnName("message_type")
+                    .HasColumnType("enum('text','file')")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
                 entity.Property(e => e.MessageIsDeleted).HasColumnName("message_is_deleted");
+
+                entity.Property(e => e.IsMessage).HasColumnName("is_message");
 
                 entity.Property(e => e.MessageUserId)
                     .HasColumnName("message_user_id")
@@ -677,27 +698,27 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
             modelBuilder.Entity<IdentityRole>(entity =>
             {
-                entity.ToTable(name: "Role");
+                entity.ToTable("role");
                 entity.Property(m => m.Id).HasMaxLength(85);
                 entity.Property(m => m.NormalizedName).HasMaxLength(85);
             });
             modelBuilder.Entity<IdentityUserRole<string>>(entity =>
             {
-                entity.ToTable("UserRoles");
+                entity.ToTable("user_roles");
                 entity.Property(m => m.RoleId).HasMaxLength(50);
                 entity.Property(m => m.UserId).HasMaxLength(50);
             });
 
             modelBuilder.Entity<IdentityUserClaim<string>>(entity =>
             {
-                entity.ToTable("UserClaims");
+                entity.ToTable("user_claims");
                 entity.Property(m => m.Id).HasMaxLength(50);
                 entity.Property(m => m.UserId).HasMaxLength(50);
             });
 
             modelBuilder.Entity<IdentityUserLogin<string>>(entity =>
             {
-                entity.ToTable("UserLogins");
+                entity.ToTable("user_logins");
                 entity.HasKey(e => e.UserId);
                 entity.Property(m => m.LoginProvider).HasMaxLength(50);
                 entity.Property(m => m.ProviderKey).HasMaxLength(50);
@@ -706,14 +727,14 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
             modelBuilder.Entity<IdentityRoleClaim<string>>(entity =>
             {
-                entity.ToTable("RoleClaims");
+                entity.ToTable("role_claims");
                 entity.Property(e => e.Id).HasMaxLength(50);
                 entity.Property(m => m.RoleId).HasMaxLength(50);
             });
 
             modelBuilder.Entity<IdentityUserToken<string>>(entity =>
             {
-                entity.ToTable("UserTokens");
+                entity.ToTable("user_tokens");
                 entity.Property(m => m.UserId).HasMaxLength(50);
                 entity.Property(m => m.LoginProvider).HasMaxLength(50);
                 entity.Property(m => m.Name).HasMaxLength(50);

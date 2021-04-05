@@ -11,7 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/task")]
     public class TaskController : ControllerBase
     {
         private readonly ITaskRepository _repo;

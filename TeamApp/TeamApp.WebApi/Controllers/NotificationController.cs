@@ -11,7 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/notification")]
     public class NotificationController : ControllerBase
     {
         private readonly INotificationRepository _repo;

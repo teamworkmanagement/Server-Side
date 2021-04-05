@@ -10,7 +10,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/[controller]")]
+    [Route("api/participation")]
     public class ParticipationController : ControllerBase
     {
         private readonly IParticipationRepository _repo;

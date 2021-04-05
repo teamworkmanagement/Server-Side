@@ -56,5 +56,10 @@ namespace TeamApp.WebApi.Controllers.Test
                 DateTime = Application.Utils.Extensions.UnixTimeStampToDateTime(timestamp),
             });
         }
+        [HttpGet("test-time")]
+        public IActionResult GetTime()
+        {
+            return Ok(DateTime.UtcNow);
+        }
     }
 }
