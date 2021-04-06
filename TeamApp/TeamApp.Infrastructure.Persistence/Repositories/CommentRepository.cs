@@ -51,6 +51,26 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
+        public async Task<List<CommentResponse>> GetAllByPostId(string postId)
+        {
+            var query = from c in _dbContext.Comment
+                        join u in _dbContext.User on c.CommentUserId equals u.Id
+                        select new { c, u.ImageUrl, u.FullName };
+
+            var outPut = query.Where(x => x.c.CommentPostId == postId);
+            return await outPut.Select(x => new CommentResponse
+            {
+                CommentId = x.c.CommentId,
+                CommentPostId = x.c.CommentPostId,
+                CommentUserId = x.c.CommentUserId,
+                CommentContent = x.c.CommentContent,
+                CommentCreatedAt = x.c.CommentCreatedAt,
+                CommentIsDeleted = x.c.CommentIsDeleted,
+                UserAvatar = x.ImageUrl,
+                UserName = x.FullName,
+            }).ToListAsync();
+        }
+
         public async Task<List<CommentResponse>> GetAllByTeamId(string teamId)
         {
             var query = from c in _dbContext.Comment

@@ -1,11 +1,15 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.Interfaces;
+using TeamApp.Application.Wrappers;
+using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.WebApi.Export;
+using TeamApp.WebApi.Extensions;
 
 namespace TeamApp.WebApi.Controllers.Test
 {
@@ -14,10 +18,12 @@ namespace TeamApp.WebApi.Controllers.Test
     public class TestController : ControllerBase
     {
         private readonly IAuthenticatedUserService authenticatedUserService;
+        private readonly TeamAppContext _dbContext;
 
-        public TestController(IAuthenticatedUserService _authenticatedUserService)
+        public TestController(IAuthenticatedUserService _authenticatedUserService, TeamAppContext dbContext)
         {
             authenticatedUserService = _authenticatedUserService;
+            _dbContext = dbContext;
         }
         [Authorize]
         [HttpGet]
@@ -60,6 +66,35 @@ namespace TeamApp.WebApi.Controllers.Test
         public IActionResult GetTime()
         {
             return Ok(DateTime.UtcNow);
+        }
+
+        [HttpGet("random")]
+        public IActionResult Random()
+        {
+            return Ok(
+                new ApiResponse<string>
+                {
+                    Data = RadomString.RandomString(6),
+                    Succeeded = true,
+                }
+                );
+        }
+        [HttpGet("test-query")]
+        public async Task<IActionResult> GetQuery([FromQuery] Request request)
+        {
+            //var outPut = from u in _dbContext.User
+            //          where u.FullName == fullName && u.UserName == userName
+            //         select u;
+            var outPut = from m in _dbContext.Post
+                         //where m.MessageCreatedAt >= request.StartDate && m.MessageCreatedAt <= request.EndDate
+                         select m;
+            return Ok(await outPut.ToListAsync());
+        }
+
+        public class Request
+        {
+            public DateTime? StartDate { get; set; }
+            public DateTime? EndDate { get; set; }
         }
     }
 }

@@ -11,6 +11,7 @@ namespace TeamApp.Application.Interfaces.Repositories
 {
     public interface ICommentRepository
     {
+        Task<List<CommentResponse>> GetAllByPostId(string postId);
         Task<List<CommentResponse>> GetAllByUserId(string userId);
         Task<List<CommentResponse>> GetAllByTeamId(string teamId);
         Task<List<CommentResponse>> GetAllByUserTeamId(string userId, string teamId);

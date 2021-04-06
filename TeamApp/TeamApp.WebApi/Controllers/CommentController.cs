@@ -102,5 +102,16 @@ namespace TeamApp.WebApi.Controllers
 
             return Ok(outPut);
         }
+
+        [HttpGet("post/{postId}")]
+        public async Task<IActionResult> GetCommentByPostId(string postId)
+        {
+            var outPut = await _repo.GetAllByPostId(postId);
+            return Ok(new ApiResponse<List<CommentResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
+        }
     }
 }

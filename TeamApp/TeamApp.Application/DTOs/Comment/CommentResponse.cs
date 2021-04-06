@@ -12,5 +12,7 @@ namespace TeamApp.Application.DTOs.Comment
         public string CommentContent { get; set; }
         public DateTime? CommentCreatedAt { get; set; }
         public bool? CommentIsDeleted { get; set; }
+        public string UserAvatar { get; set; }
+        public string UserName { get; set; }
     }
 }
