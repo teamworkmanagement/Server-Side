@@ -126,18 +126,27 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<PagedResponse<PostResponse>> GetPaging(RequestParameter parameter)
         {
-            var query = _dbContext.Post.Skip(parameter.PageSize * parameter.PageNumber).Take(parameter.PageSize);
+            var queryUserPost = from p in _dbContext.Post
+                                join u in _dbContext.User on p.PostUserId equals u.Id
+                                select new { p, u.ImageUrl, u.Id, u.FullName, p.Comment.Count };
+
+            var queryOrder = queryUserPost.OrderByDescending(x => x.p.PostCreatedAt);
+
+            var query = queryOrder.Skip((parameter.PageNumber - 1) * parameter.PageSize)
+                .Take(parameter.PageSize);
 
             var entityList = await query.Select(x => new PostResponse
             {
-                PostId = x.PostId,
-                PostUserId = x.PostUserId,
-                PostTeamId = x.PostTeamId,
-                PostContent = x.PostContent,
-                PostCreatedAt = x.PostCreatedAt,
-                PostCommentCount = x.PostCommentCount,
-                PostIsDeleted = x.PostIsDeleted,
-                PostIsPinned = x.PostIsPinned,
+                PostId = x.p.PostId,
+                PostUserId = x.p.PostUserId,
+                PostTeamId = x.p.PostTeamId,
+                PostContent = x.p.PostContent,
+                PostCreatedAt = x.p.PostCreatedAt,
+                PostCommentCount = x.Count,
+                PostIsDeleted = x.p.PostIsDeleted,
+                PostIsPinned = x.p.PostIsPinned,
+                UserName = x.FullName,
+                UserAvatar = x.ImageUrl,
             }).ToListAsync();
 
             var outPut = new PagedResponse<PostResponse>(entityList, parameter.PageNumber, parameter.PageSize, await query.CountAsync());

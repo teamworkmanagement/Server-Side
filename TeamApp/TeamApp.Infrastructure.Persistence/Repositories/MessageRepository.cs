@@ -93,7 +93,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = _dbContext.Message
                 .Where(x => x.MessageGroupChatId == parameter.GroupId).OrderByDescending(x => x.MessageCreatedAt);
             
-            var outPut = query.Skip((parameter.PageNumber - 1) * parameter.PageSize)
+            var outPut = query.Skip(parameter.PageNumber)
                 .Take(parameter.PageSize);
 
             var items = await outPut.Select(x => new MessageResponse

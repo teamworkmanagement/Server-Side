@@ -101,7 +101,7 @@ namespace TeamApp.WebApi.Controllers
             {
                 Data = res,
                 Succeeded = res,
-                Message = !res ? "Sửa thất bại" : null,
+                Message = !res ? "Sửa thất bại" : "Sửa thành công",
             };
 
             return Ok(outPut);

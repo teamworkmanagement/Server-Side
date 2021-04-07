@@ -57,7 +57,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetPaging([FromQuery] RequestParameter parameter)
+        public async Task<IActionResult> GetPaging([FromQuery] CommentRequestParameter parameter)
         {
             var outPut = new ApiResponse<PagedResponse<CommentResponse>>
             {
