@@ -287,7 +287,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             AuthenticationResponse response = new AuthenticationResponse();
             var userWithSameEmail = await _dbContext.User.Where(x => x.Email == request.Email).FirstOrDefaultAsync();
             //đã đăng nhập với social
-            if (userWithSameEmail != null && userWithSameEmail.PasswordHash == "social")
+            if (userWithSameEmail != null && userWithSameEmail.IsThemeLight == true)
             {
                 //đã login trước, cấp token
                 JwtSecurityToken jwtSecurityToken = await GenerateJWToken(userWithSameEmail);
@@ -315,12 +315,11 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     ImageUrl = HttpUtility.UrlEncode(request.ImageUrl),
                     CreatedAt = DateTime.UtcNow,
                     EmailConfirmed = true,
-                    PasswordHash = "social",
                     UserName = request.Email,
+                    IsThemeLight = true,
                 };
 
-                var a = await _dbContext.User.AddAsync(user);
-                var b = await _dbContext.SaveChangesAsync();
+                var result = await _userManager.CreateAsync(user, "@Social11");
 
                 var entity = await _userManager.FindByIdAsync(request.Id);
 
