@@ -69,6 +69,9 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
             //response.Roles = rolesList.ToList();
             response.IsVerified = user.EmailConfirmed;
+            response.UserAvatar = user.ImageUrl;
+            response.FullName = user.FullName;
+
             var refreshToken = GenerateRefreshToken(ipAddress);
             refreshToken.UserId = user.Id;
             response.RefreshToken = refreshToken.Token;
@@ -296,8 +299,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 response.JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
                 response.Email = userWithSameEmail.Email;
                 response.UserName = userWithSameEmail.UserName;
-
+                response.UserAvatar = userWithSameEmail.ImageUrl;
+                response.FullName = userWithSameEmail.FullName;
                 response.IsVerified = userWithSameEmail.EmailConfirmed;
+
                 var refreshToken = GenerateRefreshToken(ipAddress);
                 refreshToken.UserId = userWithSameEmail.Id;
                 response.RefreshToken = refreshToken.Token;
@@ -328,6 +333,9 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 response.JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
                 response.Email = entity.Email;
                 response.IsVerified = entity.EmailConfirmed;
+                response.UserAvatar = entity.ImageUrl;
+                response.FullName = entity.FullName;
+
                 var refreshToken = GenerateRefreshToken(ipAddress);
                 refreshToken.UserId = entity.Id;
                 response.RefreshToken = refreshToken.Token;
