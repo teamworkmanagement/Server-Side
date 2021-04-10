@@ -2,14 +2,20 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
+using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
+using System.Text;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Account;
+using TeamApp.Application.Exceptions;
 using TeamApp.Application.Interfaces;
+using TeamApp.Application.Wrappers;
+using TeamApp.Infrastructure.Persistence.Helpers;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -33,9 +39,9 @@ namespace TeamApp.WebApi.Controllers
                 var data = outPut.Data;
 
                 HttpContext.Response.Cookies.Append("access_token", data.JWToken,
-                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddMinutes(330), });
+                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddMinutes(358), });
                 HttpContext.Response.Cookies.Append("refresh_token", data.RefreshToken,
-                    new CookieOptions { HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
+                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
             }
 
             return Ok(outPut);
@@ -73,13 +79,20 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh(string refreshTokenEncry)
+        public async Task<IActionResult> Refresh()
         {
-            var outPut = await _accountService.Refresh(refreshTokenEncry);
+            var refreshEncry = HttpContext.Request.Cookies["refresh_token"];
+            var accessToken = HttpContext.Request.Cookies["access_token"];
+            if (string.IsNullOrEmpty(refreshEncry) || (string.IsNullOrEmpty(accessToken) && string.IsNullOrEmpty(refreshEncry)))
+                throw new ArgumentException();
+
+            var outPut = await _accountService.Refresh(refreshEncry);
             if (outPut.Succeeded)
             {
                 HttpContext.Response.Cookies.Append("access_token", outPut.Data.AccessToken,
-                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddMinutes(330), });
+                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddMinutes(358), });
+                HttpContext.Response.Cookies.Append("refresh_token", outPut.Data.RefreshToken,
+                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
             }
             return Ok(outPut);
         }
@@ -91,10 +104,21 @@ namespace TeamApp.WebApi.Controllers
             if (outPut.Succeeded)
             {
                 HttpContext.Response.Cookies.Append("access_token", outPut.Data.JWToken,
-                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddMinutes(330), });
+                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddMinutes(358), });
+                HttpContext.Response.Cookies.Append("refresh_token", outPut.Data.RefreshToken,
+                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
             }
 
             return Ok(outPut);
+        }
+
+        [HttpGet("is-login")]
+        public async Task<IActionResult> IsLogin()
+        {
+            var token = HttpContext.Request.Cookies["access_token"];
+            var refreshtoken = HttpContext.Request.Cookies["refresh_token"];
+
+            return Ok(await _accountService.IsLogin(token, refreshtoken));
         }
     }
 }

@@ -17,5 +17,6 @@ namespace TeamApp.Application.Interfaces
         Task<ApiResponse<string>> ResetPassword(ResetPasswordRequest model);
         Task<ApiResponse<TokenModel>> Refresh(string refreshTokenEncry);
         Task<ApiResponse<AuthenticationResponse>> SocialLogin(SocialRequest request, string ipAddress);
+        Task<ApiResponse<string>> IsLogin(string accessToken, string refreshToken);
     }
 }

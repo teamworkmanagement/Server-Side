@@ -244,8 +244,6 @@ namespace TeamApp.Infrastructure.Persistence.Services
         {
             var refreshToken = StringHelper.DecryptString(refreshTokenEncry);
             var accessTokenEncry = _httpContextAccessor.HttpContext.Request.Cookies["access_token"];
-            if (string.IsNullOrEmpty(accessTokenEncry))
-                throw new ApiException("No access token");
 
             var accesToken = StringHelper.DecryptString(accessTokenEncry);
             var principal = GetPrincipalFromExpiredToken(accesToken);
@@ -362,6 +360,36 @@ namespace TeamApp.Infrastructure.Persistence.Services
 
             return new ApiResponse<AuthenticationResponse>(response);
 
+        }
+
+        public async Task<ApiResponse<string>> IsLogin(string accessToken, string refreshToken)
+        {
+            var outPut = "Auth";
+
+            //không có token trong cookie
+            if (string.IsNullOrEmpty(accessToken) && string.IsNullOrEmpty(refreshToken))
+                outPut = "UnAuth";
+
+            if (!string.IsNullOrEmpty(accessToken) && string.IsNullOrEmpty(refreshToken))
+                outPut = "UnAuth";
+
+            if (string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
+                outPut = "UnAuth";
+            if (!string.IsNullOrEmpty(accessToken) && !string.IsNullOrEmpty(refreshToken))
+            {
+                var principal = GetPrincipalFromExpiredToken(StringHelper.DecryptString(accessToken)).Claims.ToList();
+                var userId = principal[3].Value;
+                var refreshDec = StringHelper.DecryptString(refreshToken);
+                var refreshEntity = await _dbContext.RefreshToken.Where(x => x.UserId == userId && x.Token == refreshDec).FirstOrDefaultAsync();
+                if (refreshEntity == null)
+                    outPut = "UnAuth";
+            }
+            return new ApiResponse<string>
+            {
+                Succeeded = true,
+                Data = outPut,
+                Message = null,
+            };
         }
     }
 }
