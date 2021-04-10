@@ -19,6 +19,7 @@ namespace TeamApp.WebApi.Extensions
         }
         public static void UseErrorHandlingMiddleware(this IApplicationBuilder app)
         {
+            app.UseMiddleware<CookieMiddleware>();
             app.UseMiddleware<ErrorHandlerMiddleware>();
         }
     }

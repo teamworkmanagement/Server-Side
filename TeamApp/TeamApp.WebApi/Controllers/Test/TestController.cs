@@ -5,9 +5,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Web;
 using TeamApp.Application.Interfaces;
 using TeamApp.Application.Wrappers;
 using TeamApp.Infrastructure.Persistence.Entities;
+using TeamApp.Infrastructure.Persistence.Helpers;
 using TeamApp.WebApi.Export;
 using TeamApp.WebApi.Extensions;
 
@@ -15,7 +17,7 @@ namespace TeamApp.WebApi.Controllers.Test
 {
     [ApiController]
     [Route("api/test")]
-    public class TestController : ControllerBase
+    public class TestController : Controller
     {
         private readonly IAuthenticatedUserService authenticatedUserService;
         private readonly TeamAppContext _dbContext;
@@ -80,21 +82,23 @@ namespace TeamApp.WebApi.Controllers.Test
                 );
         }
         [HttpGet("test-query")]
-        public async Task<IActionResult> GetQuery([FromQuery] Request request)
+        public async Task<IActionResult> GetQuery()
         {
-            //var outPut = from u in _dbContext.User
-            //          where u.FullName == fullName && u.UserName == userName
-            //         select u;
-            var outPut = from m in _dbContext.Post
-                         //where m.MessageCreatedAt >= request.StartDate && m.MessageCreatedAt <= request.EndDate
-                         select m;
-            return Ok(await outPut.ToListAsync());
+            /*HttpContext.Response.Cookies.Append("test", "bánh quy", new Microsoft.AspNetCore.Http.CookieOptions
+            {
+                Expires = DateTime.UtcNow.AddMinutes(2)
+            });*/
+            HttpContext.Request.Cookies.TryGetValue("test", out string z);
+            return Ok("abc query: " + z);
         }
 
-        public class Request
+        [AllowAnonymous]
+        [HttpGet("decrypt")]
+        public IActionResult Decrypt(string encry, bool isDecode = false)
         {
-            public DateTime? StartDate { get; set; }
-            public DateTime? EndDate { get; set; }
+            if (!isDecode)
+                encry = HttpUtility.UrlDecode(encry);
+            return Ok(StringHelper.DecryptString(encry));
         }
     }
 }

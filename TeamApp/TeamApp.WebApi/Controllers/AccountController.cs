@@ -1,8 +1,12 @@
-﻿using Microsoft.AspNetCore.Http;
+﻿using Microsoft.AspNetCore.Authentication;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Claims;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Account;
 using TeamApp.Application.Interfaces;
@@ -11,17 +15,30 @@ namespace TeamApp.WebApi.Controllers
 {
     [Route("api/account")]
     [ApiController]
-    public class AccountController : ControllerBase
+    public class AccountController : Controller
     {
         private readonly IAccountService _accountService;
-        public AccountController(IAccountService accountService)
+        private readonly IHttpContextAccessor _httpContextAccessor;
+        public AccountController(IAccountService accountService, IHttpContextAccessor httpContextAccessor)
         {
             _accountService = accountService;
+            _httpContextAccessor = httpContextAccessor;
         }
         [HttpPost("authenticate")]
         public async Task<IActionResult> AuthenticateAsync(AuthenticationRequest request)
         {
-            return Ok(await _accountService.AuthenticateAsync(request, GenerateIPAddress()));
+            var outPut = await _accountService.AuthenticateAsync(request, GenerateIPAddress());
+            if (outPut.Succeeded)
+            {
+                var data = outPut.Data;
+
+                HttpContext.Response.Cookies.Append("access_token", data.JWToken,
+                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddMinutes(330), });
+                HttpContext.Response.Cookies.Append("refresh_token", data.RefreshToken,
+                    new CookieOptions { HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
+            }
+
+            return Ok(outPut);
         }
         [HttpPost("register")]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
@@ -56,15 +73,28 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost("refresh")]
-        public async Task<IActionResult> Refresh([FromBody] TokenModel tokenModel)
+        public async Task<IActionResult> Refresh(string refreshTokenEncry)
         {
-            return Ok(await _accountService.Refresh(tokenModel));
+            var outPut = await _accountService.Refresh(refreshTokenEncry);
+            if (outPut.Succeeded)
+            {
+                HttpContext.Response.Cookies.Append("access_token", outPut.Data.AccessToken,
+                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddMinutes(330), });
+            }
+            return Ok(outPut);
         }
 
         [HttpPost("social-login")]
         public async Task<IActionResult> LoginSocial([FromBody] SocialRequest request)
         {
-            return Ok(await _accountService.SocialLogin(request, GenerateIPAddress()));
+            var outPut = await _accountService.SocialLogin(request, GenerateIPAddress());
+            if (outPut.Succeeded)
+            {
+                HttpContext.Response.Cookies.Append("access_token", outPut.Data.JWToken,
+                    new CookieOptions { HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddMinutes(330), });
+            }
+
+            return Ok(outPut);
         }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.Http;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -20,6 +21,7 @@ using TeamApp.Application.Wrappers;
 using TeamApp.Domain.Settings;
 using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Infrastructure.Persistence.Helpers;
+using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.Infrastructure.Persistence.Services
 {
@@ -30,18 +32,21 @@ namespace TeamApp.Infrastructure.Persistence.Services
         private readonly IEmailService _emailService;
         private readonly JWTSettings _jwtSettings;
         private readonly TeamAppContext _dbContext;
+        private readonly IHttpContextAccessor _httpContextAccessor;
 
         public AccountService(UserManager<User> userManager,
             IOptions<JWTSettings> jwtSettings,
             SignInManager<User> signInManager,
             IEmailService emailService,
-            TeamAppContext dbContext)
+            TeamAppContext dbContext,
+            IHttpContextAccessor httpContextAccessor)
         {
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
             _signInManager = signInManager;
             this._emailService = emailService;
             _dbContext = dbContext;
+            _httpContextAccessor = httpContextAccessor;
         }
 
         public async Task<ApiResponse<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, string ipAddress)
@@ -63,7 +68,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user);
             AuthenticationResponse response = new AuthenticationResponse();
             response.Id = user.Id;
-            response.JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+            response.JWToken = StringHelper.EncryptString(new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken));
             response.Email = user.Email;
             response.UserName = user.UserName;
             var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
@@ -72,9 +77,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
             response.UserAvatar = user.ImageUrl;
             response.FullName = user.FullName;
 
-            var refreshToken = GenerateRefreshToken(ipAddress);
+            var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
             refreshToken.UserId = user.Id;
-            response.RefreshToken = refreshToken.Token;
+            response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
+            response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds();
 
             await _dbContext.RefreshToken.AddAsync(refreshToken);
             await _dbContext.SaveChangesAsync();
@@ -200,7 +206,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             };
         }
 
-        public async System.Threading.Tasks.Task ForgotPassword(ForgotPasswordRequest model, string origin)
+        public async Task ForgotPassword(ForgotPasswordRequest model, string origin)
         {
             var account = await _userManager.FindByEmailAsync(model.Email);
 
@@ -234,16 +240,23 @@ namespace TeamApp.Infrastructure.Persistence.Services
             }
         }
 
-        public async Task<ApiResponse<TokenModel>> Refresh(TokenModel tokenModel)
+        public async Task<ApiResponse<TokenModel>> Refresh(string refreshTokenEncry)
         {
-            var principal = GetPrincipalFromExpiredToken(tokenModel.AccessToken);
+            var refreshToken = StringHelper.DecryptString(refreshTokenEncry);
+            var accessTokenEncry = _httpContextAccessor.HttpContext.Request.Cookies["access_token"];
+            if (string.IsNullOrEmpty(accessTokenEncry))
+                throw new ApiException("No access token");
+
+            var accesToken = StringHelper.DecryptString(accessTokenEncry);
+            var principal = GetPrincipalFromExpiredToken(accesToken);
+
             var userId = principal.Claims.ToList()[3].Value;
             var user = await _dbContext.User.FindAsync(userId);
 
             var tokenObj = await _dbContext.RefreshToken.Where(x => x.UserId == userId
-            && x.Token == tokenModel.RefreshToken && x.Expires > DateTime.UtcNow).FirstOrDefaultAsync();
+            && x.Token == refreshToken && x.Expires > DateTime.UtcNow).FirstOrDefaultAsync();
 
-            if (tokenModel == null)
+            if (tokenObj == null)
                 throw new ApiException("Refresh token not match for this user");
 
             var jwtSecurityToken = await GenerateJWToken(user);
@@ -258,8 +271,9 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 Succeeded = true,
                 Data = new TokenModel
                 {
-                    RefreshToken = refreshObj.Token,
-                    AccessToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken),
+                    RefreshToken = StringHelper.EncryptString(refreshObj.Token),
+                    AccessToken = StringHelper.EncryptString(new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken)),
+                    ExprieToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds(),
                 }
             };
 
@@ -296,16 +310,17 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 JwtSecurityToken jwtSecurityToken = await GenerateJWToken(userWithSameEmail);
 
                 response.Id = userWithSameEmail.Id;
-                response.JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+                response.JWToken = StringHelper.EncryptString(new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken));
                 response.Email = userWithSameEmail.Email;
                 response.UserName = userWithSameEmail.UserName;
                 response.UserAvatar = userWithSameEmail.ImageUrl;
                 response.FullName = userWithSameEmail.FullName;
                 response.IsVerified = userWithSameEmail.EmailConfirmed;
 
-                var refreshToken = GenerateRefreshToken(ipAddress);
+                var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
                 refreshToken.UserId = userWithSameEmail.Id;
-                response.RefreshToken = refreshToken.Token;
+                response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
+                response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds();
 
                 await _dbContext.RefreshToken.AddAsync(refreshToken);
                 await _dbContext.SaveChangesAsync();
@@ -330,15 +345,16 @@ namespace TeamApp.Infrastructure.Persistence.Services
 
                 JwtSecurityToken jwtSecurityToken = await GenerateJWToken(entity);
                 response.Id = entity.Id;
-                response.JWToken = new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken);
+                response.JWToken = StringHelper.EncryptString(new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken));
                 response.Email = entity.Email;
                 response.IsVerified = entity.EmailConfirmed;
                 response.UserAvatar = entity.ImageUrl;
                 response.FullName = entity.FullName;
 
-                var refreshToken = GenerateRefreshToken(ipAddress);
+                var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
                 refreshToken.UserId = entity.Id;
-                response.RefreshToken = refreshToken.Token;
+                response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
+                response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds();
 
                 await _dbContext.RefreshToken.AddAsync(refreshToken);
                 await _dbContext.SaveChangesAsync();

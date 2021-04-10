@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
+using System;
 using TeamApp.Application;
 using TeamApp.Application.Interfaces;
 using TeamApp.Infrastructure.Persistence;
@@ -36,7 +37,7 @@ namespace TeamApp.WebApi
                 {
                     policy.AllowAnyHeader()
                         .AllowAnyMethod()
-                        .WithOrigins("http://localhost:3000")
+                        .WithOrigins(new string[] { "http://localhost:3000", "http://localhost:3001", "http://localhost:3002" })
                         .AllowCredentials();
                 });
             });
@@ -58,10 +59,14 @@ namespace TeamApp.WebApi
             app.UseHttpsRedirection();
             app.UseCors("ClientPermission");
             app.UseRouting();
+
+            app.UseErrorHandlingMiddleware();
             app.UseAuthentication();
             app.UseAuthorization();
+
+            
             app.UseSwaggerExtension();
-            app.UseErrorHandlingMiddleware();
+            
             app.UseHealthChecks("/health");
 
             app.UseEndpoints(endpoints =>
