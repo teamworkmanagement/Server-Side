@@ -154,6 +154,105 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
+        public async Task<PagedResponse<PostResponse>> GetPostPaging(PostRequestParameter parameter)
+        {
+            bool advanced = false;
+            if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))
+                advanced = true;
+
+            var teamList = from t in _dbContext.Team
+                           join par in _dbContext.Participation on t.TeamId equals par.ParticipationTeamId
+                           join u in _dbContext.User on par.ParticipationUserId equals u.Id
+                           select new { u.Id, t.TeamId };
+
+            teamList = teamList.Where(x => x.Id == parameter.UserId);
+
+            //bảng chứa toàn bộ thông tin các post của các team mà user tham gia
+            var query = from p in _dbContext.Post
+                        join listTeam in teamList on p.PostTeamId equals listTeam.TeamId
+                        join u in _dbContext.User on p.PostUserId equals u.Id
+                        select new { p, u, p.Comment.Count };
+
+
+            //tìm kiếm nâng cao
+            if (advanced)
+            {
+                if (parameter.FromDate != null)
+                {
+                    DateTime dtFrom = (DateTimeOffset.FromUnixTimeMilliseconds((long)parameter.FromDate)).UtcDateTime;
+                    query = query.Where(x => x.p.PostCreatedAt >= dtFrom);
+                }
+                if (parameter.ToDate != null)
+                {
+                    DateTime dateTo = (DateTimeOffset.FromUnixTimeMilliseconds((long)parameter.ToDate)).UtcDateTime;
+                    query = query.Where(x => x.p.PostCreatedAt <= dateTo);
+                }
+                if (parameter.GroupId != null)
+                {
+                    query = query.Where(x => x.p.PostTeamId == parameter.GroupId);
+                }
+                if (parameter.PostUser != null)
+                {
+                    query = query.Where(x => x.u.Id == parameter.PostUser);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
+            {
+                DateTime now = DateTime.UtcNow;
+                DateTime baseDate = now.Date;
+
+                switch (parameter.BasicFilter)
+                {
+                    case BasicFilter.Lastest:
+                        query = query.OrderByDescending(x => x.p.PostCreatedAt);
+                        //mới nhất
+                        break;
+                    case BasicFilter.LastHour:
+
+                        var lastHour = now.AddMinutes(-60);
+                        query = query.Where(x => x.p.PostCreatedAt >= lastHour && x.p.PostCreatedAt <= now);
+                        //ở trong range này
+                        break;
+                    case BasicFilter.Today:
+                        query = query.Where(x => ((DateTime)x.p.PostCreatedAt).Date == baseDate);
+                        break;
+                    case BasicFilter.ThisWeek:
+                        var thisWeekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek);
+                        var thisWeekEnd = thisWeekStart.AddDays(7).AddSeconds(-1);
+                        query.Where(x => x.p.PostCreatedAt >= thisWeekStart && x.p.PostCreatedAt <= thisWeekEnd);
+                        break;
+                    case BasicFilter.ThisMonth:
+                        var thisMonthStart = baseDate.AddDays(1 - baseDate.Day);
+                        var thisMonthEnd = thisMonthStart.AddMonths(1).AddSeconds(-1);
+                        query.Where(x => x.p.PostCreatedAt >= thisMonthStart && x.p.PostCreatedAt <= thisMonthEnd);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
+                query = query.OrderByDescending(x => x.p.PostCreatedAt);
+
+            var entityList = await query.Select(x => new PostResponse
+            {
+                PostId = x.p.PostId,
+                PostUserId = x.p.PostUserId,
+                PostTeamId = x.p.PostTeamId,
+                PostContent = x.p.PostContent,
+                PostCreatedAt = x.p.PostCreatedAt,
+                PostCommentCount = x.Count,
+                PostIsDeleted = x.p.PostIsDeleted,
+                PostIsPinned = x.p.PostIsPinned,
+                UserName = x.u.FullName,
+                UserAvatar = x.u.ImageUrl,
+            }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
+
+            return new PagedResponse<PostResponse>(entityList, parameter.SkipItems, parameter.PageSize, entityList.Count);
+
+        }
+
         public async Task<bool> UpdatePost(string postId, PostRequest postReq)
         {
             var entity = await _dbContext.Post.FindAsync(postId);

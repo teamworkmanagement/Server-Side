@@ -139,5 +139,19 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             });
         }
+
+        [HttpGet("paging-multi")]
+        public async Task<IActionResult> GetMultiPaging([FromQuery] PostRequestParameter parameter)
+        {
+            var res = await _repo.GetPostPaging(parameter);
+
+            var outPut = new ApiResponse<PagedResponse<PostResponse>>
+            {
+                Data = res,
+                Succeeded = true,
+            };
+
+            return Ok(outPut);
+        }
     }
 }
