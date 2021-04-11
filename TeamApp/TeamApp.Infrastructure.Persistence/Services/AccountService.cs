@@ -80,7 +80,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
             refreshToken.UserId = user.Id;
             response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
-            response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds();
+            response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(1)).ToUnixTimeMilliseconds();
 
             await _dbContext.RefreshToken.AddAsync(refreshToken);
             await _dbContext.SaveChangesAsync();

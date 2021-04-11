@@ -93,9 +93,20 @@ namespace TeamApp.Infrastructure.Persistence
                         OnAuthenticationFailed = c =>
                         {
                             c.NoResult();
+                            if (c.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                            {
+                                c.Response.Headers.Add("X-Token-Expired", "true");
+                                c.Response.Cookies.Append("TokenExpired", "true", new CookieOptions
+                                {
+                                    Expires = DateTime.UtcNow.AddMinutes(5),
+                                    Secure = true,
+                                    HttpOnly = false,
+                                    SameSite = SameSiteMode.None,
+                                });
+                            }
                             c.Response.StatusCode = 500;
                             c.Response.ContentType = "text/plain";
-                            var responseModel = new ApiResponse<string>() { Succeeded = false, Message = c.Exception.ToString(), ErrorCode = "500", };
+                            var responseModel = new ApiResponse<string>() { Succeeded = false, Message = c.Exception.ToString(), };
                             return c.Response.WriteAsync(JsonConvert.SerializeObject(responseModel));
                         },
                         /*OnChallenge = context =>

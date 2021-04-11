@@ -37,7 +37,7 @@ namespace TeamApp.WebApi
                 {
                     policy.AllowAnyHeader()
                         .AllowAnyMethod()
-                        .WithOrigins(new string[] { "http://localhost:3000", "http://localhost:3001", "http://localhost:3002" })
+                        .WithOrigins(new string[] { "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://192.168.137.1:3000" })
                         .AllowCredentials();
                 });
             });
@@ -64,9 +64,9 @@ namespace TeamApp.WebApi
             app.UseAuthentication();
             app.UseAuthorization();
 
-            
+
             app.UseSwaggerExtension();
-            
+
             app.UseHealthChecks("/health");
 
             app.UseEndpoints(endpoints =>
