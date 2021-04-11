@@ -83,7 +83,7 @@ namespace TeamApp.WebApi.Controllers
         {
             var refreshEncry = HttpContext.Request.Cookies["refresh_token"];
             var accessToken = HttpContext.Request.Cookies["access_token"];
-            if (string.IsNullOrEmpty(refreshEncry) || (string.IsNullOrEmpty(accessToken) && string.IsNullOrEmpty(refreshEncry)))
+            if (string.IsNullOrEmpty(refreshEncry) || (string.IsNullOrEmpty(accessToken)))
                 throw new ArgumentException();
 
             var outPut = await _accountService.Refresh(refreshEncry);

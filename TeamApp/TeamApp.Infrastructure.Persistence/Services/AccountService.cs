@@ -16,7 +16,6 @@ using TeamApp.Application.DTOs.Account;
 using TeamApp.Application.DTOs.Email;
 using TeamApp.Application.Exceptions;
 using TeamApp.Application.Interfaces;
-using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 using TeamApp.Domain.Settings;
 using TeamApp.Infrastructure.Persistence.Entities;
@@ -80,7 +79,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
             refreshToken.UserId = user.Id;
             response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
-            response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(1)).ToUnixTimeMilliseconds();
+            response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes)).ToUnixTimeMilliseconds();
 
             await _dbContext.RefreshToken.AddAsync(refreshToken);
             await _dbContext.SaveChangesAsync();
