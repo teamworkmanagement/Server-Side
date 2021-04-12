@@ -9,6 +9,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Post;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -56,19 +57,23 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<List<PostResponse>> GetAllByTeamId(string teamId)
         {
             var query = from p in _dbContext.Post
-                        where p.PostTeamId == teamId
-                        select p;
+                        join t in _dbContext.Team on p.PostTeamId equals t.TeamId
+                        join u in _dbContext.User on p.PostUserId equals u.Id
+                        select new { p, u.ImageUrl, u.FullName, p.Comment.Count };
+            query = query.Where(x => x.p.PostTeamId == teamId);
 
             var outPut = await query.Select(x => new PostResponse
             {
-                PostId = x.PostId,
-                PostUserId = x.PostUserId,
-                PostTeamId = x.PostTeamId,
-                PostContent = x.PostContent,
-                PostCreatedAt = x.PostCreatedAt,
-                PostCommentCount = x.PostCommentCount,
-                PostIsDeleted = x.PostIsDeleted,
-                PostIsPinned = x.PostIsPinned,
+                PostId = x.p.PostId,
+                PostUserId = x.p.PostUserId,
+                PostTeamId = x.p.PostTeamId,
+                PostContent = x.p.PostContent,
+                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
+                PostCommentCount = x.Count,
+                PostIsDeleted = x.p.PostIsDeleted,
+                PostIsPinned = x.p.PostIsPinned,
+                UserAvatar = x.ImageUrl,
+                UserName = x.FullName,
             }).ToListAsync();
 
             return outPut;
@@ -77,19 +82,23 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<List<PostResponse>> GetAllByUserId(string userId)
         {
             var query = from p in _dbContext.Post
-                        where p.PostUserId == userId
-                        select p;
+                        join u in _dbContext.User on p.PostUserId equals u.Id
+                        select new { p, u.ImageUrl, u.Id, u.FullName, p.Comment.Count };
+
+            query = query.Where(x => x.Id == userId);
 
             var outPut = await query.Select(x => new PostResponse
             {
-                PostId = x.PostId,
-                PostUserId = x.PostUserId,
-                PostTeamId = x.PostTeamId,
-                PostContent = x.PostContent,
-                PostCreatedAt = x.PostCreatedAt,
-                PostCommentCount = x.PostCommentCount,
-                PostIsDeleted = x.PostIsDeleted,
-                PostIsPinned = x.PostIsPinned,
+                PostId = x.p.PostId,
+                PostUserId = x.p.PostUserId,
+                PostTeamId = x.p.PostTeamId,
+                PostContent = x.p.PostContent,
+                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
+                PostCommentCount = x.Count,
+                PostIsDeleted = x.p.PostIsDeleted,
+                PostIsPinned = x.p.PostIsPinned,
+                UserAvatar = x.ImageUrl,
+                UserName = x.FullName,
             }).ToListAsync();
 
             return outPut;
@@ -107,7 +116,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostUserId = x.PostUserId,
                 PostTeamId = x.PostTeamId,
                 PostContent = x.PostContent,
-                PostCreatedAt = x.PostCreatedAt,
+                PostCreatedAt = x.PostCreatedAt.FormatTime(),
                 PostCommentCount = x.PostCommentCount,
                 PostIsDeleted = x.PostIsDeleted,
                 PostIsPinned = x.PostIsPinned,
@@ -118,23 +127,131 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<PagedResponse<PostResponse>> GetPaging(RequestParameter parameter)
         {
-            var query = _dbContext.Post.Skip(parameter.PageSize * parameter.PageNumber).Take(parameter.PageSize);
+            var queryUserPost = from p in _dbContext.Post
+                                join u in _dbContext.User on p.PostUserId equals u.Id
+                                select new { p, u.ImageUrl, u.Id, u.FullName, p.Comment.Count };
+
+            var queryOrder = queryUserPost.OrderByDescending(x => x.p.PostCreatedAt);
+
+            var query = queryOrder.Skip((parameter.PageNumber - 1) * parameter.PageSize)
+                .Take(parameter.PageSize);
 
             var entityList = await query.Select(x => new PostResponse
             {
-                PostId = x.PostId,
-                PostUserId = x.PostUserId,
-                PostTeamId = x.PostTeamId,
-                PostContent = x.PostContent,
-                PostCreatedAt = x.PostCreatedAt,
-                PostCommentCount = x.PostCommentCount,
-                PostIsDeleted = x.PostIsDeleted,
-                PostIsPinned = x.PostIsPinned,
+                PostId = x.p.PostId,
+                PostUserId = x.p.PostUserId,
+                PostTeamId = x.p.PostTeamId,
+                PostContent = x.p.PostContent,
+                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
+                PostCommentCount = x.Count,
+                PostIsDeleted = x.p.PostIsDeleted,
+                PostIsPinned = x.p.PostIsPinned,
+                UserName = x.FullName,
+                UserAvatar = x.ImageUrl,
             }).ToListAsync();
 
             var outPut = new PagedResponse<PostResponse>(entityList, parameter.PageNumber, parameter.PageSize, await query.CountAsync());
 
             return outPut;
+        }
+
+        public async Task<PagedResponse<PostResponse>> GetPostPaging(PostRequestParameter parameter)
+        {
+            bool advanced = false;
+            if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))
+                advanced = true;
+
+            var teamList = from t in _dbContext.Team
+                           join par in _dbContext.Participation on t.TeamId equals par.ParticipationTeamId
+                           join u in _dbContext.User on par.ParticipationUserId equals u.Id
+                           select new { u.Id, t.TeamId };
+
+            teamList = teamList.Where(x => x.Id == parameter.UserId);
+
+            //bảng chứa toàn bộ thông tin các post của các team mà user tham gia
+            var query = from p in _dbContext.Post
+                        join listTeam in teamList on p.PostTeamId equals listTeam.TeamId
+                        join u in _dbContext.User on p.PostUserId equals u.Id
+                        select new { p, u, p.Comment.Count };
+
+
+            //tìm kiếm nâng cao
+            if (advanced)
+            {
+                if (parameter.FromDate != null)
+                {
+                    DateTime dtFrom = (DateTimeOffset.FromUnixTimeMilliseconds((long)parameter.FromDate)).UtcDateTime;
+                    query = query.Where(x => x.p.PostCreatedAt >= dtFrom);
+                }
+                if (parameter.ToDate != null)
+                {
+                    DateTime dateTo = (DateTimeOffset.FromUnixTimeMilliseconds((long)parameter.ToDate)).UtcDateTime;
+                    query = query.Where(x => x.p.PostCreatedAt <= dateTo);
+                }
+                if (parameter.GroupId != null)
+                {
+                    query = query.Where(x => x.p.PostTeamId == parameter.GroupId);
+                }
+                if (parameter.PostUser != null)
+                {
+                    query = query.Where(x => x.u.Id == parameter.PostUser);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
+            {
+                DateTime now = DateTime.UtcNow;
+                DateTime baseDate = now.Date;
+
+                switch (parameter.BasicFilter)
+                {
+                    case BasicFilter.Lastest:
+                        query = query.OrderByDescending(x => x.p.PostCreatedAt);
+                        //mới nhất
+                        break;
+                    case BasicFilter.LastHour:
+
+                        var lastHour = now.AddMinutes(-60);
+                        query = query.Where(x => x.p.PostCreatedAt >= lastHour && x.p.PostCreatedAt <= now);
+                        //ở trong range này
+                        break;
+                    case BasicFilter.Today:
+                        query = query.Where(x => ((DateTime)x.p.PostCreatedAt).Date == baseDate);
+                        break;
+                    case BasicFilter.ThisWeek:
+                        var thisWeekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek);
+                        var thisWeekEnd = thisWeekStart.AddDays(7).AddSeconds(-1);
+                        query.Where(x => x.p.PostCreatedAt >= thisWeekStart && x.p.PostCreatedAt <= thisWeekEnd);
+                        break;
+                    case BasicFilter.ThisMonth:
+                        var thisMonthStart = baseDate.AddDays(1 - baseDate.Day);
+                        var thisMonthEnd = thisMonthStart.AddMonths(1).AddSeconds(-1);
+                        query.Where(x => x.p.PostCreatedAt >= thisMonthStart && x.p.PostCreatedAt <= thisMonthEnd);
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
+                query = query.OrderByDescending(x => x.p.PostCreatedAt);
+
+            var entityList = await query.Select(x => new PostResponse
+            {
+                PostId = x.p.PostId,
+                PostUserId = x.p.PostUserId,
+                PostTeamId = x.p.PostTeamId,
+                PostContent = x.p.PostContent,
+                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
+                PostCommentCount = x.Count,
+                PostIsDeleted = x.p.PostIsDeleted,
+                PostIsPinned = x.p.PostIsPinned,
+                UserName = x.u.FullName,
+                UserAvatar = x.u.ImageUrl,
+            }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
+
+            return new PagedResponse<PostResponse>(entityList, parameter.SkipItems, parameter.PageSize, entityList.Count);
+
         }
 
         public async Task<bool> UpdatePost(string postId, PostRequest postReq)

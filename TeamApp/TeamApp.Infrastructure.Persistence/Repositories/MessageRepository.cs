@@ -9,6 +9,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Message;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -63,7 +64,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MessageUserId = x.MessageUserId,
                 MessageGroupChatId = x.MessageGroupChatId,
                 MessageContent = x.MessageContent,
-                MessageCreatedAt = x.MessageCreatedAt,
+                MessageCreatedAt = x.MessageCreatedAt.FormatTime(),
                 MessageIsDeleted = x.MessageIsDeleted,
             }).ToListAsync();
         }
@@ -80,7 +81,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MessageUserId = x.MessageUserId,
                 MessageGroupChatId = x.MessageGroupChatId,
                 MessageContent = x.MessageContent,
-                MessageCreatedAt = x.MessageCreatedAt,
+                MessageCreatedAt = x.MessageCreatedAt.FormatTime(),
                 MessageIsDeleted = x.MessageIsDeleted,
             }).OrderBy(x => x.MessageCreatedAt).ToListAsync();
         }
@@ -93,7 +94,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = _dbContext.Message
                 .Where(x => x.MessageGroupChatId == parameter.GroupId).OrderByDescending(x => x.MessageCreatedAt);
             
-            var outPut = query.Skip((parameter.PageNumber - 1) * parameter.PageSize)
+            var outPut = query.Skip(parameter.PageNumber)
                 .Take(parameter.PageSize);
 
             var items = await outPut.Select(x => new MessageResponse
@@ -102,7 +103,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MessageUserId = x.MessageUserId,
                 MessageGroupChatId = x.MessageGroupChatId,
                 MessageContent = x.MessageContent,
-                MessageCreatedAt = x.MessageCreatedAt,
+                MessageCreatedAt = x.MessageCreatedAt.FormatTime(),
                 MessageIsDeleted = x.MessageIsDeleted,
             }).ToListAsync();
 

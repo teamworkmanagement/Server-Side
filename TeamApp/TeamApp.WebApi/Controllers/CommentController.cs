@@ -57,7 +57,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> GetPaging([FromQuery] RequestParameter parameter)
+        public async Task<IActionResult> GetPaging([FromQuery] CommentRequestParameter parameter)
         {
             var outPut = new ApiResponse<PagedResponse<CommentResponse>>
             {
@@ -101,6 +101,17 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpGet("post/{postId}")]
+        public async Task<IActionResult> GetCommentByPostId(string postId)
+        {
+            var outPut = await _repo.GetAllByPostId(postId);
+            return Ok(new ApiResponse<List<CommentResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
         }
     }
 }

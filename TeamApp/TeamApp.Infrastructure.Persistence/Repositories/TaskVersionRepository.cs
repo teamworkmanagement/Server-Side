@@ -7,6 +7,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.TaskVersion;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -40,11 +41,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 TaskVersionId = x.TaskVersionId,
                 TaskVersionTaskId = x.TaskVersionTaskId,
-                TaskVersionUpdatedAt = x.TaskVersionUpdatedAt,
+                TaskVersionUpdatedAt = x.TaskVersionUpdatedAt.FormatTime(),
                 TaskVersionTaskName = x.TaskVersionTaskName,
                 TaskVersionTaskDescription = x.TaskVersionTaskDescription,
                 TaskVersionTaskPoint = x.TaskVersionTaskPoint,
-                TaskVersionTaskDeadline = x.TaskVersionTaskDeadline,
+                TaskVersionTaskDeadline = x.TaskVersionTaskDeadline.FormatTime(),
                 TaskVersionTaskStatus = x.TaskVersionTaskStatus,
                 TaskVersionTaskCompletedPercent = x.TaskVersionTaskCompletedPercent,
                 TaskVersionTaskIsDeleted = x.TaskVersionTaskIsDeleted,
@@ -62,11 +63,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 TaskVersionId = entity.TaskVersionId,
                 TaskVersionTaskId = entity.TaskVersionTaskId,
-                TaskVersionUpdatedAt = entity.TaskVersionUpdatedAt,
+                TaskVersionUpdatedAt = entity.TaskVersionUpdatedAt.FormatTime(),
                 TaskVersionTaskName = entity.TaskVersionTaskName,
                 TaskVersionTaskDescription = entity.TaskVersionTaskDescription,
                 TaskVersionTaskPoint = entity.TaskVersionTaskPoint,
-                TaskVersionTaskDeadline = entity.TaskVersionTaskDeadline,
+                TaskVersionTaskDeadline = entity.TaskVersionTaskDeadline.FormatTime(),
                 TaskVersionTaskStatus = entity.TaskVersionTaskStatus,
                 TaskVersionTaskCompletedPercent = entity.TaskVersionTaskCompletedPercent,
                 TaskVersionTaskIsDeleted = entity.TaskVersionTaskIsDeleted,

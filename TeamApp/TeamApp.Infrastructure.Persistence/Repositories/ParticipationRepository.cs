@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Paricipation;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -43,7 +44,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 ParticipationId = x.ParticipationId,
                 ParticipationTeamId = x.ParticipationTeamId,
                 ParticipationUserId = x.ParticipationUserId,
-                ParticipationCreatedAt = x.ParticipationCreatedAt,
+                ParticipationCreatedAt = x.ParticipationCreatedAt.FormatTime(),
                 ParticipationIsDeleted = x.ParticipationIsDeleted
             }).ToListAsync();
         }

@@ -9,6 +9,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Comment;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -51,6 +52,27 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
+        public async Task<List<CommentResponse>> GetAllByPostId(string postId)
+        {
+            var query = from c in _dbContext.Comment
+                        join u in _dbContext.User on c.CommentUserId equals u.Id
+                        select new { c, u.ImageUrl, u.FullName };
+
+            var outPut = query.Where(x => x.c.CommentPostId == postId);
+
+            return await outPut.Select(x => new CommentResponse
+            {
+                CommentId = x.c.CommentId,
+                CommentPostId = x.c.CommentPostId,
+                CommentUserId = x.c.CommentUserId,
+                CommentContent = x.c.CommentContent,
+                CommentCreatedAt = x.c.CommentCreatedAt.FormatTime(),
+                CommentIsDeleted = x.c.CommentIsDeleted,
+                UserAvatar = x.ImageUrl,
+                UserName = x.FullName,
+            }).ToListAsync();
+        }
+
         public async Task<List<CommentResponse>> GetAllByTeamId(string teamId)
         {
             var query = from c in _dbContext.Comment
@@ -64,7 +86,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentPostId = x.CommentPostId,
                 CommentUserId = x.CommentUserId,
                 CommentContent = x.CommentContent,
-                CommentCreatedAt = x.CommentCreatedAt,
+                CommentCreatedAt = x.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.CommentIsDeleted,
             }).ToListAsync();
 
@@ -84,7 +106,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentPostId = x.CommentPostId,
                 CommentUserId = x.CommentUserId,
                 CommentContent = x.CommentContent,
-                CommentCreatedAt = x.CommentCreatedAt,
+                CommentCreatedAt = x.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.CommentIsDeleted,
             }).ToListAsync();
 
@@ -104,25 +126,34 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentPostId = x.CommentPostId,
                 CommentUserId = x.CommentUserId,
                 CommentContent = x.CommentContent,
-                CommentCreatedAt = x.CommentCreatedAt,
+                CommentCreatedAt = x.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.CommentIsDeleted,
             }).ToListAsync();
 
             return outPut;
         }
 
-        public async Task<PagedResponse<CommentResponse>> GetPaging(RequestParameter parameter)
+        public async Task<PagedResponse<CommentResponse>> GetPaging(CommentRequestParameter parameter)
         {
-            var query = _dbContext.Comment.Skip(parameter.PageSize * parameter.PageNumber).Take(parameter.PageSize);
+            var query = from c in _dbContext.Comment
+                        join u in _dbContext.User on c.CommentUserId equals u.Id
+                        select new { c, u.ImageUrl, u.FullName };
 
-            var entityList = await query.Select(x => new CommentResponse
+            var outQuery = query.Where(x => x.c.CommentPostId == parameter.PostId);
+
+            var queryO = outQuery.OrderByDescending(x => x.c.CommentCreatedAt);
+            var queryEnd = queryO.Skip(parameter.SkipItems).Take(parameter.PageSize);
+
+            var entityList = await queryEnd.Select(x => new CommentResponse
             {
-                CommentId = x.CommentId,
-                CommentPostId = x.CommentPostId,
-                CommentUserId = x.CommentUserId,
-                CommentContent = x.CommentContent,
-                CommentCreatedAt = x.CommentCreatedAt,
-                CommentIsDeleted = x.CommentIsDeleted,
+                CommentId = x.c.CommentId,
+                CommentPostId = x.c.CommentPostId,
+                CommentUserId = x.c.CommentUserId,
+                CommentContent = x.c.CommentContent,
+                CommentCreatedAt = x.c.CommentCreatedAt.FormatTime(),
+                CommentIsDeleted = x.c.CommentIsDeleted,
+                UserAvatar = x.ImageUrl,
+                UserName = x.FullName,
             }).ToListAsync();
 
             var outPut = new PagedResponse<CommentResponse>(entityList, parameter.PageNumber, parameter.PageSize, await query.CountAsync());

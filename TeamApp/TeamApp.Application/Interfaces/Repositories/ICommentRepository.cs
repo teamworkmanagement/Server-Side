@@ -11,10 +11,11 @@ namespace TeamApp.Application.Interfaces.Repositories
 {
     public interface ICommentRepository
     {
+        Task<List<CommentResponse>> GetAllByPostId(string postId);
         Task<List<CommentResponse>> GetAllByUserId(string userId);
         Task<List<CommentResponse>> GetAllByTeamId(string teamId);
         Task<List<CommentResponse>> GetAllByUserTeamId(string userId, string teamId);
-        Task<PagedResponse<CommentResponse>> GetPaging(RequestParameter parameter);
+        Task<PagedResponse<CommentResponse>> GetPaging(CommentRequestParameter parameter);
         Task<string> AddComment(CommentRequest cmtReq);
         Task<bool> UpdateComment(string cmtId, CommentRequest cmtReq);
         Task<bool> DeleteComment(string cmtId);

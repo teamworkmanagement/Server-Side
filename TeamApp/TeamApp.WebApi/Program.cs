@@ -36,7 +36,7 @@ namespace TeamApp.WebApi
                     var roleManager = services.GetRequiredService<RoleManager<IdentityRole>>();
 
                     //Seed data
-                    Log.Information("Finished Seeding Default Data");
+                    //Log.Information("Finished Seeding Default Data");
                     Log.Information("Application Starting");
                 }
                 catch (Exception ex)

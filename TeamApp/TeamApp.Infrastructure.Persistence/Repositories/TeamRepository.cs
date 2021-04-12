@@ -7,6 +7,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Team;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -58,7 +59,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TeamLeaderId = entity.TeamLeaderId,
                 TeamName = entity.TeamName,
                 TeamDescription = entity.TeamDescription,
-                TeamCreatedAt = entity.TeamCreatedAt,
+                TeamCreatedAt = entity.TeamCreatedAt.FormatTime(),
                 TeamCode = entity.TeamCode,
                 TeamIsDeleted = entity.TeamIsDeleted,
             };
@@ -77,7 +78,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TeamLeaderId = entity.t.TeamLeaderId,
                 TeamName = entity.t.TeamName,
                 TeamDescription = entity.t.TeamDescription,
-                TeamCreatedAt = entity.t.TeamCreatedAt,
+                TeamCreatedAt = entity.t.TeamCreatedAt.FormatTime(),
                 TeamCode = entity.t.TeamCode,
                 TeamIsDeleted = entity.t.TeamIsDeleted,
             }).ToListAsync();

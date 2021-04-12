@@ -1,6 +1,7 @@
 ﻿
 
 using Microsoft.AspNetCore.Authentication.JwtBearer;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.EntityFrameworkCore;
@@ -56,11 +57,17 @@ namespace TeamApp.Infrastructure.Persistence
         }
         public static void ConfigAuthService(IServiceCollection services, IConfiguration configuration)
         {
+            services.AddSingleton<IAuthorizationHandler, IpCheckHandler>();
             services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<TeamAppContext>().AddDefaultTokenProviders();
             #region Services
             services.AddTransient<IAccountService, AccountService>();
             #endregion
             services.Configure<JWTSettings>(configuration.GetSection("JWTSettings"));
+            services.AddAuthorization(options =>
+            {
+                options.AddPolicy("SameIpPolicy",
+                    policy => policy.Requirements.Add(new IpCheckRequirement { IpClaimRequired = true }));
+            });
             services.AddAuthentication(options =>
             {
                 options.DefaultAuthenticateScheme = JwtBearerDefaults.AuthenticationScheme;
@@ -86,6 +93,17 @@ namespace TeamApp.Infrastructure.Persistence
                         OnAuthenticationFailed = c =>
                         {
                             c.NoResult();
+                            if (c.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                            {
+                                c.Response.Headers.Add("X-Token-Expired", "true");
+                                c.Response.Cookies.Append("TokenExpired", "true", new CookieOptions
+                                {
+                                    Expires = DateTime.UtcNow.AddMinutes(5),
+                                    Secure = true,
+                                    HttpOnly = false,
+                                    SameSite = SameSiteMode.None,
+                                });
+                            }
                             c.Response.StatusCode = 500;
                             c.Response.ContentType = "text/plain";
                             var responseModel = new ApiResponse<string>() { Succeeded = false, Message = c.Exception.ToString(), };

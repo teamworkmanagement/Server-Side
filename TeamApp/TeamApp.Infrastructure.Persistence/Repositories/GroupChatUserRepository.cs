@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TeamApp.Application.DTOs.GroupChatUser;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {

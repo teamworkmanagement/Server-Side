@@ -15,9 +15,11 @@ namespace TeamApp.WebApi.Controllers
     public class PostController : ControllerBase
     {
         private readonly IPostRepository _repo;
-        public PostController(IPostRepository repo)
+        private readonly ITeamRepository _teamRepo;
+        public PostController(IPostRepository repo, ITeamRepository teamRepo)
         {
             _repo = repo;
+            _teamRepo = teamRepo;
         }
 
         [HttpGet("byuserid/{userId}")]
@@ -99,7 +101,7 @@ namespace TeamApp.WebApi.Controllers
             {
                 Data = res,
                 Succeeded = res,
-                Message = !res ? "Sửa thất bại" : null,
+                Message = !res ? "Sửa thất bại" : "Sửa thành công",
             };
 
             return Ok(outPut);
@@ -115,6 +117,38 @@ namespace TeamApp.WebApi.Controllers
                 Data = res,
                 Succeeded = res,
                 Message = !res ? "Xóa thất bại" : null,
+            };
+
+            return Ok(outPut);
+        }
+
+        [HttpGet("allforuser")]
+        public async Task<IActionResult> GetAllPostForUser(string userId)
+        {
+            var outPut = new List<PostResponse>();
+            var userTeams = await _teamRepo.GetByUserId(userId);
+            foreach (var e in userTeams)
+            {
+                var posts = await _repo.GetAllByTeamId(e.TeamId);
+                outPut.AddRange(posts);
+            }
+
+            return Ok(new ApiResponse<List<PostResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
+        }
+
+        [HttpGet("paging-multi")]
+        public async Task<IActionResult> GetMultiPaging([FromQuery] PostRequestParameter parameter)
+        {
+            var res = await _repo.GetPostPaging(parameter);
+
+            var outPut = new ApiResponse<PagedResponse<PostResponse>>
+            {
+                Data = res,
+                Succeeded = true,
             };
 
             return Ok(outPut);

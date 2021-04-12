@@ -8,6 +8,7 @@ using Task = System.Threading.Tasks.Task;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.GroupChat;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -51,7 +52,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 GroupChatId = x.gc.GroupChatId,
                 GroupChatName = x.gc.GroupChatName,
-                GroupChatUpdatedAt = x.gc.GroupChatUpdatedAt,
+                GroupChatUpdatedAt = x.gc.GroupChatUpdatedAt.FormatTime(),
                 NewMessage = x.grc.GroupChatUserSeen,
             }).ToListAsync();
         }
