@@ -21,12 +21,13 @@ namespace TeamApp.WebApi.Middlewares
         public async Task Invoke(HttpContext context)
         {
             var tokenEncry = context.Request.Cookies["access_token"];
+            var backupCookie = context.Request.Cookies["backup"];
             bool hasAuthorizeAttribute = false;
             if (context.Features.Get<IEndpointFeature>().Endpoint != null)
                 hasAuthorizeAttribute = context.Features.Get<IEndpointFeature>().Endpoint.Metadata
                     .Any(m => m is AuthorizeAttribute);
 
-            if (!string.IsNullOrEmpty(tokenEncry) && string.IsNullOrEmpty(context.Request.Headers["Authorization"]) && hasAuthorizeAttribute)
+            if (!string.IsNullOrEmpty(backupCookie) && !string.IsNullOrEmpty(tokenEncry) && string.IsNullOrEmpty(context.Request.Headers["Authorization"]) && hasAuthorizeAttribute)
             {
                 var token = StringHelper.DecryptString(tokenEncry);
                 context.Request.Headers.Add("Authorization", "Bearer " + token);
