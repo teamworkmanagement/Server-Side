@@ -9,6 +9,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Message;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -63,7 +64,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MessageUserId = x.MessageUserId,
                 MessageGroupChatId = x.MessageGroupChatId,
                 MessageContent = x.MessageContent,
-                MessageCreatedAt = x.MessageCreatedAt,
+                MessageCreatedAt = x.MessageCreatedAt.FormatTime(),
                 MessageIsDeleted = x.MessageIsDeleted,
             }).ToListAsync();
         }
@@ -80,7 +81,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MessageUserId = x.MessageUserId,
                 MessageGroupChatId = x.MessageGroupChatId,
                 MessageContent = x.MessageContent,
-                MessageCreatedAt = x.MessageCreatedAt,
+                MessageCreatedAt = x.MessageCreatedAt.FormatTime(),
                 MessageIsDeleted = x.MessageIsDeleted,
             }).OrderBy(x => x.MessageCreatedAt).ToListAsync();
         }
@@ -102,7 +103,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MessageUserId = x.MessageUserId,
                 MessageGroupChatId = x.MessageGroupChatId,
                 MessageContent = x.MessageContent,
-                MessageCreatedAt = x.MessageCreatedAt,
+                MessageCreatedAt = x.MessageCreatedAt.FormatTime(),
                 MessageIsDeleted = x.MessageIsDeleted,
             }).ToListAsync();
 

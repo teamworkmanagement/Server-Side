@@ -9,6 +9,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Notification;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -44,7 +45,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationId = x.NotificationId,
                 NotificationUserId = x.NotificationUserId,
                 NotificationContent = x.NotificationContent,
-                NotificationCreatedAt = x.NotificationCreatedAt,
+                NotificationCreatedAt = x.NotificationCreatedAt.FormatTime(),
                 NotificationLink = x.NotificationLink,
                 NotificationStatus = x.NotificationStatus,
                 NotificationIsDeleted = x.NotificationIsDeleted,
@@ -60,7 +61,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationId = x.NotificationId,
                 NotificationUserId = x.NotificationUserId,
                 NotificationContent = x.NotificationContent,
-                NotificationCreatedAt = x.NotificationCreatedAt,
+                NotificationCreatedAt = x.NotificationCreatedAt.FormatTime(),
                 NotificationLink = x.NotificationLink,
                 NotificationStatus = x.NotificationStatus,
                 NotificationIsDeleted = x.NotificationIsDeleted,

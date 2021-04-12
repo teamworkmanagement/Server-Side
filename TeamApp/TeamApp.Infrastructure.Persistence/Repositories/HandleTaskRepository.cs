@@ -7,6 +7,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.HandleTask;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -59,7 +60,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 HandleTaskId = x.HandleTaskId,
                 HandleTaskUserId = x.HandleTaskUserId,
                 HandleTaskTaskId = x.HandleTaskTaskId,
-                HandleTaskCreatedAt = x.HandleTaskCreatedAt,
+                HandleTaskCreatedAt = x.HandleTaskCreatedAt.FormatTime(),
                 HandleTaskIsDeleted = x.HandleTaskIsDeleted,
             }).ToListAsync();
 
@@ -77,7 +78,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 HandleTaskId = x.HandleTaskId,
                 HandleTaskUserId = x.HandleTaskUserId,
                 HandleTaskTaskId = x.HandleTaskTaskId,
-                HandleTaskCreatedAt = x.HandleTaskCreatedAt,
+                HandleTaskCreatedAt = x.HandleTaskCreatedAt.FormatTime(),
                 HandleTaskIsDeleted = x.HandleTaskIsDeleted,
             }).ToListAsync();
 

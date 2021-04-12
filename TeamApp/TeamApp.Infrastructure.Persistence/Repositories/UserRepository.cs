@@ -7,6 +7,7 @@ using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
 using Task = TeamApp.Infrastructure.Persistence.Entities.Task;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -61,9 +62,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var entity = await _dbContext.User.FindAsync(userId);
             if (entity == null)
                 return false;
-
-
-
             
 
             _dbContext.User.Update(entity);

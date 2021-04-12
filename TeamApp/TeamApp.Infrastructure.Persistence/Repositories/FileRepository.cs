@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using TeamApp.Application.DTOs.File;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {

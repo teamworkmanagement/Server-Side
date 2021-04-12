@@ -9,6 +9,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Comment;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -65,7 +66,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentPostId = x.c.CommentPostId,
                 CommentUserId = x.c.CommentUserId,
                 CommentContent = x.c.CommentContent,
-                CommentCreatedAt = x.c.CommentCreatedAt,
+                CommentCreatedAt = x.c.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.c.CommentIsDeleted,
                 UserAvatar = x.ImageUrl,
                 UserName = x.FullName,
@@ -85,7 +86,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentPostId = x.CommentPostId,
                 CommentUserId = x.CommentUserId,
                 CommentContent = x.CommentContent,
-                CommentCreatedAt = x.CommentCreatedAt,
+                CommentCreatedAt = x.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.CommentIsDeleted,
             }).ToListAsync();
 
@@ -105,7 +106,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentPostId = x.CommentPostId,
                 CommentUserId = x.CommentUserId,
                 CommentContent = x.CommentContent,
-                CommentCreatedAt = x.CommentCreatedAt,
+                CommentCreatedAt = x.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.CommentIsDeleted,
             }).ToListAsync();
 
@@ -125,7 +126,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentPostId = x.CommentPostId,
                 CommentUserId = x.CommentUserId,
                 CommentContent = x.CommentContent,
-                CommentCreatedAt = x.CommentCreatedAt,
+                CommentCreatedAt = x.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.CommentIsDeleted,
             }).ToListAsync();
 
@@ -149,7 +150,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentPostId = x.c.CommentPostId,
                 CommentUserId = x.c.CommentUserId,
                 CommentContent = x.c.CommentContent,
-                CommentCreatedAt = x.c.CommentCreatedAt,
+                CommentCreatedAt = x.c.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.c.CommentIsDeleted,
                 UserAvatar = x.ImageUrl,
                 UserName = x.FullName,

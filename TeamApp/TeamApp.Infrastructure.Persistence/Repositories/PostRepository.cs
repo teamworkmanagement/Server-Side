@@ -9,6 +9,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Post;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -67,7 +68,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostUserId = x.p.PostUserId,
                 PostTeamId = x.p.PostTeamId,
                 PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt,
+                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
                 PostCommentCount = x.Count,
                 PostIsDeleted = x.p.PostIsDeleted,
                 PostIsPinned = x.p.PostIsPinned,
@@ -92,7 +93,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostUserId = x.p.PostUserId,
                 PostTeamId = x.p.PostTeamId,
                 PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt,
+                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
                 PostCommentCount = x.Count,
                 PostIsDeleted = x.p.PostIsDeleted,
                 PostIsPinned = x.p.PostIsPinned,
@@ -115,7 +116,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostUserId = x.PostUserId,
                 PostTeamId = x.PostTeamId,
                 PostContent = x.PostContent,
-                PostCreatedAt = x.PostCreatedAt,
+                PostCreatedAt = x.PostCreatedAt.FormatTime(),
                 PostCommentCount = x.PostCommentCount,
                 PostIsDeleted = x.PostIsDeleted,
                 PostIsPinned = x.PostIsPinned,
@@ -141,7 +142,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostUserId = x.p.PostUserId,
                 PostTeamId = x.p.PostTeamId,
                 PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt,
+                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
                 PostCommentCount = x.Count,
                 PostIsDeleted = x.p.PostIsDeleted,
                 PostIsPinned = x.p.PostIsPinned,
@@ -241,7 +242,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostUserId = x.p.PostUserId,
                 PostTeamId = x.p.PostTeamId,
                 PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt,
+                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
                 PostCommentCount = x.Count,
                 PostIsDeleted = x.p.PostIsDeleted,
                 PostIsPinned = x.p.PostIsPinned,
