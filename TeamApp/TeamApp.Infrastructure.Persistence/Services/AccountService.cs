@@ -110,7 +110,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     //await _userManager.AddToRoleAsync(user, Roles.Basic.ToString());
                     var verificationUri = await SendVerificationEmail(user, origin);
                     //TODO: Attach Email Service here and configure it via appsettings
-                    await _emailService.SendAsync(new Application.DTOs.Email.EmailRequest() { From = "KDSoftVerify", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
+                    await _emailService.SendAsync(new Application.DTOs.Email.EmailRequest() { From = "KD", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
                     return new ApiResponse<string>(user.Id, message: $"User Registered. Please confirm your account by visiting this URL {verificationUri}");
                 }
                 else
@@ -301,7 +301,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             AuthenticationResponse response = new AuthenticationResponse();
             var userWithSameEmail = await _dbContext.User.Where(x => x.Email == request.Email).FirstOrDefaultAsync();
             //đã đăng nhập với social
-            if (userWithSameEmail != null && userWithSameEmail.IsThemeLight == true)
+            if (userWithSameEmail != null)
             {
                 //đã login trước, cấp token
                 JwtSecurityToken jwtSecurityToken = await GenerateJWToken(userWithSameEmail);

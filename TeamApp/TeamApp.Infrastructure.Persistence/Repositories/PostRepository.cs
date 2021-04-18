@@ -166,6 +166,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                            join u in _dbContext.User on par.ParticipationUserId equals u.Id
                            select new { u.Id, t.TeamId };
 
+            //danh sách team mà user join
             teamList = teamList.Where(x => x.Id == parameter.UserId);
 
             //bảng chứa toàn bộ thông tin các post của các team mà user tham gia
@@ -207,13 +208,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     case BasicFilter.Lastest:
                         query = query.OrderByDescending(x => x.p.PostCreatedAt);
-                        //mới nhất
                         break;
                     case BasicFilter.LastHour:
-
                         var lastHour = now.AddMinutes(-60);
                         query = query.Where(x => x.p.PostCreatedAt >= lastHour && x.p.PostCreatedAt <= now);
-                        //ở trong range này
                         break;
                     case BasicFilter.Today:
                         query = query.Where(x => ((DateTime)x.p.PostCreatedAt).Date == baseDate);
@@ -250,7 +248,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserAvatar = x.u.ImageUrl,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
-            return new PagedResponse<PostResponse>(entityList, parameter.SkipItems, parameter.PageSize, entityList.Count);
+            return new PagedResponse<PostResponse>(entityList, parameter.SkipItems, parameter.PageSize, await query.CountAsync());
 
         }
 

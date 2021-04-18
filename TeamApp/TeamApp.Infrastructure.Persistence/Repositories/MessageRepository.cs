@@ -91,20 +91,26 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var group = await _dbContext.GroupChat.FindAsync(parameter.GroupId);
             if (group == null) return null;
 
-            var query = _dbContext.Message
-                .Where(x => x.MessageGroupChatId == parameter.GroupId).OrderByDescending(x => x.MessageCreatedAt);
-            
-            var outPut = query.Skip(parameter.PageNumber)
+            var query = from m in _dbContext.Message
+                        join u in _dbContext.User on m.MessageUserId equals u.Id
+                        where m.MessageGroupChatId == parameter.GroupId
+                        select new { u, m };
+
+            var outPut = query.OrderByDescending(x => x.m.MessageCreatedAt).Skip(parameter.SkipItems)
                 .Take(parameter.PageSize);
 
             var items = await outPut.Select(x => new MessageResponse
             {
-                MessageId = x.MessageId,
-                MessageUserId = x.MessageUserId,
-                MessageGroupChatId = x.MessageGroupChatId,
-                MessageContent = x.MessageContent,
-                MessageCreatedAt = x.MessageCreatedAt.FormatTime(),
-                MessageIsDeleted = x.MessageIsDeleted,
+                MessageId = x.m.MessageId,
+                MessageUserId = x.m.MessageUserId,
+                MessageGroupChatId = x.m.MessageGroupChatId,
+                MessageContent = x.m.MessageContent,
+                MessageCreatedAt = x.m.MessageCreatedAt.FormatTime(),
+                MessageIsDeleted = x.m.MessageIsDeleted,
+                IsMessage = x.m.IsMessage,
+                MessageType = x.m.MessageType,
+                MessengerUserAvatar = x.u.ImageUrl,
+                MessengerUserName = x.u.FullName,
             }).ToListAsync();
 
             items.Reverse();

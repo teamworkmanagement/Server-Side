@@ -10,5 +10,7 @@ namespace TeamApp.Application.DTOs.GroupChat
         public string GroupChatName { get; set; }
         public DateTime? GroupChatUpdatedAt { get; set; }
         public bool? NewMessage { get; set; }
+        public string GroupAvatar { get; set; }
+        public string LastestMes { get; set; }
     }
 }

@@ -37,7 +37,9 @@ namespace TeamApp.WebApi
                 {
                     policy.AllowAnyHeader()
                         .AllowAnyMethod()
-                        .WithOrigins(new string[] { "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://192.168.137.1:3000" })
+                        .SetIsOriginAllowed(origin => true)
+                        /*.WithOrigins(new string[] { "http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://192.168.137.1:3000",
+                        "https://localhost:3000", "https://localhost:3001", "https://localhost:3002", "https://192.168.137.1:3000"})*/
                         .AllowCredentials();
                 });
             });
@@ -56,7 +58,7 @@ namespace TeamApp.WebApi
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseCors("ClientPermission");
             app.UseRouting();
 

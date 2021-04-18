@@ -45,15 +45,16 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         join grc in _dbContext.GroupChatUser on gc.GroupChatId equals grc.GroupChatUserGroupChatId
                         select new { gc, grc };
 
-            var outPut = query.Where(x => x.grc.GroupChatUserUserId == userId);
+            var outPut = query.Where(x => x.grc.GroupChatUserUserId == userId).OrderByDescending(x => x.gc.GroupChatUpdatedAt);
 
 
             return await outPut.Select(x => new GroupChatResponse
             {
                 GroupChatId = x.gc.GroupChatId,
                 GroupChatName = x.gc.GroupChatName,
-                GroupChatUpdatedAt = x.gc.GroupChatUpdatedAt.FormatTime(),
+                GroupChatUpdatedAt = x.gc.Message.OrderByDescending(x => x.MessageCreatedAt).FirstOrDefault().MessageCreatedAt.FormatTime(),
                 NewMessage = x.grc.GroupChatUserSeen,
+                LastestMes = x.gc.Message.OrderByDescending(x => x.MessageCreatedAt).FirstOrDefault().MessageContent,
             }).ToListAsync();
         }
 

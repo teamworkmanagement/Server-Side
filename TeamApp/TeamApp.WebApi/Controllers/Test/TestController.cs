@@ -5,6 +5,7 @@ using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using System.Web;
+using TeamApp.Application.Exceptions;
 using TeamApp.Application.Interfaces;
 using TeamApp.Application.Wrappers;
 using TeamApp.Infrastructure.Persistence.Entities;
