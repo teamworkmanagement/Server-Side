@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    partial class TeamAppContextModelSnapshot : ModelSnapshot
+    [Migration("20210418133737_newfile")]
+    partial class newfile
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -236,27 +238,15 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<DateTime?>("FileUploadTime")
-                        .HasColumnName("file_upload_time")
-                        .HasColumnType("timestamp");
-
                     b.Property<string>("FileUrl")
                         .HasColumnName("file_url")
                         .HasColumnType("varchar(200)")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<string>("FileUserId")
-                        .HasColumnName("file_user_id")
-                        .HasColumnType("varchar(50)")
-                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
-                        .HasAnnotation("MySql:CharSet", "utf8mb4");
-
                     b.HasKey("FileId");
 
                     b.HasIndex("FileTeamId");
-
-                    b.HasIndex("FileUserId");
 
                     b.ToTable("file");
                 });
@@ -975,10 +965,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Team", "Team")
                         .WithMany("Files")
                         .HasForeignKey("FileTeamId");
-
-                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "User")
-                        .WithMany("Files")
-                        .HasForeignKey("FileUserId");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.GroupChatUser", b =>

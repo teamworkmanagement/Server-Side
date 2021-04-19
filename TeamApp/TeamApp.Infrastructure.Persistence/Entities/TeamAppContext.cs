@@ -143,6 +143,33 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnType("varchar(200)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FileSize)
+                    .HasColumnName("file_size");
+
+                entity.Property(e => e.FileTeamId)
+                    .HasColumnName("file_team_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FileUserId)
+                    .HasColumnName("file_user_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FileUploadTime)
+                    .HasColumnName("file_upload_time")
+                    .HasColumnType("timestamp");
+
+                entity.HasOne(e => e.Team)
+                .WithMany(t => t.Files)
+                .HasForeignKey(e => e.FileTeamId);
+
+                entity.HasOne(e => e.User)
+                .WithMany(u=>u.Files)
+                .HasForeignKey(e => e.FileUserId);
             });
 
             modelBuilder.Entity<GroupChat>(entity =>

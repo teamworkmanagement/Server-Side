@@ -19,6 +19,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             Post = new HashSet<Post>();
             Team = new HashSet<Team>();
             RefreshTokens = new List<RefreshToken>();
+            Files = new HashSet<File>();
         }
 
 
@@ -41,6 +42,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<Team> Team { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; }
         public List<UserConnection> UserConnections { get; set; }
+        public virtual ICollection<File> Files { get; set; }
 
 
         public bool OwnsToken(string token)

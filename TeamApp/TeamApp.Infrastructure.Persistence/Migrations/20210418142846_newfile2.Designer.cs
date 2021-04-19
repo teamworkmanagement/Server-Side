@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    partial class TeamAppContextModelSnapshot : ModelSnapshot
+    [Migration("20210418142846_newfile2")]
+    partial class newfile2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -235,10 +237,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("enum('word','excel','powerpoint','mp4','mp3','txt','zip','rar','others')")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
-
-                    b.Property<DateTime?>("FileUploadTime")
-                        .HasColumnName("file_upload_time")
-                        .HasColumnType("timestamp");
 
                     b.Property<string>("FileUrl")
                         .HasColumnName("file_url")

@@ -35,9 +35,9 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost("{taskId}")]
-        public async Task<IActionResult> AddFile(string taskId, [FromForm] FileRequest fileReq)
+        public async Task<IActionResult> AddFileTask(string taskId, [FromForm] FileRequest fileReq)
         {
-            var res = await _repo.AddFile(taskId, fileReq);
+            var res = await _repo.AddFileTask(taskId, fileReq);
 
             var outPut = new ApiResponse<string>
             {
@@ -47,6 +47,17 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTask([FromQuery] FileRequestParameter parameter)
+        {
+            var outPut = await _repo.GetByTeamId(parameter);
+            return Ok(new ApiResponse<PagedResponse<FileResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            }); ;
         }
     }
 }
