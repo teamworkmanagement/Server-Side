@@ -115,7 +115,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             items.Reverse();
 
-            return new PagedResponse<MessageResponse>(items, parameter.PageNumber, parameter.PageSize, items.Count());
+            return new PagedResponse<MessageResponse>(items, parameter.PageSize, items.Count);
         }
     }
 }

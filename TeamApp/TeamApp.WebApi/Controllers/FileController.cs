@@ -59,5 +59,16 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             }); ;
         }
+
+        [HttpPost]
+        public async Task<IActionResult> AddFile(FileRequest fileRequest)
+        {
+            var outPut = await _repo.AddFile(fileRequest);
+            return Ok(new ApiResponse<string>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut,
+            });
+        }
     }
 }

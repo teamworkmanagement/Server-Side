@@ -248,7 +248,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserAvatar = x.u.ImageUrl,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
-            return new PagedResponse<PostResponse>(entityList, parameter.SkipItems, parameter.PageSize, await query.CountAsync());
+            return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
 
         }
 

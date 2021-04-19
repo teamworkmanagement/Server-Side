@@ -88,25 +88,31 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<PagedResponse<FileResponse>> GetByTeamId(FileRequestParameter par)
         {
             var query = from f in _dbContext.File
+                        join u in _dbContext.User on f.FileUserId equals u.Id
+                        orderby f.FileUploadTime descending
                         where f.FileTeamId == par.TeamId
-                        select f;
+                        select new { f, u.FullName };
 
-            query = query.Skip((par.PageSize - 1) * par.PageNumber).Take(par.PageSize)
-                .OrderByDescending(x => x.FileUploadTime);
+            var zzz = await query.CountAsync();
 
-            var outPut = await query.Select(entity => new FileResponse
+            var outFile = query.Skip((par.PageNumber - 1) * par.PageSize).Take(par.PageSize);
+
+            zzz = await outFile.CountAsync();
+
+            var outPut = await outFile.Select(entity => new FileResponse
             {
-                FileId = entity.FileId,
-                FileName = entity.FileName,
-                FileUrl = entity.FileUrl,
-                FileType = entity.FileType,
-                FileSize = entity.FileSize,
-                FileTeamId = entity.FileTeamId,
-                FileUserId = entity.FileUserId,
-                FileUploadTime = entity.FileUploadTime,
+                FileId = entity.f.FileId,
+                FileName = entity.f.FileName,
+                FileUrl = entity.f.FileUrl,
+                FileType = entity.f.FileType,
+                FileSize = entity.f.FileSize,
+                FileTeamId = entity.f.FileTeamId,
+                FileUserId = entity.f.FileUserId,
+                FileUploadTime = entity.f.FileUploadTime,
+                FileUserName = entity.FullName,
             }).ToListAsync();
 
-            return new PagedResponse<FileResponse>(outPut, par.PageNumber, par.PageSize, await query.CountAsync());
+            return new PagedResponse<FileResponse>(outPut, par.PageSize, await query.CountAsync(), par.PageNumber);
         }
 
         public Task<bool> UpdateFile(string fileId)
