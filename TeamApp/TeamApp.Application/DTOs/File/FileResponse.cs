@@ -14,6 +14,7 @@ namespace TeamApp.Application.DTOs.File
         public string FileUserName { get; set; }
         public string FileTeamId { get; set; }
         public double FileSize { get; set; }
+        public string UserImage { get; set; }
         public DateTime? FileUploadTime { get; set; }
     }
 }

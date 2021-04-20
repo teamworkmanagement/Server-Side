@@ -91,7 +91,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         join u in _dbContext.User on f.FileUserId equals u.Id
                         orderby f.FileUploadTime descending
                         where f.FileTeamId == par.TeamId
-                        select new { f, u.FullName };
+                        select new { f, u.FullName, u.ImageUrl };
 
             var zzz = await query.CountAsync();
 
@@ -110,6 +110,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileUserId = entity.f.FileUserId,
                 FileUploadTime = entity.f.FileUploadTime,
                 FileUserName = entity.FullName,
+                UserImage = entity.ImageUrl,
             }).ToListAsync();
 
             return new PagedResponse<FileResponse>(outPut, par.PageSize, await query.CountAsync(), par.PageNumber);

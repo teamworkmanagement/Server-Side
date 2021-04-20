@@ -14,7 +14,7 @@ namespace TeamApp.WebApi
 {
     public class Program
     {
-        public async static System.Threading.Tasks.Task Main(string[] args)
+        public static void Main(string[] args)
         {
             //Read Configuration from appSettings
             var config = new ConfigurationBuilder()
@@ -41,7 +41,7 @@ namespace TeamApp.WebApi
                 }
                 catch (Exception ex)
                 {
-                    Log.Warning(ex, "An error occurred seeding the DB");
+                    Log.Warning(ex, "An error occurred");
                 }
                 finally
                 {
