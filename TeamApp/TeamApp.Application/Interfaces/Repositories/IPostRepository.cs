@@ -18,5 +18,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<string> AddPost(PostRequest postReq);
         Task<bool> UpdatePost(string postId, PostRequest postReq);
         Task<bool> DeletePost(string postId);
+        Task<string> AddReact(ReactModel react);
+        Task<bool> DeleteReact(ReactModel react);
     }
 }

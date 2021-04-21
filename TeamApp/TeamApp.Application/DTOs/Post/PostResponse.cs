@@ -12,6 +12,7 @@ namespace TeamApp.Application.DTOs.Post
         public string PostContent { get; set; }
         public DateTime? PostCreatedAt { get; set; }
         public int? PostCommentCount { get; set; }
+        public int? PostReactCount { get; set; }
         public bool? PostIsDeleted { get; set; }
         public bool? PostIsPinned { get; set; }
         public string UserAvatar { get; set; } = null;

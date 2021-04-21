@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    partial class TeamAppContextModelSnapshot : ModelSnapshot
+    [Migration("20210421123333_addpostreact")]
+    partial class addpostreact
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -575,11 +577,14 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("UserReactId")
+                        .HasColumnType("varchar(50)");
+
                     b.HasKey("PostReactId");
 
                     b.HasIndex("PostReactPostId");
 
-                    b.HasIndex("PostReactUserId");
+                    b.HasIndex("UserReactId");
 
                     b.ToTable("post_react");
                 });
@@ -1090,8 +1095,8 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasForeignKey("PostReactPostId");
 
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "UserReact")
-                        .WithMany("PostReacts")
-                        .HasForeignKey("PostReactUserId");
+                        .WithMany()
+                        .HasForeignKey("UserReactId");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.RefreshToken", b =>

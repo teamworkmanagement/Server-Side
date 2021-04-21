@@ -8,6 +8,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public Post()
         {
             Comment = new HashSet<Comment>();
+            PostReacts = new HashSet<PostReact>();
         }
 
         public string PostId { get; set; }
@@ -22,5 +23,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual Team PostTeam { get; set; }
         public virtual User PostUser { get; set; }
         public virtual ICollection<Comment> Comment { get; set; }
+        public virtual ICollection<PostReact> PostReacts { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,6 +12,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
+    //[Authorize]
     [Route("api/post")]
     public class PostController : ControllerBase
     {
@@ -152,6 +154,30 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpPost("add-react")]
+        public async Task<IActionResult> AddReact(ReactModel model)
+        {
+            var res = await _repo.AddReact(model);
+            var outPut = new ApiResponse<string>
+            {
+                Succeeded = res == null ? false : true,
+                Data = res,
+                Message = res == null ? "Error while add" : null,
+            };
+            return Ok(outPut);
+        }
+
+        [HttpDelete("delete-react")]
+        public async Task<IActionResult> DeleteReact(ReactModel model)
+        {
+            var res = await _repo.DeleteReact(model);
+            return Ok(new ApiResponse<bool>
+            {
+                Succeeded = res,
+                Data = res,
+            });
         }
     }
 }

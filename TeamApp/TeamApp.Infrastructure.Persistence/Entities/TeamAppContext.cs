@@ -33,6 +33,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<UserConnection> UserConnection { get; set; }
         public virtual DbSet<RefreshToken> RefreshToken { get; set; }
+        public virtual DbSet<PostReact> PostReact { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -720,6 +721,39 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnType("varchar(500)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
+            });
+
+            modelBuilder.Entity<PostReact>(entity =>
+            {
+                entity.ToTable("post_react");
+
+                entity.HasKey(e => e.PostReactId);
+
+                entity.Property(e => e.PostReactId)
+                    .HasColumnName("post_react_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.PostReactPostId)
+                    .HasColumnName("post_react_postid")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.PostReactUserId)
+                    .HasColumnName("post_react_userid")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.HasOne(e => e.Post)
+                .WithMany(p => p.PostReacts)
+                .HasForeignKey(e => e.PostReactPostId);
+
+                entity.HasOne(e => e.UserReact)
+                .WithMany(u => u.PostReacts)
+                .HasForeignKey(e => e.PostReactUserId);
             });
 
 

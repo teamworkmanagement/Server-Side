@@ -41,6 +41,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return entity.PostId;
         }
 
+        public async Task<string> AddReact(ReactModel react)
+        {
+            var entity = new PostReact
+            {
+                PostReactId = Guid.NewGuid().ToString(),
+                PostReactPostId = react.PostId,
+                PostReactUserId = react.UserId,
+            };
+            await _dbContext.PostReact.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+            return entity.PostReactId;
+        }
+
         public async Task<bool> DeletePost(string postId)
         {
             var entity = await _dbContext.Post.FindAsync(postId);
@@ -51,6 +64,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext.Post.Update(entity);
 
             await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteReact(ReactModel react)
+        {
+            var entity = await _dbContext.PostReact.Where(x => x.PostReactPostId == react.PostId
+              && x.PostReactUserId == react.UserId).FirstOrDefaultAsync();
+
+            if (entity != null)
+                _dbContext.PostReact.Remove(entity);
+
+            await _dbContext.SaveChangesAsync();
+
             return true;
         }
 
@@ -173,7 +199,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Post
                         join listTeam in teamList on p.PostTeamId equals listTeam.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u, p.Comment.Count };
+                        select new { p, u, p.Comment.Count, RCount = p.PostReacts.Count };
 
 
             //tìm kiếm nâng cao
@@ -246,6 +272,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostIsPinned = x.p.PostIsPinned,
                 UserName = x.u.FullName,
                 UserAvatar = x.u.ImageUrl,
+                PostReactCount = x.RCount,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
             return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
