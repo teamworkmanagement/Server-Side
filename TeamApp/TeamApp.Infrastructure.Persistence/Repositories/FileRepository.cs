@@ -108,7 +108,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileSize = entity.f.FileSize,
                 FileTeamId = entity.f.FileTeamId,
                 FileUserId = entity.f.FileUserId,
-                FileUploadTime = entity.f.FileUploadTime,
+                FileUploadTime = entity.f.FileUploadTime.FormatTime(),
                 FileUserName = entity.FullName,
                 UserImage = entity.ImageUrl,
             }).ToListAsync();

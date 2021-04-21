@@ -134,7 +134,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
                 entity.Property(e => e.FileType)
                     .HasColumnName("file_type")
-                    .HasColumnType("enum('word','excel','powerpoint','mp4','mp3','txt','zip','rar','others')")
+                    .HasColumnType("enum('word','excel','powerpoint','video','audio','pdf','zip','text','png','css','csv','exe','html','javascript','json','svg','xml','others')")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
@@ -168,7 +168,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 .HasForeignKey(e => e.FileTeamId);
 
                 entity.HasOne(e => e.User)
-                .WithMany(u=>u.Files)
+                .WithMany(u => u.Files)
                 .HasForeignKey(e => e.FileUserId);
             });
 
