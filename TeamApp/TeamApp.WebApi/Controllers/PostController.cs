@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Post;
+using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Filters;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
@@ -177,6 +178,15 @@ namespace TeamApp.WebApi.Controllers
             {
                 Succeeded = res,
                 Data = res,
+            });
+        }
+
+        [HttpGet("search-user")]
+        public async Task<IActionResult> SearchUser(string userId, string keyWord)
+        {
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = await _repo.SearchUser(userId, keyWord),
             });
         }
     }

@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Post;
 using TeamApp.Application.Utils;
+using TeamApp.Application.DTOs.User;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -190,7 +191,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var teamList = from t in _dbContext.Team
                            join par in _dbContext.Participation on t.TeamId equals par.ParticipationTeamId
                            join u in _dbContext.User on par.ParticipationUserId equals u.Id
-                           select new { u.Id, t.TeamId };
+                           select new { u.Id, t.TeamId, t.TeamName };
 
             //danh sách team mà user join
             teamList = teamList.Where(x => x.Id == parameter.UserId);
@@ -199,7 +200,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Post
                         join listTeam in teamList on p.PostTeamId equals listTeam.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u, p.Comment.Count, RCount = p.PostReacts.Count };
+                        select new { p, u, p.Comment.Count, RCount = p.PostReacts.Count, listTeam.TeamName };
 
 
             //tìm kiếm nâng cao
@@ -273,9 +274,44 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserName = x.u.FullName,
                 UserAvatar = x.u.ImageUrl,
                 PostReactCount = x.RCount,
+                TeamName = x.TeamName,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
             return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
+
+        }
+
+        public async Task<List<UserResponse>> SearchUser(string userId, string keyWord)
+        {
+            var teamList = from t in _dbContext.Team
+                           join par in _dbContext.Participation on t.TeamId equals par.ParticipationTeamId
+                           join u in _dbContext.User on par.ParticipationUserId equals u.Id
+                           select new { u, t.TeamId, t.TeamName };
+
+            //danh sách team mà user join
+            teamList = teamList.Where(x => x.u.Id == userId).Distinct();
+
+            var query = await (from listTeam in teamList
+                               join p in _dbContext.Participation on listTeam.TeamId equals p.ParticipationTeamId
+                               join u in _dbContext.User on p.ParticipationUserId equals u.Id
+                               select u).Distinct().ToListAsync();
+
+            keyWord = keyWord.UnsignUnicode();
+
+            if (!string.IsNullOrEmpty(keyWord))
+                query = query.Where(x => x.FullName.UnsignUnicode().Contains(keyWord)).ToList();
+
+            var outPut = query.Select(x => new UserResponse
+            {
+                UserId = x.Id,
+
+                UserFullname = x.FullName,
+
+                UserImageUrl = x.ImageUrl,
+
+            }).ToList();
+
+            return outPut;
 
         }
 

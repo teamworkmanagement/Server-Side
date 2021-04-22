@@ -17,5 +17,6 @@ namespace TeamApp.Application.DTOs.Post
         public bool? PostIsPinned { get; set; }
         public string UserAvatar { get; set; } = null;
         public string UserName { get; set; }
+        public string TeamName { get; set; }
     }
 }
