@@ -16,7 +16,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<List<CommentResponse>> GetAllByTeamId(string teamId);
         Task<List<CommentResponse>> GetAllByUserTeamId(string userId, string teamId);
         Task<PagedResponse<CommentResponse>> GetPaging(CommentRequestParameter parameter);
-        Task<string> AddComment(CommentRequest cmtReq);
+        Task<CommentResponse> AddComment(CommentRequest cmtReq);
         Task<bool> UpdateComment(string cmtId, CommentRequest cmtReq);
         Task<bool> DeleteComment(string cmtId);
     }

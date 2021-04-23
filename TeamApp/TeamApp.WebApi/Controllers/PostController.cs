@@ -171,7 +171,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpDelete("delete-react")]
-        public async Task<IActionResult> DeleteReact(ReactModel model)
+        public async Task<IActionResult> DeleteReact([FromQuery] ReactModel model)
         {
             var res = await _repo.DeleteReact(model);
             return Ok(new ApiResponse<bool>

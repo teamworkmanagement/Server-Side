@@ -246,12 +246,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     case BasicFilter.ThisWeek:
                         var thisWeekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek);
                         var thisWeekEnd = thisWeekStart.AddDays(7).AddSeconds(-1);
-                        query.Where(x => x.p.PostCreatedAt >= thisWeekStart && x.p.PostCreatedAt <= thisWeekEnd);
+                        query = from q in query
+                                where q.p.PostCreatedAt >= thisWeekStart && q.p.PostCreatedAt <= thisWeekEnd
+                                select q;
+                        //query.Where(x => x.p.PostCreatedAt >= flagstart && x.p.PostCreatedAt <= flagend);
                         break;
                     case BasicFilter.ThisMonth:
                         var thisMonthStart = baseDate.AddDays(1 - baseDate.Day);
                         var thisMonthEnd = thisMonthStart.AddMonths(1).AddSeconds(-1);
-                        query.Where(x => x.p.PostCreatedAt >= thisMonthStart && x.p.PostCreatedAt <= thisMonthEnd);
+                        query = from q in query
+                                where q.p.PostCreatedAt >= thisMonthStart && q.p.PostCreatedAt <= thisMonthEnd
+                                select q;
                         break;
                     default:
                         break;
@@ -261,20 +266,25 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
                 query = query.OrderByDescending(x => x.p.PostCreatedAt);
 
-            var entityList = await query.Select(x => new PostResponse
+            var reactQuery = from q in query
+                             from r in _dbContext.PostReact.Where(r => r.PostReactPostId == q.p.PostId && r.PostReactUserId == parameter.UserId).DefaultIfEmpty()
+                             select new { q, isReacted = r.PostReactUserId };
+
+            var entityList = await reactQuery.Select(x => new PostResponse
             {
-                PostId = x.p.PostId,
-                PostUserId = x.p.PostUserId,
-                PostTeamId = x.p.PostTeamId,
-                PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
-                PostCommentCount = x.Count,
-                PostIsDeleted = x.p.PostIsDeleted,
-                PostIsPinned = x.p.PostIsPinned,
-                UserName = x.u.FullName,
-                UserAvatar = x.u.ImageUrl,
-                PostReactCount = x.RCount,
-                TeamName = x.TeamName,
+                PostId = x.q.p.PostId,
+                PostUserId = x.q.p.PostUserId,
+                PostTeamId = x.q.p.PostTeamId,
+                PostContent = x.q.p.PostContent,
+                PostCreatedAt = x.q.p.PostCreatedAt.FormatTime(),
+                PostCommentCount = x.q.Count,
+                PostIsDeleted = x.q.p.PostIsDeleted,
+                PostIsPinned = x.q.p.PostIsPinned,
+                UserName = x.q.u.FullName,
+                UserAvatar = x.q.u.ImageUrl,
+                PostReactCount = x.q.RCount,
+                TeamName = x.q.TeamName,
+                IsReacted = x.isReacted == null ? false : true,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
             return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());

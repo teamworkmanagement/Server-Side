@@ -70,9 +70,9 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddComment([FromForm] CommentRequest cmtReq)
+        public async Task<IActionResult> AddComment(CommentRequest cmtReq)
         {
-            var outPut = new ApiResponse<string>
+            var outPut = new ApiResponse<CommentResponse>
             {
                 Data = await _repo.AddComment(cmtReq),
                 Succeeded = true,
@@ -82,7 +82,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPut("{commentId}")]
-        public async Task<IActionResult> UpdateComment(string cmtId, [FromForm] CommentRequest cmtReq)
+        public async Task<IActionResult> UpdateComment(string cmtId, CommentRequest cmtReq)
         {
             var outPut = new ApiResponse<bool>
             {
