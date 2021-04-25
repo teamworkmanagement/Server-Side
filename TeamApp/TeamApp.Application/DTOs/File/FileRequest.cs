@@ -10,7 +10,7 @@ namespace TeamApp.Application.DTOs.File
         public string FileUrl { get; set; }
         public string FileType { get; set; }
         public string UserId { get; set; }
-        public string TeamId { get; set; }
+        public string FileBelongedId { get; set; }
         public double FileSize { get; set; }
     }
 }

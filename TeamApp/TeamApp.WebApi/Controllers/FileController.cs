@@ -11,7 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Authorize]
+    //[Authorize]
     [Route("api/file")]
     public class FileController : ControllerBase
     {
@@ -54,7 +54,7 @@ namespace TeamApp.WebApi.Controllers
         [HttpGet]
         public async Task<IActionResult> GetTask([FromQuery] FileRequestParameter parameter)
         {
-            var outPut = await _repo.GetByTeamId(parameter);
+            var outPut = await _repo.GetByBelong(parameter);
             return Ok(new ApiResponse<PagedResponse<FileResponse>>
             {
                 Succeeded = true,

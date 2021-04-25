@@ -21,9 +21,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public int? TaskCompletedPercent { get; set; }
         public string TaskTeamId { get; set; }
         public bool? TaskIsDeleted { get; set; }
+        public string TaskBelongedId { get; set; }
+        public int TaskOrderInList { get; set; }
 
         public virtual Team TaskTeam { get; set; }
         public virtual ICollection<HandleTask> HandleTask { get; set; }
         public virtual ICollection<TaskVersion> TaskVersion { get; set; }
+        public virtual KanbanList KanbanList { get; set; }
     }
 }

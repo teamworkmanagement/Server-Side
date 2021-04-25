@@ -14,6 +14,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<string> AddFileTask(string taskId, FileRequest fileReq);
         Task<string> AddFile(FileRequest fileReq);
         Task<bool> UpdateFile(string fileId);
-        Task<PagedResponse<FileResponse>> GetByTeamId(FileRequestParameter parameter);
+        Task<PagedResponse<FileResponse>> GetByBelong(FileRequestParameter parameter);
     }
 }

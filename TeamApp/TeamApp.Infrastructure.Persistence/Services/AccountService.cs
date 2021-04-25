@@ -333,7 +333,6 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     CreatedAt = DateTime.UtcNow,
                     EmailConfirmed = true,
                     UserName = request.Email,
-                    IsThemeLight = true,
                 };
 
                 var result = await _userManager.CreateAsync(user, "@Social11");

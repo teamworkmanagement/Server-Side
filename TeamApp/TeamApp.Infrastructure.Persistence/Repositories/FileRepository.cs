@@ -31,7 +31,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileType = fileReq.FileType,
                 FileUrl = fileReq.FileUrl,
                 FileSize = fileReq.FileSize,
-                FileTeamId = fileReq.TeamId,
+                FileBelongedId = fileReq.FileBelongedId,
                 FileUserId = fileReq.UserId,
                 FileUploadTime = DateTime.UtcNow,
             };
@@ -55,7 +55,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileType = fileReq.FileType,
                 FileUrl = fileReq.FileUrl,
                 FileSize = fileReq.FileSize,
-                FileTeamId = fileReq.TeamId,
+                FileBelongedId = fileReq.FileBelongedId,
                 FileUserId = fileReq.UserId,
                 FileUploadTime = DateTime.UtcNow,
             };
@@ -79,18 +79,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileUrl = entity.FileUrl,
                 FileType = entity.FileType,
                 FileSize = entity.FileSize,
-                FileTeamId = entity.FileTeamId,
+                FileBelongedId = entity.FileBelongedId,
                 FileUserId = entity.FileUserId,
                 FileUploadTime = entity.FileUploadTime,
             };
         }
 
-        public async Task<PagedResponse<FileResponse>> GetByTeamId(FileRequestParameter par)
+        public async Task<PagedResponse<FileResponse>> GetByBelong(FileRequestParameter par)
         {
             var query = from f in _dbContext.File
                         join u in _dbContext.User on f.FileUserId equals u.Id
                         orderby f.FileUploadTime descending
-                        where f.FileTeamId == par.TeamId
+                        where f.FileBelongedId == par.BelongedId
                         select new { f, u.FullName, u.ImageUrl };
 
             var zzz = await query.CountAsync();
@@ -106,7 +106,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileUrl = entity.f.FileUrl,
                 FileType = entity.f.FileType,
                 FileSize = entity.f.FileSize,
-                FileTeamId = entity.f.FileTeamId,
+                FileBelongedId = entity.f.FileBelongedId,
                 FileUserId = entity.f.FileUserId,
                 FileUploadTime = entity.f.FileUploadTime.FormatTime(),
                 FileUserName = entity.FullName,
