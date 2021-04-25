@@ -82,11 +82,11 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPost([FromForm] PostRequest postReq)
+        public async Task<IActionResult> AddPost(PostRequest postReq)
         {
             var res = await _repo.AddPost(postReq);
 
-            var outPut = new ApiResponse<string>
+            var outPut = new ApiResponse<PostResponse>
             {
                 Data = res,
                 Succeeded = res == null ? false : true,

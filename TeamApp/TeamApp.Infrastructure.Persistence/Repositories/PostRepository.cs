@@ -22,7 +22,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<string> AddPost(PostRequest postReq)
+        public async Task<PostResponse> AddPost(PostRequest postReq)
         {
             var entity = new Post
             {
@@ -37,9 +37,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
 
             await _dbContext.Post.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            var check=await _dbContext.SaveChangesAsync();
+            if (check > 0)
+            {
+                return new PostResponse
+                {
+                    PostId = entity.PostId,
+                    PostUserId = entity.PostUserId,
+                    PostTeamId = entity.PostTeamId,
+                    PostContent = entity.PostContent,
+                    PostCreatedAt = entity.PostCreatedAt,
+                };
+            }
 
-            return entity.PostId;
+            return null;
         }
 
         public async Task<string> AddReact(ReactModel react)
