@@ -1,9 +1,11 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Post;
+using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Filters;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
@@ -11,6 +13,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/post")]
     public class PostController : ControllerBase
     {
@@ -79,11 +82,11 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddPost([FromForm] PostRequest postReq)
+        public async Task<IActionResult> AddPost(PostRequest postReq)
         {
             var res = await _repo.AddPost(postReq);
 
-            var outPut = new ApiResponse<string>
+            var outPut = new ApiResponse<PostResponse>
             {
                 Data = res,
                 Succeeded = res == null ? false : true,
@@ -152,6 +155,39 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpPost("add-react")]
+        public async Task<IActionResult> AddReact(ReactModel model)
+        {
+            var res = await _repo.AddReact(model);
+            var outPut = new ApiResponse<string>
+            {
+                Succeeded = res == null ? false : true,
+                Data = res,
+                Message = res == null ? "Error while add" : null,
+            };
+            return Ok(outPut);
+        }
+
+        [HttpDelete("delete-react")]
+        public async Task<IActionResult> DeleteReact([FromQuery] ReactModel model)
+        {
+            var res = await _repo.DeleteReact(model);
+            return Ok(new ApiResponse<bool>
+            {
+                Succeeded = res,
+                Data = res,
+            });
+        }
+
+        [HttpGet("search-user")]
+        public async Task<IActionResult> SearchUser(string userId, string keyWord)
+        {
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = await _repo.SearchUser(userId, keyWord),
+            });
         }
     }
 }

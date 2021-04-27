@@ -22,7 +22,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<string> AddComment(CommentRequest cmtReq)
+        public async Task<CommentResponse> AddComment(CommentRequest cmtReq)
         {
             var entity = new Comment
             {
@@ -35,9 +35,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
 
             await _dbContext.Comment.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            var check = await _dbContext.SaveChangesAsync();
+            if (check > 0)
+            {
 
-            return entity.CommentId;
+                return new CommentResponse
+                {
+                    CommentId = entity.CommentId,
+                    CommentPostId = entity.CommentPostId,
+                    CommentUserId = entity.CommentUserId,
+                    CommentContent = entity.CommentContent,
+                    CommentCreatedAt = entity.CommentCreatedAt,
+                    CommentIsDeleted = entity.CommentIsDeleted,
+                };
+            }
+            return null;
         }
 
         public async Task<bool> DeleteComment(string cmtId)

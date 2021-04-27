@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
 using System;
@@ -52,7 +53,13 @@ namespace TeamApp.WebApi.Controllers
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             var origin = Request.Headers["origin"];
-            return Ok(await _accountService.RegisterAsync(request, origin));
+            var scheme = HttpContext.Request.Scheme;
+            var host = HttpContext.Request.Host.Value;
+
+            //https://localhost:9001
+
+            var apiOrigin = string.Concat(scheme, "://", host);
+            return Ok(await _accountService.RegisterAsync(request, apiOrigin));
         }
         [HttpGet("confirm-email")]
         public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code)

@@ -19,6 +19,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             Post = new HashSet<Post>();
             Team = new HashSet<Team>();
             RefreshTokens = new List<RefreshToken>();
+            Files = new HashSet<File>();
+            PostReacts = new HashSet<PostReact>();
         }
 
 
@@ -26,7 +28,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public DateTime? Dob { get; set; }
         public string ImageUrl { get; set; }
         public DateTime? CreatedAt { get; set; }
-        public bool? IsThemeLight { get; set; }
         public DateTime? LastTimeOnline { get; set; }
 
 
@@ -41,6 +42,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<Team> Team { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; }
         public List<UserConnection> UserConnections { get; set; }
+        public virtual ICollection<File> Files { get; set; }
+        public virtual ICollection<PostReact> PostReacts { get; set; }
 
 
         public bool OwnsToken(string token)

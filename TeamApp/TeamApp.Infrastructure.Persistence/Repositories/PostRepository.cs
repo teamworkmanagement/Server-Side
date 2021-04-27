@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Post;
 using TeamApp.Application.Utils;
+using TeamApp.Application.DTOs.User;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -21,7 +22,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<string> AddPost(PostRequest postReq)
+        public async Task<PostResponse> AddPost(PostRequest postReq)
         {
             var entity = new Post
             {
@@ -36,9 +37,33 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
 
             await _dbContext.Post.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            var check=await _dbContext.SaveChangesAsync();
+            if (check > 0)
+            {
+                return new PostResponse
+                {
+                    PostId = entity.PostId,
+                    PostUserId = entity.PostUserId,
+                    PostTeamId = entity.PostTeamId,
+                    PostContent = entity.PostContent,
+                    PostCreatedAt = entity.PostCreatedAt,
+                };
+            }
 
-            return entity.PostId;
+            return null;
+        }
+
+        public async Task<string> AddReact(ReactModel react)
+        {
+            var entity = new PostReact
+            {
+                PostReactId = Guid.NewGuid().ToString(),
+                PostReactPostId = react.PostId,
+                PostReactUserId = react.UserId,
+            };
+            await _dbContext.PostReact.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+            return entity.PostReactId;
         }
 
         public async Task<bool> DeletePost(string postId)
@@ -51,6 +76,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext.Post.Update(entity);
 
             await _dbContext.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DeleteReact(ReactModel react)
+        {
+            var entity = await _dbContext.PostReact.Where(x => x.PostReactPostId == react.PostId
+              && x.PostReactUserId == react.UserId).FirstOrDefaultAsync();
+
+            if (entity != null)
+                _dbContext.PostReact.Remove(entity);
+
+            await _dbContext.SaveChangesAsync();
+
             return true;
         }
 
@@ -164,7 +202,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var teamList = from t in _dbContext.Team
                            join par in _dbContext.Participation on t.TeamId equals par.ParticipationTeamId
                            join u in _dbContext.User on par.ParticipationUserId equals u.Id
-                           select new { u.Id, t.TeamId };
+                           select new { u.Id, t.TeamId, t.TeamName };
 
             //danh sách team mà user join
             teamList = teamList.Where(x => x.Id == parameter.UserId);
@@ -173,7 +211,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Post
                         join listTeam in teamList on p.PostTeamId equals listTeam.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u, p.Comment.Count };
+                        select new { p, u, p.Comment.Count, RCount = p.PostReacts.Count, listTeam.TeamName };
 
 
             //tìm kiếm nâng cao
@@ -219,12 +257,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     case BasicFilter.ThisWeek:
                         var thisWeekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek);
                         var thisWeekEnd = thisWeekStart.AddDays(7).AddSeconds(-1);
-                        query.Where(x => x.p.PostCreatedAt >= thisWeekStart && x.p.PostCreatedAt <= thisWeekEnd);
+                        query = from q in query
+                                where q.p.PostCreatedAt >= thisWeekStart && q.p.PostCreatedAt <= thisWeekEnd
+                                select q;
+                        //query.Where(x => x.p.PostCreatedAt >= flagstart && x.p.PostCreatedAt <= flagend);
                         break;
                     case BasicFilter.ThisMonth:
                         var thisMonthStart = baseDate.AddDays(1 - baseDate.Day);
                         var thisMonthEnd = thisMonthStart.AddMonths(1).AddSeconds(-1);
-                        query.Where(x => x.p.PostCreatedAt >= thisMonthStart && x.p.PostCreatedAt <= thisMonthEnd);
+                        query = from q in query
+                                where q.p.PostCreatedAt >= thisMonthStart && q.p.PostCreatedAt <= thisMonthEnd
+                                select q;
                         break;
                     default:
                         break;
@@ -234,21 +277,62 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
                 query = query.OrderByDescending(x => x.p.PostCreatedAt);
 
-            var entityList = await query.Select(x => new PostResponse
+            var reactQuery = from q in query
+                             from r in _dbContext.PostReact.Where(r => r.PostReactPostId == q.p.PostId && r.PostReactUserId == parameter.UserId).DefaultIfEmpty()
+                             select new { q, isReacted = r.PostReactUserId };
+
+            var entityList = await reactQuery.Select(x => new PostResponse
             {
-                PostId = x.p.PostId,
-                PostUserId = x.p.PostUserId,
-                PostTeamId = x.p.PostTeamId,
-                PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
-                PostCommentCount = x.Count,
-                PostIsDeleted = x.p.PostIsDeleted,
-                PostIsPinned = x.p.PostIsPinned,
-                UserName = x.u.FullName,
-                UserAvatar = x.u.ImageUrl,
+                PostId = x.q.p.PostId,
+                PostUserId = x.q.p.PostUserId,
+                PostTeamId = x.q.p.PostTeamId,
+                PostContent = x.q.p.PostContent,
+                PostCreatedAt = x.q.p.PostCreatedAt.FormatTime(),
+                PostCommentCount = x.q.Count,
+                PostIsDeleted = x.q.p.PostIsDeleted,
+                PostIsPinned = x.q.p.PostIsPinned,
+                UserName = x.q.u.FullName,
+                UserAvatar = x.q.u.ImageUrl,
+                PostReactCount = x.q.RCount,
+                TeamName = x.q.TeamName,
+                IsReacted = x.isReacted == null ? false : true,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
-            return new PagedResponse<PostResponse>(entityList, parameter.SkipItems, parameter.PageSize, await query.CountAsync());
+            return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
+
+        }
+
+        public async Task<List<UserResponse>> SearchUser(string userId, string keyWord)
+        {
+            var teamList = from t in _dbContext.Team
+                           join par in _dbContext.Participation on t.TeamId equals par.ParticipationTeamId
+                           join u in _dbContext.User on par.ParticipationUserId equals u.Id
+                           select new { u, t.TeamId, t.TeamName };
+
+            //danh sách team mà user join
+            teamList = teamList.Where(x => x.u.Id == userId).Distinct();
+
+            var query = await (from listTeam in teamList
+                               join p in _dbContext.Participation on listTeam.TeamId equals p.ParticipationTeamId
+                               join u in _dbContext.User on p.ParticipationUserId equals u.Id
+                               select u).Distinct().ToListAsync();
+
+            keyWord = keyWord.UnsignUnicode();
+
+            if (!string.IsNullOrEmpty(keyWord))
+                query = query.Where(x => x.FullName.UnsignUnicode().Contains(keyWord)).ToList();
+
+            var outPut = query.Select(x => new UserResponse
+            {
+                UserId = x.Id,
+
+                UserFullname = x.FullName,
+
+                UserImageUrl = x.ImageUrl,
+
+            }).ToList();
+
+            return outPut;
 
         }
 

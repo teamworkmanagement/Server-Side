@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
+    //[Authorize]
     [Route("api/file")]
     public class FileController : ControllerBase
     {
@@ -35,9 +37,9 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost("{taskId}")]
-        public async Task<IActionResult> AddFile(string taskId, [FromForm] FileRequest fileReq)
+        public async Task<IActionResult> AddFileTask(string taskId, [FromForm] FileRequest fileReq)
         {
-            var res = await _repo.AddFile(taskId, fileReq);
+            var res = await _repo.AddFileTask(taskId, fileReq);
 
             var outPut = new ApiResponse<string>
             {
@@ -47,6 +49,28 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpGet]
+        public async Task<IActionResult> GetTask([FromQuery] FileRequestParameter parameter)
+        {
+            var outPut = await _repo.GetByBelong(parameter);
+            return Ok(new ApiResponse<PagedResponse<FileResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            }); ;
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> AddFile(FileRequest fileRequest)
+        {
+            var outPut = await _repo.AddFile(fileRequest);
+            return Ok(new ApiResponse<string>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut,
+            });
         }
     }
 }

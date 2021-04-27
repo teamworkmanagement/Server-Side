@@ -33,6 +33,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<User> User { get; set; }
         public virtual DbSet<UserConnection> UserConnection { get; set; }
         public virtual DbSet<RefreshToken> RefreshToken { get; set; }
+        public virtual DbSet<PostReact> PostReact { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -134,7 +135,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
                 entity.Property(e => e.FileType)
                     .HasColumnName("file_type")
-                    .HasColumnType("enum('word','excel','powerpoint','mp4','mp3','txt','zip','rar','others')")
+                    .HasColumnType("enum('word','excel','powerpoint','video','audio','pdf','zip','text','png','css','csv','exe','html','javascript','json','svg','xml','others')")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
@@ -143,6 +144,30 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnType("varchar(200)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FileSize)
+                    .HasColumnName("file_size");
+
+                entity.Property(e => e.FileBelongedId)
+                    .HasColumnName("file_belonged_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FileUserId)
+                    .HasColumnName("file_user_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FileUploadTime)
+                    .HasColumnName("file_upload_time")
+                    .HasColumnType("timestamp");
+
+
+                entity.HasOne(e => e.User)
+                .WithMany(u => u.Files)
+                .HasForeignKey(e => e.FileUserId);
             });
 
             modelBuilder.Entity<GroupChat>(entity =>
@@ -532,10 +557,23 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.TaskBelongedId)
+                    .HasColumnName("task_kanbanlist_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.TaskOrderInList)
+                    .HasColumnName("task_order_inlist");
+
                 entity.HasOne(d => d.TaskTeam)
                     .WithMany(p => p.Task)
                     .HasForeignKey(d => d.TaskTeamId)
                     .HasConstraintName("task_ibfk_1");
+
+                entity.HasOne(d => d.KanbanList)
+                .WithMany(k => k.Tasks)
+                .HasForeignKey(d => d.TaskBelongedId);
             });
 
             modelBuilder.Entity<TaskVersion>(entity =>
@@ -686,7 +724,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.IsThemeLight).HasColumnName("user_is_theme_light");
 
                 entity.Property(e => e.PasswordHash)
                     .HasColumnName("user_password")
@@ -695,6 +732,94 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCharSet("utf8mb4");
             });
 
+            modelBuilder.Entity<PostReact>(entity =>
+            {
+                entity.ToTable("post_react");
+
+                entity.HasKey(e => e.PostReactId);
+
+                entity.Property(e => e.PostReactId)
+                    .HasColumnName("post_react_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.PostReactPostId)
+                    .HasColumnName("post_react_postid")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.PostReactUserId)
+                    .HasColumnName("post_react_userid")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.HasOne(e => e.Post)
+                .WithMany(p => p.PostReacts)
+                .HasForeignKey(e => e.PostReactPostId);
+
+                entity.HasOne(e => e.UserReact)
+                .WithMany(u => u.PostReacts)
+                .HasForeignKey(e => e.PostReactUserId);
+            });
+
+
+
+            modelBuilder.Entity<KanbanList>(entity =>
+            {
+                entity.ToTable("kanban_list");
+
+                entity.HasKey(e => e.KanbanListId);
+
+                entity.Property(e => e.KanbanListId)
+                    .HasColumnName("kanban_list_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.KanbanListTitle)
+                    .HasColumnName("kanban_list_title")
+                    .HasColumnType("varchar(150)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.KanbanListBoardBelongedId)
+                    .HasColumnName("kanban_list_belonged_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.KanbanListOrderInBoard)
+                    .HasColumnName("kanban_list_order_in_board");
+
+                entity.HasOne(e => e.KanbanBoard)
+                .WithMany(b => b.KanbanLists)
+                .HasForeignKey(e => e.KanbanListBoardBelongedId);
+            });
+
+            modelBuilder.Entity<KanbanBoard>(entity =>
+            {
+                entity.ToTable("kanban_board");
+
+                entity.HasKey(e => e.KanbanBoardId);
+
+                entity.Property(e => e.KanbanBoardId)
+                    .HasColumnName("kanban_board_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.KanbanBoardIsOfTeam)
+                    .HasColumnName("kanban_board_is_of_team");
+
+                entity.Property(e => e.KanbanBoardBelongedId)
+                    .HasColumnName("kanban_board_belonged_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+            });
 
             modelBuilder.Entity<IdentityRole>(entity =>
             {

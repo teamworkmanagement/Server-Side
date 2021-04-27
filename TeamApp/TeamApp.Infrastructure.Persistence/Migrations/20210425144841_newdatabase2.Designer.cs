@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    partial class TeamAppContextModelSnapshot : ModelSnapshot
+    [Migration("20210425144841_newdatabase2")]
+    partial class newdatabase2
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -252,9 +254,14 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("TeamId")
+                        .HasColumnType("varchar(50)");
+
                     b.HasKey("FileId");
 
                     b.HasIndex("FileUserId");
+
+                    b.HasIndex("TeamId");
 
                     b.ToTable("file");
                 });
@@ -1064,6 +1071,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "User")
                         .WithMany("Files")
                         .HasForeignKey("FileUserId");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Team", null)
+                        .WithMany("Files")
+                        .HasForeignKey("TeamId");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.GroupChatUser", b =>
