@@ -15,5 +15,11 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<string> AddFile(FileRequest fileReq);
         Task<bool> UpdateFile(string fileId);
         Task<PagedResponse<FileResponse>> GetByBelong(FileRequestParameter parameter);
+        /// <summary>
+        /// Get all file for task
+        /// </summary>
+        /// <param name="kanbanListId"></param>
+        /// <returns></returns>
+        Task<List<FileResponse>> GetAllByTask(string taskId);
     }
 }

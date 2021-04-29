@@ -145,6 +145,29 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
+        public async Task<List<CommentResponse>> GetListByTask(string taskId)
+        {
+            var query = from c in _dbContext.Comment
+                        join t in _dbContext.Task on c.CommentTaskId equals t.TaskId
+                        join u in _dbContext.User on c.CommentUserId equals u.Id
+                        where t.TaskId == taskId
+                        select new { c, u.UserName, u.ImageUrl };
+
+            var entityList = await query.Select(x => new CommentResponse
+            {
+                CommentId = x.c.CommentId,
+                CommentPostId = x.c.CommentPostId,
+                CommentUserId = x.c.CommentUserId,
+                CommentContent = x.c.CommentContent,
+                CommentCreatedAt = x.c.CommentCreatedAt.FormatTime(),
+                CommentIsDeleted = x.c.CommentIsDeleted,
+                UserAvatar = x.ImageUrl,
+                UserName = x.UserName,
+            }).ToListAsync();
+
+            return entityList;
+        }
+
         public async Task<PagedResponse<CommentResponse>> GetPaging(CommentRequestParameter parameter)
         {
             var query = from c in _dbContext.Comment

@@ -34,6 +34,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<UserConnection> UserConnection { get; set; }
         public virtual DbSet<RefreshToken> RefreshToken { get; set; }
         public virtual DbSet<PostReact> PostReact { get; set; }
+        public virtual DbSet<KanbanBoard> KanbanBoard { get; set; }
+        public virtual DbSet<KanbanList> KanbanList { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -94,6 +96,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.CommentTaskId)
+                    .HasColumnName("comment_task_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
                 entity.Property(e => e.CommentUserId)
                     .HasColumnName("comment_user_id")
                     .HasColumnType("varchar(50)")
@@ -115,6 +123,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .WithMany(p => p.Comment)
                     .HasForeignKey(d => d.CommentUserId)
                     .HasConstraintName("comment_ibfk_2");
+
+                entity.HasOne(d => d.CommentTask)
+                .WithMany(t => t.Comments)
+                .HasForeignKey(d => d.CommentTaskId);
             });
 
             modelBuilder.Entity<File>(entity =>
@@ -516,6 +528,15 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.TaskId)
                     .HasColumnName("task_id")
                     .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.TaskProgress)
+                    .HasColumnName("task_progress");
+
+                entity.Property(e => e.TaskThemeColor)
+                    .HasColumnName("task_theme_color")
+                    .HasColumnType("varchar(10)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 

@@ -17,5 +17,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<string> AddTask(TaskRequest taskReq);
         Task<bool> UpdateTask(string taskId, TaskRequest taskReq);
         Task<bool> DeleteTask(string taskId);
+        Task<TaskResponse> GetById(string taskId);
     }
 }

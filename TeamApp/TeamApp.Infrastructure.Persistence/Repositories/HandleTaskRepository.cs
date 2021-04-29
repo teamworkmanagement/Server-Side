@@ -19,7 +19,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<string> AddHandleTask(HandleTaskRequest handleTaskReq)
+        public async Task<HandleTaskResponse> AddHandleTask(HandleTaskRequest handleTaskReq)
         {
             var entity = new HandleTask
             {
@@ -27,13 +27,24 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 HandleTaskUserId = handleTaskReq.HandleTaskUserId,
                 HandleTaskTaskId = handleTaskReq.HandleTaskTaskId,
                 HandleTaskCreatedAt = handleTaskReq.HandleTaskCreatedAt,
-                HandleTaskIsDeleted = handleTaskReq.HandleTaskIsDeleted,
+                HandleTaskIsDeleted = false,
             };
 
             await _dbContext.HandleTask.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            var check = await _dbContext.SaveChangesAsync();
 
-            return entity.HandleTaskId;
+            if (check > 0)
+            {
+                return new HandleTaskResponse
+                {
+                    HandleTaskId = entity.HandleTaskId,
+                    HandleTaskUserId = entity.HandleTaskUserId,
+                    HandleTaskTaskId = entity.HandleTaskTaskId,
+                    HandleTaskCreatedAt = entity.HandleTaskCreatedAt,
+                    HandleTaskIsDeleted = entity.HandleTaskIsDeleted,
+                };
+            }
+            return null;
         }
 
         public async Task<bool> DeleteHandleTask(string handleTaskId)

@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    partial class TeamAppContextModelSnapshot : ModelSnapshot
+    [Migration("20210428143227_edittaskprogress")]
+    partial class edittaskprogress
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -260,14 +262,9 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<string>("TaskId")
-                        .HasColumnType("varchar(50)");
-
                     b.HasKey("FileId");
 
                     b.HasIndex("FileUserId");
-
-                    b.HasIndex("TaskId");
 
                     b.ToTable("file");
                 });
@@ -752,7 +749,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<int?>("TaskOrderInList")
+                    b.Property<int>("TaskOrderInList")
                         .HasColumnName("task_order_inlist")
                         .HasColumnType("int");
 
@@ -1091,10 +1088,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "User")
                         .WithMany("Files")
                         .HasForeignKey("FileUserId");
-
-                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Task", null)
-                        .WithMany("Files")
-                        .HasForeignKey("TaskId");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.GroupChatUser", b =>

@@ -77,7 +77,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTask([FromForm] TaskRequest taskReq)
+        public async Task<IActionResult> AddTask(TaskRequest taskReq)
         {
             var res = await _repo.AddTask(taskReq);
 
@@ -118,6 +118,19 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpGet("{taskId}")]
+        [ProducesDefaultResponseType(typeof(TaskResponse))]
+        public async Task<IActionResult> GetTaskById(string taskId)
+        {
+            var outPut = await _repo.GetById(taskId);
+
+            return Ok(new ApiResponse<TaskResponse>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut,
+            });
         }
     }
 }

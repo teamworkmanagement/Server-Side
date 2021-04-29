@@ -16,10 +16,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
     public class TaskRepository : ITaskRepository
     {
         private readonly TeamAppContext _dbContext;
+        private readonly IFileRepository _file;
+        private readonly ICommentRepository _comment;
 
-        public TaskRepository(TeamAppContext dbContext)
+        public TaskRepository(TeamAppContext dbContext, IFileRepository file, ICommentRepository comment)
         {
             _dbContext = dbContext;
+            _file = file;
+            _comment = comment;
         }
         public async Task<string> AddTask(TaskRequest taskReq)
         {
@@ -34,7 +38,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskStatus = taskReq.TaskStatus,
                 TaskCompletedPercent = taskReq.TaskCompletedPercent,
                 TaskTeamId = taskReq.TaskTeamId,
-                TaskIsDeleted = false
+                TaskIsDeleted = false,
+                TaskBelongedId = taskReq.TaskBelongedId,
+                TaskOrderInList = taskReq.TaskOrderInList,
+                TaskThemeColor = taskReq.TaskThemeColor,
             };
 
             await _dbContext.Task.AddAsync(entity);
@@ -126,6 +133,46 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskTeamId = x.ta.TaskTeamId,
                 TaskIsDeleted = x.ta.TaskIsDeleted
             }).ToListAsync();
+
+            return outPut;
+        }
+
+        public async Task<TaskResponse> GetById(string taskId)
+        {
+            var query = from t in _dbContext.Task
+                        join h in _dbContext.HandleTask on t.TaskId equals h.HandleTaskTaskId
+                        join u in _dbContext.User on h.HandleTaskUserId equals u.Id
+                        where t.TaskId == taskId
+                        select new { t, u.FullName, u.Id, u.ImageUrl };
+
+            var listComments = await _comment.GetListByTask(taskId);
+            var listFiles = await _file.GetAllByTask(taskId);
+
+            var task = await query.FirstOrDefaultAsync();
+
+            if (task == null)
+                return null;
+            var outPut = new TaskResponse
+            {
+                KanbanListId = task.t.TaskBelongedId,
+                TaskId = task.t.TaskId,
+                TaskName = task.t.TaskName,
+                TaskDescription = task.t.TaskDescription,
+                TaskPoint = task.t.TaskPoint,
+                TaskCreatedAt = task.t.TaskCreatedAt.FormatTime(),
+                TaskDeadline = task.t.TaskDeadline.FormatTime(),
+                TaskStatus = task.t.TaskStatus,
+                TaskCompletedPercent = task.t.TaskCompletedPercent,
+                TaskTeamId = task.t.TaskTeamId,
+                TaskIsDeleted = task.t.TaskIsDeleted,
+                TaskThemeColor = task.t.TaskThemeColor,
+                UserId = task.Id,
+                UserName = task.FullName,
+                UserAvatar = task.ImageUrl,
+                OrderInList = task.t.TaskOrderInList,
+                Comments = listComments,
+                Files = listFiles,
+            };
 
             return outPut;
         }

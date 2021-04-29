@@ -120,5 +120,28 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             throw new NotImplementedException();
         }
+
+        public async Task<List<FileResponse>> GetAllByTask(string taskId)
+        {
+            var query = from t in _dbContext.Task
+                        join f in _dbContext.File on t.TaskId equals f.FileBelongedId
+
+                        where t.TaskId == taskId
+                        select f;
+
+            var outPut = await query.Select(entity => new FileResponse
+            {
+                FileId = entity.FileId,
+                FileName = entity.FileName,
+                FileUrl = entity.FileUrl,
+                FileType = entity.FileType,
+                FileSize = entity.FileSize,
+                FileBelongedId = entity.FileBelongedId,
+                FileUserId = entity.FileUserId,
+                FileUploadTime = entity.FileUploadTime.FormatTime(),
+            }).ToListAsync();
+
+            return outPut;
+        }
     }
 }

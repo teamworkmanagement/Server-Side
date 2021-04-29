@@ -48,11 +48,11 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddHandleTask([FromForm] HandleTaskRequest handleTaskReq)
+        public async Task<IActionResult> AddHandleTask(HandleTaskRequest handleTaskReq)
         {
             var res = await _repo.AddHandleTask(handleTaskReq);
 
-            var outPut = new ApiResponse<string>
+            var outPut = new ApiResponse<HandleTaskResponse>
             {
                 Data = res,
                 Succeeded = res == null ? false : true,

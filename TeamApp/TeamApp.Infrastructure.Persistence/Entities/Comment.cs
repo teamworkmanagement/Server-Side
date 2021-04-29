@@ -8,6 +8,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string CommentId { get; set; }
         public string CommentPostId { get; set; }
         public string CommentUserId { get; set; }
+        public string CommentTaskId { get; set; }
         public string CommentContent { get; set; }
         public DateTime? CommentCreatedAt { get; set; }
         public bool? CommentIsDeleted { get; set; }
@@ -15,5 +16,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
         public virtual Post CommentPost { get; set; }
         public virtual User CommentUser { get; set; }
+        public virtual Task CommentTask { get; set; }
     }
 }

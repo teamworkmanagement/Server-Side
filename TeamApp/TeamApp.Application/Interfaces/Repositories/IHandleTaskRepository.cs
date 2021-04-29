@@ -10,7 +10,7 @@ namespace TeamApp.Application.Interfaces.Repositories
     {
         Task<List<HandleTaskResponse>> GetAllByTaskId(string taskId);
         Task<List<HandleTaskResponse>> GetAllByUserId(string userId);
-        Task<string> AddHandleTask(HandleTaskRequest handleTaskReq);
+        Task<HandleTaskResponse> AddHandleTask(HandleTaskRequest handleTaskReq);
         Task<bool> UpdateHandleTask(string handleTaskId, HandleTaskRequest handleTaskReq);
         Task<bool> DeleteHandleTask(string handleTaskId);
     }
