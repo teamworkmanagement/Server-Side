@@ -28,6 +28,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 CommentId = Guid.NewGuid().ToString(),
                 CommentPostId = cmtReq.CommentPostId,
+                CommentTaskId = cmtReq.CommentTaskId,
                 CommentUserId = cmtReq.CommentUserId,
                 CommentContent = cmtReq.CommentContent,
                 CommentCreatedAt = cmtReq.CommentCreatedAt,
@@ -45,6 +46,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     CommentPostId = entity.CommentPostId,
                     CommentUserId = entity.CommentUserId,
                     CommentContent = entity.CommentContent,
+                    CommentTaskId = entity.CommentTaskId,
                     CommentCreatedAt = entity.CommentCreatedAt,
                     CommentIsDeleted = entity.CommentIsDeleted,
                 };
@@ -159,6 +161,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentPostId = x.c.CommentPostId,
                 CommentUserId = x.c.CommentUserId,
                 CommentContent = x.c.CommentContent,
+                CommentTaskId = x.c.CommentTaskId,
                 CommentCreatedAt = x.c.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.c.CommentIsDeleted,
                 UserAvatar = x.ImageUrl,

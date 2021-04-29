@@ -66,17 +66,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                              orderby kl.KanbanListOrderInBoard
                              select kl;
 
+            var listKb = await listKanban.ToListAsync();
             //duyet tat ca cac kanbanlist de lay ra danh sach task cua moi list
-            foreach (var kl in listKanban)
+            foreach (var kl in listKb)
             {
                 var tasklist = from t in _dbContext.Task
                                join h in _dbContext.HandleTask on t.TaskId equals h.HandleTaskTaskId
                                join u in _dbContext.User on h.HandleTaskUserId equals u.Id
-                               where t.TaskBelongedId == kl.KanbanListId
+                               where t.TaskBelongedId == kl.KanbanListId && t.TaskIsDeleted == false
                                select new { t, u.ImageUrl, u.Id };
 
                 //tasks of 1 listkanban
                 var taskLists = await tasklist.ToListAsync();
+
                 taskListUI = new List<TaskUIKanban>();
 
                 //cac task trong list kanban
@@ -105,8 +107,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         TaskName = x.t.TaskName,
                         TaskDeadline = x.t.TaskDeadline.FormatTime(),
                         TaskStatus = x.t.TaskStatus,
+                        TaskDescription = x.t.TaskDescription,
 
-                        Image = image,
+                        Image = string.IsNullOrEmpty(image) ? null : image,
 
                         CommentsCount = x.t.Comments.Count,
                         FilesCount = files.Count,
