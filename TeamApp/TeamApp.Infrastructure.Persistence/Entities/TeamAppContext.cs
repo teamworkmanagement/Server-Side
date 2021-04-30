@@ -531,8 +531,11 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.TaskProgress)
-                    .HasColumnName("task_progress");
+                entity.Property(e => e.TaskImageUrl)
+                    .HasColumnName("task_image_url")
+                    .HasColumnType("varchar(200)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
 
                 entity.Property(e => e.TaskThemeColor)
                     .HasColumnName("task_theme_color")

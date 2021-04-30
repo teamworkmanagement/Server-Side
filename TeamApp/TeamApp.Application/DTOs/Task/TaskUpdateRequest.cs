@@ -4,8 +4,9 @@ using System.Text;
 
 namespace TeamApp.Application.DTOs.Task
 {
-    public class TaskRequest
+    public class TaskUpdateRequest
     {
+        public string TaskId { get; set; }
         public string TaskName { get; set; }
         public string TaskDescription { get; set; }
         public int? TaskPoint { get; set; }

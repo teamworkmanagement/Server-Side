@@ -25,7 +25,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string TaskBelongedId { get; set; }
         public int? TaskOrderInList { get; set; }
         public string TaskThemeColor { get; set; }
-        public double? TaskProgress { get; set; }
+        public string TaskImageUrl { get; set; }
 
         public virtual Team TaskTeam { get; set; }
         public virtual ICollection<HandleTask> HandleTask { get; set; }

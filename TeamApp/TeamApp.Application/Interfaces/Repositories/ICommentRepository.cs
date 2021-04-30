@@ -24,6 +24,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// </summary>
         /// <param name="kanbanListId"></param>
         /// <returns></returns>
-        Task<List<CommentResponse>> GetListByTask(string taskId);
+        Task<List<CommentResponse>> GetListByTask(string taskId, int skipItems = 0, int pageSize = 3);
     }
 }

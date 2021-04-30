@@ -90,10 +90,10 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpPut("{taskId}")]
-        public async Task<IActionResult> UpdateTask(string taskId, [FromForm] TaskRequest taskReq)
+        [HttpPut]
+        public async Task<IActionResult> UpdateTask(TaskUpdateRequest taskReq)
         {
-            var res = await _repo.UpdateTask(taskId, taskReq);
+            var res = await _repo.UpdateTask(taskReq);
 
             var outPut = new ApiResponse<bool>
             {
