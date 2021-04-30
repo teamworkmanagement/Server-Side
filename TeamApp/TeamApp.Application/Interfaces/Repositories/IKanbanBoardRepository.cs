@@ -21,5 +21,11 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// <param name="boardId"></param>
         /// <returns></returns>
         Task<KanbanBoardUIResponse> GetKanbanBoardUI(string boardId);
+        /// <summary>
+        /// Swap liskanban
+        /// </summary>
+        /// <param name="swapListModel"></param>
+        /// <returns></returns>
+        Task<bool> SwapListKanban(SwapListModel swapListModel);
     }
 }

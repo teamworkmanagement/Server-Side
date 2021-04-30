@@ -77,7 +77,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                select new { t, u.ImageUrl, u.Id };
 
                 //tasks of 1 listkanban
-                var taskLists = await tasklist.ToListAsync();
+                var taskLists = await tasklist.OrderBy(x => x.t.TaskOrderInList).ToListAsync();
 
                 taskListUI = new List<TaskUIKanban>();
 
@@ -140,6 +140,34 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public Task<List<KanbanListUIResponse>> GetKanbanList(string boardId)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<bool> SwapListKanban(SwapListModel swapListModel)
+        {
+            var sourceList = await _dbContext.KanbanList.Where(x => x.KanbanListBoardBelongedId == swapListModel.KanbanBoardId
+              && (x.KanbanListOrderInBoard == swapListModel.SourceIndex || x.KanbanListOrderInBoard == swapListModel.DestinationIndex)).ToListAsync();
+
+            if (sourceList == null || sourceList.Count != 2)
+                return false;
+
+            if (sourceList[0].KanbanListOrderInBoard == swapListModel.DestinationIndex)
+            {
+                sourceList[0].KanbanListOrderInBoard = swapListModel.SourceIndex;
+                sourceList[1].KanbanListOrderInBoard = swapListModel.DestinationIndex;
+                _dbContext.KanbanList.Update(sourceList[0]);
+                _dbContext.KanbanList.Update(sourceList[1]);
+                await _dbContext.SaveChangesAsync();
+            }
+            else
+            {
+                sourceList[0].KanbanListOrderInBoard = swapListModel.DestinationIndex;
+                sourceList[1].KanbanListOrderInBoard = swapListModel.SourceIndex;
+                _dbContext.KanbanList.Update(sourceList[0]);
+                _dbContext.KanbanList.Update(sourceList[1]);
+                await _dbContext.SaveChangesAsync();
+            }
+
+            return true;
         }
     }
 }

@@ -18,5 +18,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<bool> UpdateTask(string taskId, TaskRequest taskReq);
         Task<bool> DeleteTask(string taskId);
         Task<TaskResponse> GetById(string taskId);
+        Task<bool> DragTask(DragTaskModel dragTaskModel);
     }
 }

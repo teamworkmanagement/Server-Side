@@ -43,5 +43,16 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             });
         }
+
+        [HttpPost("swap-list")]
+        public async Task<IActionResult> SwapListKanban(SwapListModel swapListModel)
+        {
+            var outPut = await _repo.SwapListKanban(swapListModel);
+            return Ok(new ApiResponse<bool>
+            {
+                Succeeded = outPut,
+                Data = outPut,
+            });
+        }
     }
 }

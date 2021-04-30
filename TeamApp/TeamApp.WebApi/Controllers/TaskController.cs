@@ -132,5 +132,17 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             });
         }
+
+        [HttpPost("drag-task")]
+        public async Task<IActionResult> DragTask(DragTaskModel dragTaskModel)
+        {
+            var outPut = await _repo.DragTask(dragTaskModel);
+            return Ok(
+                new ApiResponse<bool>
+                {
+                    Succeeded = outPut,
+                    Data = outPut,
+                });
+        }
     }
 }

@@ -62,6 +62,52 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
+        public async Task<bool> DragTask(DragTaskModel dragTaskModel)
+        {
+            var count = 0;
+            var listTaskDestinationQuery = from t in _dbContext.Task
+                                           where t.TaskBelongedId == dragTaskModel.DestinationDroppableId
+                                           select t;
+
+            var listTaskDestination = await listTaskDestinationQuery.ToListAsync();
+            foreach (var t in listTaskDestination)
+            {
+                if (t.TaskOrderInList >= dragTaskModel.DestinationIndex)
+                    t.TaskOrderInList++;
+
+                _dbContext.Task.Update(t);
+                var check = await _dbContext.SaveChangesAsync() > 0;
+                if (check)
+                    count++;
+            }
+
+
+            var listTaskSourceQuery = from t in _dbContext.Task
+                                      where t.TaskBelongedId == dragTaskModel.SourceDroppableId
+                                      select t;
+            var listTaskSource = await listTaskSourceQuery.ToListAsync();
+            foreach (var t in listTaskSource)
+            {
+                if (t.TaskOrderInList == dragTaskModel.SourceIndex)
+                {
+                    t.TaskBelongedId = dragTaskModel.DestinationDroppableId;
+                    t.TaskOrderInList = dragTaskModel.DestinationIndex;
+                }
+
+                else if (t.TaskOrderInList > dragTaskModel.SourceIndex)
+                {
+                    t.TaskOrderInList--;
+                }
+
+                _dbContext.Task.Update(t);
+                var check = await _dbContext.SaveChangesAsync() > 0;
+                if (check)
+                    count++;
+            }
+
+            return count == listTaskDestination.Count + listTaskSource.Count;
+        }
+
         public async Task<List<TaskResponse>> GetAllByTeamId(string teamId)
         {
             var entityList = from ta in _dbContext.Task
