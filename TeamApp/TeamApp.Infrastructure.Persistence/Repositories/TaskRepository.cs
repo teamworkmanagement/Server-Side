@@ -36,7 +36,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskCreatedAt = DateTime.UtcNow,
                 TaskDeadline = taskReq.TaskDeadline,
                 TaskStatus = taskReq.TaskStatus,
-                TaskCompletedPercent = taskReq.TaskCompletedPercent,
+                TaskCompletedPercent = 0,
                 TaskTeamId = taskReq.TaskTeamId,
                 TaskIsDeleted = false,
                 TaskBelongedId = taskReq.TaskBelongedId,
@@ -216,10 +216,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<TaskResponse> GetById(string taskId)
         {
             var query = from t in _dbContext.Task.AsNoTracking()
-                        join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId
-                        join u in _dbContext.User.AsNoTracking() on h.HandleTaskUserId equals u.Id
+                        join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
+
+                        from th in tHandle.DefaultIfEmpty()
+                        join u in _dbContext.User.AsNoTracking() on th.HandleTaskUserId equals u.Id into tUser
+
+                        from tu in tUser.DefaultIfEmpty()
                         where t.TaskId == taskId
-                        select new { t, u.FullName, u.Id, u.ImageUrl };
+                        select new { t, tu.FullName, tu.Id, tu.ImageUrl };
 
             var listComments = await _comment.GetListByTask(taskId);
             var listFiles = await _file.GetAllByTask(taskId);
@@ -298,7 +302,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             //entity.TaskTeamId = taskReq.TaskTeamId == null ? entity.TaskTeamId : taskReq.TaskTeamId;
             //entity.TaskIsDeleted = taskReq.TaskIsDeleted == null ? entity.TaskIsDeleted : taskReq.TaskIsDeleted;
-            
+
 
 
             _dbContext.Task.Update(entity);

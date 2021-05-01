@@ -81,10 +81,15 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
 
             var listTasksQuery = from t in _dbContext.Task.AsNoTracking()
-                                 join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId
-                                 join u in _dbContext.User.AsNoTracking() on h.HandleTaskUserId equals u.Id
+                                 join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
+
+                                 from th in tHandle.DefaultIfEmpty()
+                                 join u in _dbContext.User.AsNoTracking() on th.HandleTaskUserId equals u.Id into tUser
+
+                                 from tu in tUser.DefaultIfEmpty()
                                  where listKanbanArray.Contains(t.TaskBelongedId) && t.TaskIsDeleted == false
-                                 select new { t, u.ImageUrl, u.Id, t.Comments };
+
+                                 select new { t, tu.ImageUrl, tu.Id, t.Comments };
 
             var listTasks = await listTasksQuery.AsNoTracking().ToListAsync();
             foreach (var kl in listKanban)
