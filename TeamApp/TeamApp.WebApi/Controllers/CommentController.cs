@@ -115,5 +115,15 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             });
         }
+
+        [HttpGet("bytask")]
+        public async Task<IActionResult> GetCommentByTaskId(string taskId, int skipItems, int pageSize = 3)
+        {
+            var outPut = await _repo.GetListByTask(taskId, skipItems, pageSize);
+            return Ok(new ApiResponse<List<CommentResponse>>
+            {
+                Data = outPut
+            });
+        }
     }
 }

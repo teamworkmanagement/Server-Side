@@ -84,7 +84,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                  join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId
                                  join u in _dbContext.User.AsNoTracking() on h.HandleTaskUserId equals u.Id
                                  where listKanbanArray.Contains(t.TaskBelongedId) && t.TaskIsDeleted == false
-                                 select new { t, u.ImageUrl, u.Id };
+                                 select new { t, u.ImageUrl, u.Id, t.Comments };
 
             var listTasks = await listTasksQuery.AsNoTracking().ToListAsync();
             foreach (var kl in listKanban)
@@ -104,7 +104,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                              TaskImageUrl = x.t.TaskImageUrl,
 
-                             CommentsCount = x.t.Comments.Count,
+                             CommentsCount = x.Comments.Count,
                              FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileBelongedId == x.t.TaskId).Count(),
 
                              UserId = x.Id,
