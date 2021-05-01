@@ -17,6 +17,7 @@ namespace TeamApp.Application.DTOs.Task
         public DateTime? TaskDeadline { get; set; }
         public string TaskStatus { get; set; }
         public int? TaskCompletedPercent { get; set; }
+        public string TaskImageUrl { get; set; }
         public string TaskTeamId { get; set; }
         public bool? TaskIsDeleted { get; set; }
         public string TaskThemeColor { get; set; }

@@ -24,5 +24,7 @@ namespace TeamApp.Application.DTOs.Task
         public string UserAvatar { get; set; }
 
         public int? TaskCompletedPercent { get; set; }
+
+        public string TaskThemeColor { get; set; }
     }
 }

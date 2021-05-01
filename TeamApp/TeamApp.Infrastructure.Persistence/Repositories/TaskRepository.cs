@@ -203,16 +203,16 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<TaskResponse> GetById(string taskId)
         {
-            var query = from t in _dbContext.Task
-                        join h in _dbContext.HandleTask on t.TaskId equals h.HandleTaskTaskId
-                        join u in _dbContext.User on h.HandleTaskUserId equals u.Id
+            var query = from t in _dbContext.Task.AsNoTracking()
+                        join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId
+                        join u in _dbContext.User.AsNoTracking() on h.HandleTaskUserId equals u.Id
                         where t.TaskId == taskId
                         select new { t, u.FullName, u.Id, u.ImageUrl };
 
             var listComments = await _comment.GetListByTask(taskId);
             var listFiles = await _file.GetAllByTask(taskId);
 
-            var task = await query.FirstOrDefaultAsync();
+            var task = await query.AsNoTracking().FirstOrDefaultAsync();
 
             if (task == null)
                 return null;
@@ -236,6 +236,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 OrderInList = task.t.TaskOrderInList,
                 Comments = listComments,
                 Files = listFiles,
+                TaskImageUrl = task.t.TaskImageUrl,
             };
 
             return outPut;
@@ -270,16 +271,22 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (entity == null)
                 return false;
 
+            entity.TaskDescription = taskReq.TaskDescription == null ? entity.TaskDescription : taskReq.TaskDescription;
             entity.TaskName = taskReq.TaskName == null ? entity.TaskName : taskReq.TaskName;
-            entity.TaskDeadline = taskReq.TaskDeadline == null ? entity.TaskDeadline : taskReq.TaskDeadline;
+
+            entity.TaskThemeColor = taskReq.TaskThemeColor;
+            entity.TaskDeadline = taskReq.TaskDeadline;
+            entity.TaskStatus = taskReq.TaskStatus;
+            entity.TaskCompletedPercent = taskReq.TaskCompletedPercent;
+
             entity.TaskPoint = taskReq.TaskPoint == null ? entity.TaskPoint : taskReq.TaskPoint;
             entity.TaskCreatedAt = taskReq.TaskCreatedAt == null ? entity.TaskCreatedAt : taskReq.TaskCreatedAt;
-            entity.TaskDeadline = taskReq.TaskDeadline == null ? entity.TaskDeadline : taskReq.TaskDeadline;
-            entity.TaskStatus = taskReq.TaskStatus == null ? entity.TaskStatus : taskReq.TaskStatus;
-            entity.TaskCompletedPercent = taskReq.TaskCompletedPercent == null ? entity.TaskCompletedPercent : taskReq.TaskCompletedPercent;
-            entity.TaskTeamId = taskReq.TaskTeamId == null ? entity.TaskTeamId : taskReq.TaskTeamId;
-            entity.TaskIsDeleted = taskReq.TaskIsDeleted == null ? entity.TaskIsDeleted : taskReq.TaskIsDeleted;
+
+
+            //entity.TaskTeamId = taskReq.TaskTeamId == null ? entity.TaskTeamId : taskReq.TaskTeamId;
+            //entity.TaskIsDeleted = taskReq.TaskIsDeleted == null ? entity.TaskIsDeleted : taskReq.TaskIsDeleted;
             entity.TaskImageUrl = taskReq.TaskImageUrl == null ? entity.TaskImageUrl : taskReq.TaskImageUrl;
+
 
             _dbContext.Task.Update(entity);
             var check = await _dbContext.SaveChangesAsync() > 0;

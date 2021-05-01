@@ -149,13 +149,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<List<CommentResponse>> GetListByTask(string taskId, int skipItems = 0, int pageSize = 3)
         {
-            var query = from c in _dbContext.Comment
-                        join t in _dbContext.Task on c.CommentTaskId equals t.TaskId
-                        join u in _dbContext.User on c.CommentUserId equals u.Id
+            var query = from c in _dbContext.Comment.AsNoTracking()
+                        join t in _dbContext.Task.AsNoTracking() on c.CommentTaskId equals t.TaskId
+                        join u in _dbContext.User.AsNoTracking() on c.CommentUserId equals u.Id
                         where t.TaskId == taskId
                         select new { c, u.FullName, u.ImageUrl };
 
-            query = query.Skip(skipItems).Take(pageSize);
+            query = query.AsNoTracking().Skip(skipItems).Take(pageSize);
 
             var entityList = await query.Select(x => new CommentResponse
             {

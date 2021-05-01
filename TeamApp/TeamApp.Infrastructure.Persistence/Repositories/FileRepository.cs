@@ -87,13 +87,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<PagedResponse<FileResponse>> GetByBelong(FileRequestParameter par)
         {
-            var query = from f in _dbContext.File
-                        join u in _dbContext.User on f.FileUserId equals u.Id
+            var query = from f in _dbContext.File.AsNoTracking()
+                        join u in _dbContext.User.AsNoTracking() on f.FileUserId equals u.Id
                         orderby f.FileUploadTime descending
                         where f.FileBelongedId == par.BelongedId
                         select new { f, u.FullName, u.ImageUrl };
 
-            var zzz = await query.CountAsync();
+            var zzz = await query.AsNoTracking().CountAsync();
 
             var outFile = query.Skip((par.PageNumber - 1) * par.PageSize).Take(par.PageSize);
 
@@ -123,13 +123,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<List<FileResponse>> GetAllByTask(string taskId)
         {
-            var query = from t in _dbContext.Task
-                        join f in _dbContext.File on t.TaskId equals f.FileBelongedId
+            var query = from t in _dbContext.Task.AsNoTracking()
+                        join f in _dbContext.File.AsNoTracking() on t.TaskId equals f.FileBelongedId
 
                         where t.TaskId == taskId
                         select f;
 
-            var outPut = await query.Select(entity => new FileResponse
+            var outPut = await query.AsNoTracking().Select(entity => new FileResponse
             {
                 FileId = entity.FileId,
                 FileName = entity.FileName,
