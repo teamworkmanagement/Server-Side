@@ -22,7 +22,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<string> AddFile(FileRequest fileReq)
+        public async Task<FileResponse> AddFile(FileRequest fileReq)
         {
             var entity = new File
             {
@@ -37,9 +37,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
 
             await _dbContext.File.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            var check=await _dbContext.SaveChangesAsync()>0;
 
-            return entity.FileId;
+            if (check)
+                return new FileResponse
+                {
+                    FileId = entity.FileId,
+                    FileName = entity.FileName,
+                    FileUrl = entity.FileUrl,
+                    FileType = entity.FileType,
+                    FileSize = entity.FileSize,
+                    FileBelongedId = entity.FileBelongedId,
+                    FileUserId = entity.FileUserId,
+                    FileUploadTime = entity.FileUploadTime.FormatTime(),
+                };
+            return null;
         }
 
         public async Task<string> AddFileTask(string taskId, FileRequest fileReq)
@@ -125,8 +137,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var query = from t in _dbContext.Task.AsNoTracking()
                         join f in _dbContext.File.AsNoTracking() on t.TaskId equals f.FileBelongedId
-
                         where t.TaskId == taskId
+                        orderby f.FileUploadTime descending
                         select f;
 
             var outPut = await query.AsNoTracking().Select(entity => new FileResponse

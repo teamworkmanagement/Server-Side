@@ -10,7 +10,7 @@ namespace TeamApp.Application.DTOs.Task
         public string KanbanListId { get; set; }
         public string TaskId { get; set; }
 
-        public string Image { get; set; }
+        public string TaskImageUrl { get; set; }
 
         public string TaskName { get; set; }
         public DateTime? TaskDeadline { get; set; }

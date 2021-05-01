@@ -88,6 +88,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                            select t;
 
             var listTaskDestination = await listTaskDestinationQuery.ToListAsync();
+            if (dragTaskModel.DestinationDroppableId == dragTaskModel.SourceDroppableId)
+            {
+                var source = listTaskDestination.Where(x => x.TaskOrderInList == dragTaskModel.SourceIndex).FirstOrDefault();
+                var destination = listTaskDestination.Where(x => x.TaskOrderInList == dragTaskModel.DestinationIndex).FirstOrDefault();
+
+                source.TaskOrderInList = dragTaskModel.DestinationIndex;
+                destination.TaskOrderInList = dragTaskModel.SourceIndex;
+                _dbContext.Task.Update(source);
+                _dbContext.Task.Update(destination);
+                var check = await _dbContext.SaveChangesAsync() > 0;
+                return check;
+            }
             foreach (var t in listTaskDestination)
             {
                 if (t.TaskOrderInList >= dragTaskModel.DestinationIndex)
@@ -278,6 +290,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             entity.TaskDeadline = taskReq.TaskDeadline;
             entity.TaskStatus = taskReq.TaskStatus;
             entity.TaskCompletedPercent = taskReq.TaskCompletedPercent;
+            entity.TaskImageUrl = taskReq.TaskImageUrl;
 
             entity.TaskPoint = taskReq.TaskPoint == null ? entity.TaskPoint : taskReq.TaskPoint;
             entity.TaskCreatedAt = taskReq.TaskCreatedAt == null ? entity.TaskCreatedAt : taskReq.TaskCreatedAt;
@@ -285,7 +298,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             //entity.TaskTeamId = taskReq.TaskTeamId == null ? entity.TaskTeamId : taskReq.TaskTeamId;
             //entity.TaskIsDeleted = taskReq.TaskIsDeleted == null ? entity.TaskIsDeleted : taskReq.TaskIsDeleted;
-            entity.TaskImageUrl = taskReq.TaskImageUrl == null ? entity.TaskImageUrl : taskReq.TaskImageUrl;
+            
 
 
             _dbContext.Task.Update(entity);

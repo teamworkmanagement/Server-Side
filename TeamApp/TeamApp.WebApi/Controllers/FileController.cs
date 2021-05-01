@@ -72,7 +72,7 @@ namespace TeamApp.WebApi.Controllers
         public async Task<IActionResult> AddFile(FileRequest fileRequest)
         {
             var outPut = await _repo.AddFile(fileRequest);
-            return Ok(new ApiResponse<string>
+            return Ok(new ApiResponse<FileResponse>
             {
                 Succeeded = outPut == null ? false : true,
                 Data = outPut,

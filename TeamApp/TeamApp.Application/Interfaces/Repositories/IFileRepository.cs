@@ -12,7 +12,7 @@ namespace TeamApp.Application.Interfaces.Repositories
     {
         Task<FileResponse> GetById(string fileId);
         Task<string> AddFileTask(string taskId, FileRequest fileReq);
-        Task<string> AddFile(FileRequest fileReq);
+        Task<FileResponse> AddFile(FileRequest fileReq);
         Task<bool> UpdateFile(string fileId);
         Task<PagedResponse<FileResponse>> GetByBelong(FileRequestParameter parameter);
         /// <summary>

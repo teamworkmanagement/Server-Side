@@ -102,7 +102,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                              TaskStatus = x.t.TaskStatus,
                              TaskDescription = x.t.TaskDescription,
 
-                             Image = x.t.TaskImageUrl,
+                             TaskImageUrl = x.t.TaskImageUrl,
 
                              CommentsCount = x.t.Comments.Count,
                              FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileBelongedId == x.t.TaskId).Count(),
