@@ -74,9 +74,31 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (entity == null)
                 return false;
 
-            entity.TaskIsDeleted = true;
-            _dbContext.Task.Update(entity);
-            await _dbContext.SaveChangesAsync();
+            var listTasksQuery = from t in _dbContext.Task
+                                 join kl in _dbContext.KanbanList on t.TaskBelongedId equals kl.KanbanListId
+                                 select t;
+
+            var listTasks = await listTasksQuery.ToListAsync();
+
+            foreach (var t in listTasks)
+            {
+                if (t.TaskId == entity.TaskId)
+                {
+                    entity.TaskIsDeleted = true;
+                    _dbContext.Task.Update(entity);
+                    await _dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    if (t.TaskOrderInList > entity.TaskOrderInList)
+                    {
+                        t.TaskOrderInList--;
+                        _dbContext.Task.Update(t);
+                        await _dbContext.SaveChangesAsync();
+                    }
+                }
+            }
+
             return true;
         }
 
@@ -84,7 +106,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var count = 0;
             var listTaskDestinationQuery = from t in _dbContext.Task
-                                           where t.TaskBelongedId == dragTaskModel.DestinationDroppableId
+                                           where t.TaskBelongedId == dragTaskModel.DestinationDroppableId && t.TaskIsDeleted == false
                                            select t;
 
             var listTaskDestination = await listTaskDestinationQuery.ToListAsync();
