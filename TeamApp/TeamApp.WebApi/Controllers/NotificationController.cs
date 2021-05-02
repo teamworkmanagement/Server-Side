@@ -75,5 +75,21 @@ namespace TeamApp.WebApi.Controllers
 
             return Ok(outPut);
         }
+
+        [HttpGet("test")]
+        public IActionResult GetTest()
+        {
+            return Ok(new
+            {
+                Name = "Dũng Nguyễn",
+            });
+        }
+
+        [HttpPost("push")]
+        public async Task<IActionResult> PushNoti(string token, string title, string body)
+        {
+            var outPut = await _repo.PushNoti(token, title, body);
+            return Ok(outPut);
+        }
     }
 }

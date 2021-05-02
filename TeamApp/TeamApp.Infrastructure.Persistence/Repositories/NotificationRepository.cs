@@ -10,16 +10,18 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Notification;
 using TeamApp.Application.Utils;
+using TeamApp.Application.Interfaces;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class NotificationRepository : INotificationRepository
     {
         private readonly TeamAppContext _dbContext;
-
-        public NotificationRepository(TeamAppContext dbContext)
+        private readonly IFirebaseMessagingService _firebaseMessagingService;
+        public NotificationRepository(TeamAppContext dbContext, IFirebaseMessagingService firebaseMessagingService)
         {
             _dbContext = dbContext;
+            _firebaseMessagingService = firebaseMessagingService;
         }
         public async Task<bool> DeleteNotification(string notiId)
         {
@@ -70,6 +72,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var outPut = new PagedResponse<NotificationResponse>(entityList, parameter.PageNumber, parameter.PageSize, await query.CountAsync());
 
             return outPut;
+        }
+
+        public async Task<string> PushNoti(string token, string title, string body)
+        {
+            return await _firebaseMessagingService.SendNotification(token, title, body);
         }
 
         public async Task<bool> ReadNotificationSet(string notiId)
