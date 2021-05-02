@@ -8,6 +8,8 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.Utils;
+using TeamApp.Application.DTOs.User;
+using static TeamApp.Application.Utils.Extensions;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -20,6 +22,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         }
         public async Task<string> AddTeam(TeamRequest teamReq)
         {
+            var teamCode = string.Empty;
+            bool loop = false;
+            while (!loop)
+            {
+                teamCode = RadomString.RandomString(6);
+                var teamCheck = from t in _dbContext.Team.AsNoTracking()
+                                where t.TeamCode == teamCode
+                                select t;
+                if (teamCheck == null)
+                    loop = true;
+            }
+
             var entity = new Team
             {
                 TeamId = Guid.NewGuid().ToString(),
@@ -27,7 +41,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TeamName = teamReq.TeamName,
                 TeamDescription = teamReq.TeamDescription,
                 TeamCreatedAt = DateTime.Now,
-                TeamCode = teamReq.TeamCode,
+                TeamCode = teamCode,
                 TeamIsDeleted = false,
             };
             await _dbContext.AddAsync(entity);
@@ -106,6 +120,29 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext.Team.Update(entity);
             await _dbContext.SaveChangesAsync();
             return true;
+        }
+
+        public async Task<List<UserResponse>> GetAllByTeamId(string teamId)
+        {
+            var query = from p in _dbContext.Participation.AsNoTracking()
+                        join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
+                        join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                        where t.TeamId == teamId
+                        select u;
+
+            var outPut = await query.Select(u => new UserResponse
+            {
+                UserId = u.Id,
+                UserEmail = u.Email,
+                UserFullname = u.FullName,
+                UserDateOfBirth = u.Dob,
+                UsePhoneNumber = u.PhoneNumber,
+                UserImageUrl = u.ImageUrl,
+                UserCreatedAt = u.CreatedAt
+            }).ToListAsync();
+
+
+            return outPut;
         }
     }
 }

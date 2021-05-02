@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Team;
+using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -29,7 +30,7 @@ namespace TeamApp.WebApi.Controllers
             var outPut = new ApiResponse<List<TeamResponse>>
             {
                 Data = res,
-                Succeeded = true,
+                Succeeded = res == null ? false : true,
             };
 
             return Ok(outPut);
@@ -95,6 +96,15 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-
+        [HttpGet("getalluser/{teamId}")]
+        public async Task<IActionResult> GetByTeamId(string teamId)
+        {
+            var outPut = await _repo.GetAllByTeamId(teamId);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut
+            });
+        }
     }
 }

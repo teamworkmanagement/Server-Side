@@ -25,13 +25,6 @@ namespace TeamApp.WebApi.Controllers
         }
 
 
-
-        [HttpGet("getbyteamid/{teamId}")]
-        public async Task<IActionResult> GetByTeamId(string teamId)
-        {
-            return Ok(await _repo.GetAllByTeamId(teamId));
-        }
-
         [HttpGet("getbyuserid/{userId}")]
         public async Task<IActionResult> GetByUserId(string userId)
         {

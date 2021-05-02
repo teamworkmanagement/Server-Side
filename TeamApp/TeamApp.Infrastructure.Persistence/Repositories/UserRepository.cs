@@ -26,25 +26,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return await System.Threading.Tasks.Task.FromResult(false);
         }
 
-        public async Task<List<UserResponse>> GetAllByTeamId(string teamId)
-        {
-            var query = from p in _dbContext.Participation
-                        join t in _dbContext.Team on p.ParticipationTeamId equals t.TeamId
-                        join u in _dbContext.User on p.ParticipationUserId equals u.Id
-                        select new { u, t };
-
-
-            var outPut = await query.Where(x => x.t.TeamId == teamId).Select(x => new UserResponse
-            {
-
-                
-            }).ToListAsync();
-
-            return outPut;
-        }
-
-
-
         public async Task<UserResponse> GetById(string userId)
         {
             var entity = await _dbContext.User.FindAsync(userId);
@@ -52,7 +33,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 return null;
             var userRes = new UserResponse
             {
-               
+
             };
             return userRes;
         }
@@ -62,7 +43,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var entity = await _dbContext.User.FindAsync(userId);
             if (entity == null)
                 return false;
-            
+
 
             _dbContext.User.Update(entity);
             await _dbContext.SaveChangesAsync();
