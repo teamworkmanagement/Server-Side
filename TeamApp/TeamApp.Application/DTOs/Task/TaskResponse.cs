@@ -14,7 +14,7 @@ namespace TeamApp.Application.DTOs.Task
         public string TaskDescription { get; set; }
         public int? TaskPoint { get; set; }
         public DateTime? TaskCreatedAt { get; set; }
-        public DateTime? TaskDeadline { get; set; }
+        public DateTime? TaskStartDate { get; set; }
         public string TaskStatus { get; set; }
         public int? TaskCompletedPercent { get; set; }
         public string TaskImageUrl { get; set; }
@@ -25,6 +25,7 @@ namespace TeamApp.Application.DTOs.Task
         public string UserName { get; set; }
         public string UserAvatar { get; set; }
         public int? OrderInList { get; set; }
+        public int? TaskDuration { get; set; }
         public List<CommentResponse> Comments { get; set; }
         public List<FileResponse> Files { get; set; }
     }
