@@ -7,22 +7,21 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TeamApp.Infrastructure.Persistence.Entities;
-using Task = System.Threading.Tasks.Task;
 
-namespace TeamApp.WebApi.Hubs.Chat
+namespace TeamApp.WebApi.Hubs.Kanban
 {
     [Authorize]
-    public class HubChatClient : Hub<IHubChatClient>
+    public class HubKanbanClient: Hub<IHubKanbanClient>
     {
         private readonly TeamAppContext _dbContext;
-        public HubChatClient(TeamAppContext dbContext)
+        public HubKanbanClient(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }
-        public override async Task OnConnectedAsync()
+        public override async System.Threading.Tasks.Task OnConnectedAsync()
         {
             var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine($"Chat: Connected {Context.ConnectionId}, Usename {userName}");
+            Console.WriteLine($"Kanban: Connected {Context.ConnectionId}, Usename {userName}");
             var user = await _dbContext.User.AsNoTracking().Where(x => x.UserName == userName).FirstOrDefaultAsync();
 
             var uc = new UserConnection
@@ -41,7 +40,7 @@ namespace TeamApp.WebApi.Hubs.Chat
         public override async System.Threading.Tasks.Task OnDisconnectedAsync(Exception exception)
         {
             var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine($"Chat: Disconnected {Context.ConnectionId}, Username {userName}");
+            Console.WriteLine($"Kanban: Disconnected {Context.ConnectionId}, Username {userName}");
 
             var userCon = await _dbContext.UserConnection.Where(x => x.UserName == userName && x.ConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
 

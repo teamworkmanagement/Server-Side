@@ -7,6 +7,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Message;
+using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.WebApi.Hubs.Chat;
 using Task = System.Threading.Tasks.Task;
@@ -19,11 +20,13 @@ namespace TeamApp.WebApi.Controllers.Test
     {
         private readonly TeamAppContext _dbContext;
         private readonly IHubContext<HubChatClient, IHubChatClient> _chatHub;
+        private readonly IMessageRepository _messageRepository;
 
-        public ChatController(IHubContext<HubChatClient, IHubChatClient> chatHub, TeamAppContext dbContext)
+        public ChatController(IHubContext<HubChatClient, IHubChatClient> chatHub, TeamAppContext dbContext, IMessageRepository messageRepository)
         {
             _chatHub = chatHub;
             _dbContext = dbContext;
+            _messageRepository = messageRepository;
         }
 
         [Authorize]
@@ -34,14 +37,13 @@ namespace TeamApp.WebApi.Controllers.Test
             //get user of group => get list connections by user
             //chuyển tin nhắn cho các client
             var groupId = message.GroupId;
-            var nhomTv = from a in _dbContext.GroupChat
-                         join b in _dbContext.GroupChatUser on a.GroupChatId equals b.GroupChatUserGroupChatId
-                         join c in _dbContext.User on b.GroupChatUserUserId equals c.Id
-                         join d in _dbContext.UserConnection on c.Id equals d.UserId
+            var nhomTv = from a in _dbContext.GroupChat.AsNoTracking()
+                         join b in _dbContext.GroupChatUser.AsNoTracking() on a.GroupChatId equals b.GroupChatUserGroupChatId
+                         join c in _dbContext.User.AsNoTracking() on b.GroupChatUserUserId equals c.Id
+                         join d in _dbContext.UserConnection.AsNoTracking() on c.Id equals d.UserId
                          select new { a, d };
 
-            var query = await nhomTv.Where(x => x.a.GroupChatId == groupId).ToListAsync();
-
+            var query = await nhomTv.AsNoTracking().Where(x => x.a.GroupChatId == groupId).ToListAsync();
 
             foreach (var f in query)
             {
@@ -50,22 +52,17 @@ namespace TeamApp.WebApi.Controllers.Test
                     //await _chatHub.Groups.AddToGroupAsync(f.d.ConnectionId, groupId);
                     _chatHub.Clients.Client(f.d.ConnectionId).NhanMessage(message);
                 }
-
             }
 
             var date = Application.Utils.Extensions.UnixTimeStampToDateTime(message.TimeSend);
-            var grMes = new Message
+
+            await _messageRepository.AddMessage(new MessageRequest
             {
-                MessageId = Guid.NewGuid().ToString(),
                 MessageUserId = message.UserId,
                 MessageGroupChatId = message.GroupId,
                 MessageContent = message.Message,
                 MessageCreatedAt = date,
-                MessageIsDeleted = false,
-            };
-
-            await _dbContext.Message.AddAsync(grMes);
-            await _dbContext.SaveChangesAsync();
+            });
 
             //await _chatHub.Clients.Groups(groupId).NhanMessage(message);
         }

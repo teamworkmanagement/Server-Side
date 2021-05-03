@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.HandleTask;
 using TeamApp.Application.Utils;
+using TeamApp.Application.DTOs.Task;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -26,7 +27,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 HandleTaskId = Guid.NewGuid().ToString(),
                 HandleTaskUserId = handleTaskReq.HandleTaskUserId,
                 HandleTaskTaskId = handleTaskReq.HandleTaskTaskId,
-                HandleTaskCreatedAt = handleTaskReq.HandleTaskCreatedAt,
+                HandleTaskCreatedAt = DateTime.UtcNow,
                 HandleTaskIsDeleted = false,
             };
 
@@ -94,6 +95,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }).ToListAsync();
 
             return outPut;
+        }
+
+        public async Task<bool> ReAssignTask(ReAssignModel reAssignModel)
+        {
+            var entity = await (from h in _dbContext.HandleTask
+                                where h.HandleTaskUserId == reAssignModel.PrevUserId
+                                && h.HandleTaskTaskId == reAssignModel.TaskId
+                                select h).FirstOrDefaultAsync();
+
+            entity.HandleTaskUserId = reAssignModel.CurrentUserId;
+
+            _dbContext.HandleTask.Update(entity);
+
+            return await _dbContext.SaveChangesAsync() > 0;
         }
 
         public async Task<bool> UpdateHandleTask(string handleTaskId, HandleTaskRequest handleTaskReq)

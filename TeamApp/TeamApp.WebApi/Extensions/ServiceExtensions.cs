@@ -20,7 +20,7 @@ namespace TeamApp.WebApi.Extensions
                 {
                     Version = "v1",
                     Title = "TeamApp.WebApi",
-                    Description = "This Api will be responsible for overall data distribution and authorization.",
+                    Description = "Api",
                     Contact = new OpenApiContact
                     {
                         Name = "dzungnguyen",

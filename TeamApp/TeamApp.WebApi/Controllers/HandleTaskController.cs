@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.HandleTask;
+using TeamApp.Application.DTOs.Task;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -90,6 +91,17 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpPost("reassign-task")]
+        public async Task<IActionResult> ReAssignTask(ReAssignModel reAssignModel)
+        {
+            var outPut = await _repo.ReAssignTask(reAssignModel);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
+            });
         }
     }
 }
