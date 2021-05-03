@@ -22,8 +22,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         }
         public async Task<TeamResponse> AddTeam(TeamRequest teamReq)
         {
-            var teamCode = string.Empty;
-            bool loop = false;
+            var teamCode = RadomString.RandomString(6);
+            /*bool loop = false;
             while (!loop)
             {
                 teamCode = RadomString.RandomString(6);
@@ -32,7 +32,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                 select t;
                 if (teamCheck == null)
                     loop = true;
-            }
+            }*/
 
             var entity = new Team
             {
@@ -49,6 +49,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             if (check)
             {
+                await _dbContext.Participation.AddAsync(new Participation
+                {
+                    ParticipationId = Guid.NewGuid().ToString(),
+                    ParticipationUserId = entity.TeamLeaderId,
+                    ParticipationTeamId = entity.TeamId,
+                    ParticipationCreatedAt = DateTime.UtcNow,
+                    ParticipationIsDeleted = false,
+                });
+
+                await _dbContext.SaveChangesAsync();
+
                 return new TeamResponse
                 {
                     TeamId = entity.TeamId,
@@ -156,6 +167,49 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
 
             return outPut;
+        }
+
+        public async Task<TeamResponse> JoinTeam(JoinTeamRequest request)
+        {
+            var team = await (from t in _dbContext.Team.AsNoTracking()
+                              where t.TeamCode == request.TeamCode
+                              select t).FirstOrDefaultAsync();
+            if (team == null)
+                return null;
+
+
+            team = await (from t in _dbContext.Team.AsNoTracking()
+                          join p in _dbContext.Participation.AsNoTracking() on t.TeamId equals p.ParticipationTeamId
+                          where t.TeamCode == request.TeamCode && p.ParticipationUserId == request.UserId
+                          select t).FirstOrDefaultAsync();
+
+            if (team != null)
+                return new TeamResponse
+                {
+                    TeamId = team.TeamId,
+                };
+            await _dbContext.Participation.AddAsync(new Participation
+            {
+                ParticipationId = Guid.NewGuid().ToString(),
+                ParticipationUserId = request.UserId,
+                ParticipationTeamId = team.TeamId,
+                ParticipationCreatedAt = DateTime.UtcNow,
+                ParticipationIsDeleted = false,
+            });
+
+            team = await (from t in _dbContext.Team.AsNoTracking()
+                          where t.TeamCode == request.TeamCode
+                          select t).FirstOrDefaultAsync();
+
+            return new TeamResponse
+            {
+                TeamId = team.TeamId,
+                TeamLeaderId = team.TeamLeaderId,
+                TeamName = team.TeamName,
+                TeamDescription = team.TeamDescription,
+                TeamCreatedAt = team.TeamCreatedAt,
+                TeamCode = team.TeamCode,
+            };
         }
     }
 }

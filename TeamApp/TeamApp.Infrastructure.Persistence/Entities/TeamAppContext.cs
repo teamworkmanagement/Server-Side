@@ -3,18 +3,24 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace TeamApp.Infrastructure.Persistence.Entities
 {
     public partial class TeamAppContext : IdentityDbContext<User>
     {
+        public static readonly ILoggerFactory MyLoggerFactory
+    = LoggerFactory.Create(builder => { builder.AddConsole(); });
         public TeamAppContext()
         {
+
         }
 
         public TeamAppContext(DbContextOptions<TeamAppContext> options)
             : base(options)
         {
+
         }
 
         public virtual DbSet<Comment> Comment { get; set; }
@@ -39,7 +45,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-
+            optionsBuilder.UseLoggerFactory(MyLoggerFactory);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

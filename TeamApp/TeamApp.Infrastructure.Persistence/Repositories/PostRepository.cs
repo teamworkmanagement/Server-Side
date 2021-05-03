@@ -37,7 +37,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
 
             await _dbContext.Post.AddAsync(entity);
-            var check=await _dbContext.SaveChangesAsync();
+            var check = await _dbContext.SaveChangesAsync();
             if (check > 0)
             {
                 return new PostResponse
@@ -193,7 +193,108 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
-        public async Task<PagedResponse<PostResponse>> GetPostPaging(PostRequestParameter parameter)
+        public async Task<PagedResponse<PostResponse>> GetPostPagingTeam(PostRequestParameter parameter)
+        {
+            bool advanced = false;
+            if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))
+                advanced = true;
+
+
+            //bảng chứa toàn bộ thông tin các post của team
+            var query = from p in _dbContext.Post.AsNoTracking()
+                        join t in _dbContext.Team.AsNoTracking() on p.PostTeamId equals t.TeamId
+                        join u in _dbContext.User on p.PostUserId equals u.Id
+                        where t.TeamId == parameter.TeamId
+                        select new { p, u, p.Comment.Count, RCount = p.PostReacts.Count, t.TeamName };
+
+            //tìm kiếm nâng cao
+            if (advanced)
+            {
+                if (parameter.FromDate != null)
+                {
+                    DateTime dtFrom = (DateTimeOffset.FromUnixTimeMilliseconds((long)parameter.FromDate)).UtcDateTime;
+                    query = query.Where(x => x.p.PostCreatedAt >= dtFrom);
+                }
+                if (parameter.ToDate != null)
+                {
+                    DateTime dateTo = (DateTimeOffset.FromUnixTimeMilliseconds((long)parameter.ToDate)).UtcDateTime;
+                    query = query.Where(x => x.p.PostCreatedAt <= dateTo);
+                }
+                if (parameter.GroupId != null)
+                {
+                    query = query.Where(x => x.p.PostTeamId == parameter.GroupId);
+                }
+                if (parameter.PostUser != null)
+                {
+                    query = query.Where(x => x.u.Id == parameter.PostUser);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
+            {
+                DateTime now = DateTime.UtcNow;
+                DateTime baseDate = now.Date;
+
+                switch (parameter.BasicFilter)
+                {
+                    case BasicFilter.Lastest:
+                        query = query.OrderByDescending(x => x.p.PostCreatedAt);
+                        break;
+                    case BasicFilter.LastHour:
+                        var lastHour = now.AddMinutes(-60);
+                        query = query.Where(x => x.p.PostCreatedAt >= lastHour && x.p.PostCreatedAt <= now);
+                        break;
+                    case BasicFilter.Today:
+                        query = query.Where(x => ((DateTime)x.p.PostCreatedAt).Date == baseDate);
+                        break;
+                    case BasicFilter.ThisWeek:
+                        var thisWeekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek);
+                        var thisWeekEnd = thisWeekStart.AddDays(7).AddSeconds(-1);
+                        query = from q in query
+                                where q.p.PostCreatedAt >= thisWeekStart && q.p.PostCreatedAt <= thisWeekEnd
+                                select q;
+                        //query.Where(x => x.p.PostCreatedAt >= flagstart && x.p.PostCreatedAt <= flagend);
+                        break;
+                    case BasicFilter.ThisMonth:
+                        var thisMonthStart = baseDate.AddDays(1 - baseDate.Day);
+                        var thisMonthEnd = thisMonthStart.AddMonths(1).AddSeconds(-1);
+                        query = from q in query
+                                where q.p.PostCreatedAt >= thisMonthStart && q.p.PostCreatedAt <= thisMonthEnd
+                                select q;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
+                query = query.OrderByDescending(x => x.p.PostCreatedAt);
+
+            var reactQuery = from q in query
+                             from r in _dbContext.PostReact.Where(r => r.PostReactPostId == q.p.PostId && r.PostReactUserId == parameter.UserId).DefaultIfEmpty()
+                             select new { q, isReacted = r.PostReactUserId };
+
+            var entityList = await reactQuery.Select(x => new PostResponse
+            {
+                PostId = x.q.p.PostId,
+                PostUserId = x.q.p.PostUserId,
+                PostTeamId = x.q.p.PostTeamId,
+                PostContent = x.q.p.PostContent,
+                PostCreatedAt = x.q.p.PostCreatedAt.FormatTime(),
+                PostCommentCount = x.q.Count,
+                PostIsDeleted = x.q.p.PostIsDeleted,
+                PostIsPinned = x.q.p.PostIsPinned,
+                UserName = x.q.u.FullName,
+                UserAvatar = x.q.u.ImageUrl,
+                PostReactCount = x.q.RCount,
+                TeamName = x.q.TeamName,
+                IsReacted = x.isReacted == null ? false : true,
+            }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
+
+            return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
+        }
+
+        public async Task<PagedResponse<PostResponse>> GetPostPagingUser(PostRequestParameter parameter)
         {
             bool advanced = false;
             if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))

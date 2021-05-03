@@ -106,5 +106,17 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut
             });
         }
+
+        [HttpPost("join-team")]
+        public async Task<IActionResult> JoinTeam(JoinTeamRequest request)
+        {
+            var outPut = await _repo.JoinTeam(request);
+
+            return Ok(new ApiResponse<TeamResponse>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut,
+            });
+        }
     }
 }

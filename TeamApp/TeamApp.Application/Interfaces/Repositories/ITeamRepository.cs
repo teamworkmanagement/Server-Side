@@ -20,5 +20,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// <param name="teamId"></param>
         /// <returns></returns>
         Task<List<UserResponse>> GetAllByTeamId(string teamId);
+        Task<TeamResponse> JoinTeam(JoinTeamRequest request);
     }
 }

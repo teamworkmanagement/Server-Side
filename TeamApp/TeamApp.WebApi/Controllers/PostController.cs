@@ -143,10 +143,24 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
-        [HttpGet("paging-multi")]
-        public async Task<IActionResult> GetMultiPaging([FromQuery] PostRequestParameter parameter)
+        [HttpGet("paging-multi-user")]
+        public async Task<IActionResult> GetMultiPagingUser([FromQuery] PostRequestParameter parameter)
         {
-            var res = await _repo.GetPostPaging(parameter);
+            var res = await _repo.GetPostPagingUser(parameter);
+
+            var outPut = new ApiResponse<PagedResponse<PostResponse>>
+            {
+                Data = res,
+                Succeeded = true,
+            };
+
+            return Ok(outPut);
+        }
+
+        [HttpGet("paging-multi-team")]
+        public async Task<IActionResult> GetPostPagingTeam([FromQuery] PostRequestParameter parameter)
+        {
+            var res = await _repo.GetPostPagingTeam(parameter);
 
             var outPut = new ApiResponse<PagedResponse<PostResponse>>
             {
