@@ -20,7 +20,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<string> AddTeam(TeamRequest teamReq)
+        public async Task<TeamResponse> AddTeam(TeamRequest teamReq)
         {
             var teamCode = string.Empty;
             bool loop = false;
@@ -45,8 +45,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TeamIsDeleted = false,
             };
             await _dbContext.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
-            return entity.TeamId;
+            var check = await _dbContext.SaveChangesAsync() > 0;
+
+            if (check)
+            {
+                return new TeamResponse
+                {
+                    TeamId = entity.TeamId,
+                    TeamLeaderId = entity.TeamLeaderId,
+                    TeamName = entity.TeamName,
+                    TeamDescription = entity.TeamDescription,
+                    TeamCreatedAt = entity.TeamCreatedAt,
+                    TeamCode = entity.TeamCode,
+                };
+            }
+            return null;
         }
 
         public async Task<bool> DeleteTeam(string teamId)
@@ -81,9 +94,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<List<TeamResponse>> GetByUserId(string userId)
         {
-            var query = from p in _dbContext.Participation
-                        join t in _dbContext.Team on p.ParticipationTeamId equals t.TeamId
-                        join u in _dbContext.User on p.ParticipationUserId equals u.Id
+            var query = from p in _dbContext.Participation.AsNoTracking()
+                        join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
+                        join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
                         select new { t, u };
 
             var outPut = await query.Where(x => x.u.Id == userId).Select(entity => new TeamResponse

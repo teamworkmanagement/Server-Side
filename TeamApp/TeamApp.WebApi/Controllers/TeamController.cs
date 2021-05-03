@@ -52,11 +52,11 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTeam([FromForm] TeamRequest teamReq)
+        public async Task<IActionResult> AddTeam(TeamRequest teamReq)
         {
             var res = await _repo.AddTeam(teamReq);
 
-            var outPut = new ApiResponse<string>
+            var outPut = new ApiResponse<TeamResponse>
             {
                 Data = res,
                 Succeeded = res == null ? false : true,
@@ -67,7 +67,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateTeam([FromForm] string teamId, [FromForm] TeamRequest teamReq)
+        public async Task<IActionResult> UpdateTeam(string teamId, TeamRequest teamReq)
         {
             var res = await _repo.UpdateTeam(teamId, teamReq);
 

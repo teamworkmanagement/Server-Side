@@ -9,5 +9,12 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<UserResponse> GetById(string userId);
         Task<bool> UpdateUser(string userId, UserRequest userReq);
         Task<bool> DeleteUser(string userId);
+        /// <summary>
+        /// keyWord can be email or name
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <param name="keyWord"></param>
+        /// <returns></returns>
+        Task<List<UserResponse>> SearchUserNoJoinTeam(string teamId, string keyWord);
     }
 }
