@@ -22,7 +22,13 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("byuserid/{userId}")]
+        /// <summary>
+        /// Get comments by userId API
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
+        /*[HttpGet("byuserid/{userId}")]
+        [ProducesResponseType(typeof(ApiResponse<List<CommentResponse>>),200)]
         public async Task<IActionResult> GetAllByUserId(string userId)
         {
             var outPut = new ApiResponse<List<CommentResponse>>()
@@ -34,7 +40,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Get comment by teamId API
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
         [HttpGet("byteamid/{teamId}")]
+        [ProducesResponseType(typeof(ApiResponse<List<CommentResponse>>), 200)]
         public async Task<IActionResult> GetAllByTeamId(string teamId)
         {
             var outPut = new ApiResponse<List<CommentResponse>>
@@ -44,21 +56,15 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
+        }*/
 
-        [HttpGet("byuserid/{userId}/byteamid/{teamId}")]
-        public async Task<IActionResult> GetAllByUserTeamId(string userId, string teamId)
-        {
-            var outPut = new ApiResponse<List<CommentResponse>>
-            {
-                Data = await _repo.GetAllByUserTeamId(userId, teamId),
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
+        /// <summary>
+        /// Get pagination comment API for post
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HttpGet]
+        [ProducesResponseType(typeof(ApiResponse<PagedResponse<CommentResponse>>), 200)]
         public async Task<IActionResult> GetPaging([FromQuery] CommentRequestParameter parameter)
         {
             var outPut = new ApiResponse<PagedResponse<CommentResponse>>
@@ -69,7 +75,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Add comment API
+        /// </summary>
+        /// <param name="cmtReq"></param>
+        /// <returns></returns>
         [HttpPost]
+        [ProducesResponseType(typeof(ApiResponse<CommentResponse>), 200)]
         public async Task<IActionResult> AddComment(CommentRequest cmtReq)
         {
             var outPut = new ApiResponse<CommentResponse>
@@ -81,6 +93,12 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Update comment API
+        /// </summary>
+        /// <param name="cmtId"></param>
+        /// <param name="cmtReq"></param>
+        /// <returns></returns>
         [HttpPut("{commentId}")]
         public async Task<IActionResult> UpdateComment(string cmtId, CommentRequest cmtReq)
         {
@@ -93,6 +111,12 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+
+        /// <summary>
+        /// Delete comment API
+        /// </summary>
+        /// <param name="commentId"></param>
+        /// <returns></returns>
         [HttpDelete("{commentId}")]
         public async Task<IActionResult> DeleteComment(string commentId)
         {
@@ -105,7 +129,7 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpGet("post/{postId}")]
+        /*[HttpGet("post/{postId}")]
         public async Task<IActionResult> GetCommentByPostId(string postId)
         {
             var outPut = await _repo.GetAllByPostId(postId);
@@ -114,9 +138,17 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = true,
                 Data = outPut,
             });
-        }
+        }*/
 
+        /// <summary>
+        /// Get pagination comment for task API
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <param name="skipItems"></param>
+        /// <param name="pageSize"></param>
+        /// <returns></returns>
         [HttpGet("bytask")]
+        [ProducesResponseType(typeof(ApiResponse<List<CommentResponse>>), 200)]
         public async Task<IActionResult> GetCommentByTaskId(string taskId, int skipItems, int pageSize = 3)
         {
             var outPut = await _repo.GetListByTask(taskId, skipItems, pageSize);

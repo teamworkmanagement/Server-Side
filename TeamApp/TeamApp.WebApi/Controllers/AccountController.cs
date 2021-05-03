@@ -31,7 +31,13 @@ namespace TeamApp.WebApi.Controllers
             _accountService = accountService;
             _httpContextAccessor = httpContextAccessor;
         }
+        /// <summary>
+        /// Login API
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("authenticate")]
+        [ProducesResponseType(typeof(ApiResponse<AuthenticationResponse>), 200)]
         public async Task<IActionResult> AuthenticateAsync(AuthenticationRequest request)
         {
             var outPut = await _accountService.AuthenticateAsync(request, GenerateIPAddress());
@@ -49,7 +55,14 @@ namespace TeamApp.WebApi.Controllers
 
             return Ok(outPut);
         }
+        
+        /// <summary>
+        /// Register API
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("register")]
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
         public async Task<IActionResult> RegisterAsync(RegisterRequest request)
         {
             var origin = Request.Headers["origin"];
@@ -61,18 +74,37 @@ namespace TeamApp.WebApi.Controllers
             var apiOrigin = string.Concat(scheme, "://", host);
             return Ok(await _accountService.RegisterAsync(request, apiOrigin));
         }
+        /// <summary>
+        /// Confirm email when register API
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="code"></param>
+        /// <returns></returns>
         [HttpGet("confirm-email")]
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
         public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code)
         {
             var origin = Request.Headers["origin"];
             return Ok(await _accountService.ConfirmEmailAsync(userId, code));
         }
+
+        /// <summary>
+        /// Reset password API
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("forgot-password")]
         public async Task<IActionResult> ForgotPassword(ForgotPasswordRequest model)
         {
             await _accountService.ForgotPassword(model, Request.Headers["origin"]);
             return Ok();
         }
+
+        /// <summary>
+        /// Reset Password API
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordRequest model)
         {
@@ -87,7 +119,12 @@ namespace TeamApp.WebApi.Controllers
                 return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
         }
 
+        /// <summary>
+        /// Refresh access token API
+        /// </summary>
+        /// <returns></returns>
         [HttpPost("refresh")]
+        [ProducesResponseType(typeof(ApiResponse<TokenModel>), 200)]
         public async Task<IActionResult> Refresh()
         {
             var refreshEncry = HttpContext.Request.Cookies["refresh_token"];
@@ -108,7 +145,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Social login API
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("social-login")]
+        [ProducesResponseType(typeof(ApiResponse<AuthenticationResponse>), 200)]
         public async Task<IActionResult> LoginSocial([FromBody] SocialRequest request)
         {
             var outPut = await _accountService.SocialLogin(request, GenerateIPAddress());
@@ -125,7 +168,12 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Check login API
+        /// </summary>
+        /// <returns></returns>
         [HttpGet("is-login")]
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
         public async Task<IActionResult> IsLogin()
         {
             var token = HttpContext.Request.Cookies["access_token"];

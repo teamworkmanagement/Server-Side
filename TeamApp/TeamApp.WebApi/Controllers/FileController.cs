@@ -57,7 +57,7 @@ namespace TeamApp.WebApi.Controllers
         /// <param name="parameter"></param>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(FileResponse),200)]
+        [ProducesResponseType(typeof(ApiResponse<FileResponse>),200)]
         public async Task<IActionResult> GetTask([FromQuery] FileRequestParameter parameter)
         {
             var outPut = await _repo.GetByBelong(parameter);
