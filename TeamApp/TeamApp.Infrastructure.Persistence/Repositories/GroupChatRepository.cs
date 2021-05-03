@@ -23,7 +23,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new GroupChat
             {
-                GroupChatId = Guid.NewGuid().ToString(),
+                GroupChatId = string.IsNullOrEmpty(grChatReq.GroupChatId) ? Guid.NewGuid().ToString() : grChatReq.GroupChatId,
                 GroupChatName = grChatReq.GroupChatName,
                 GroupChatUpdatedAt = DateTime.UtcNow,
             };

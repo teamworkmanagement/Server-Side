@@ -19,6 +19,33 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
+        public async Task<ParticipationResponse> AddParticipation(ParticipationRequest participationRequest)
+        {
+            var entity = new Participation
+            {
+                ParticipationId = Guid.NewGuid().ToString(),
+                ParticipationUserId = participationRequest.ParticipationUserId,
+                ParticipationTeamId = participationRequest.ParticipationTeamId,
+                ParticipationCreatedAt = DateTime.UtcNow,
+                ParticipationIsDeleted = false,
+            };
+
+            await _dbContext.Participation.AddAsync(entity);
+            if (await _dbContext.SaveChangesAsync() > 0)
+            {
+                return new ParticipationResponse
+                {
+                    ParticipationId = entity.ParticipationId,
+                    ParticipationUserId = entity.ParticipationUserId,
+                    ParticipationTeamId = entity.ParticipationTeamId,
+                    ParticipationCreatedAt = entity.ParticipationCreatedAt,
+                    ParticipationIsDeleted = entity.ParticipationIsDeleted,
+                };
+            }
+
+            return null;
+        }
+
         public async Task<bool> DeleteParticipation(string userId, string teamId)
         {
             var entity = _dbContext.Participation.Where(x => x.ParticipationUserId == userId

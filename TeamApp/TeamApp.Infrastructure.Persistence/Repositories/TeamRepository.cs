@@ -16,9 +16,15 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
     public class TeamRepository : ITeamRepository
     {
         private readonly TeamAppContext _dbContext;
-        public TeamRepository(TeamAppContext dbContext)
+        private readonly IGroupChatRepository _groupChatRepository;
+        private readonly IGroupChatUserRepository _groupChatUserRepository;
+        private readonly IParticipationRepository _participationRepository;
+        public TeamRepository(TeamAppContext dbContext, IGroupChatRepository groupChatRepository, IGroupChatUserRepository groupChatUserRepository, IParticipationRepository participationRepository)
         {
             _dbContext = dbContext;
+            _groupChatRepository = groupChatRepository;
+            _groupChatUserRepository = groupChatUserRepository;
+            _participationRepository = participationRepository;
         }
         public async Task<TeamResponse> AddTeam(TeamRequest teamReq)
         {
@@ -40,7 +46,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TeamLeaderId = teamReq.TeamLeaderId,
                 TeamName = teamReq.TeamName,
                 TeamDescription = teamReq.TeamDescription,
-                TeamCreatedAt = DateTime.Now,
+                TeamCreatedAt = DateTime.UtcNow,
                 TeamCode = teamCode,
                 TeamIsDeleted = false,
             };
@@ -49,16 +55,25 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             if (check)
             {
-                await _dbContext.Participation.AddAsync(new Participation
+                await _participationRepository.AddParticipation(new Application.DTOs.Paricipation.ParticipationRequest
                 {
-                    ParticipationId = Guid.NewGuid().ToString(),
                     ParticipationUserId = entity.TeamLeaderId,
                     ParticipationTeamId = entity.TeamId,
-                    ParticipationCreatedAt = DateTime.UtcNow,
-                    ParticipationIsDeleted = false,
                 });
 
-                await _dbContext.SaveChangesAsync();
+                await _groupChatRepository.AddGroupChat(new Application.DTOs.GroupChat.GroupChatRequest
+                {
+                    GroupChatId = entity.TeamId,
+                    GroupChatName = entity.TeamName,
+                    GroupChatUpdatedAt = DateTime.UtcNow,
+                });
+
+                await _groupChatUserRepository.AddGroupChatUser(new Application.DTOs.GroupChatUser.GroupChatUserRequest
+                {
+                    GroupChatUserUserId = entity.TeamLeaderId,
+                    GroupChatUserGroupChatId = entity.TeamId,
+                    GroupChatUserIsDeleted = false,
+                });
 
                 return new TeamResponse
                 {
@@ -188,6 +203,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     TeamId = team.TeamId,
                 };
+
             await _dbContext.Participation.AddAsync(new Participation
             {
                 ParticipationId = Guid.NewGuid().ToString(),

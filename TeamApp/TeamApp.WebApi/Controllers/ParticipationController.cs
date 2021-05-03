@@ -60,5 +60,16 @@ namespace TeamApp.WebApi.Controllers
 
             return Ok(outPut);
         }
+
+        [HttpPost]
+        public async Task<IActionResult> AddParticipation(ParticipationRequest participationRequest)
+        {
+            var outPut = await _repo.AddParticipation(participationRequest);
+            return Ok(new ApiResponse<ParticipationResponse>
+            {
+                Data = outPut,
+                Succeeded = outPut == null ? false : true,
+            });
+        }
     }
 }
