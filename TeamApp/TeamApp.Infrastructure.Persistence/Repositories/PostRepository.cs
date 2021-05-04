@@ -40,6 +40,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var check = await _dbContext.SaveChangesAsync();
             if (check > 0)
             {
+                var team = await _dbContext.Team.FindAsync(entity.PostTeamId);
                 return new PostResponse
                 {
                     PostId = entity.PostId,
@@ -47,6 +48,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     PostTeamId = entity.PostTeamId,
                     PostContent = entity.PostContent,
                     PostCreatedAt = entity.PostCreatedAt,
+                    TeamName = team.TeamName,
                 };
             }
 

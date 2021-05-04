@@ -123,9 +123,29 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
                         join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
-                        select new { t, u };
+                        select new { t, u, t.Participation };
+            var teams = await query.AsNoTracking().Where(x => x.u.Id == userId).ToListAsync();
+            var outPut = new List<TeamResponse>();
 
-            var outPut = await query.Where(x => x.u.Id == userId).Select(entity => new TeamResponse
+            foreach (var team in teams)
+            {
+                var leader = await _dbContext.User.FindAsync(team.t.TeamLeaderId);
+                outPut.Add(new TeamResponse
+                {
+                    TeamId = team.t.TeamId,
+                    TeamLeaderId = team.t.TeamLeaderId,
+                    TeamName = team.t.TeamName,
+                    TeamDescription = team.t.TeamDescription,
+                    TeamCreatedAt = team.t.TeamCreatedAt.FormatTime(),
+                    TeamCode = team.t.TeamCode,
+                    TeamIsDeleted = team.t.TeamIsDeleted,
+                    TeamLeaderName = leader.FullName,
+                    TeamLeaderImageUrl = leader.ImageUrl,
+                    TeamMemberCount = team.Participation.Count,
+                    TeamImageUrl = "https://scontent.fsgn5-3.fna.fbcdn.net/v/t1.6435-9/95384801_3541411182540556_323501399205740544_n.png?_nc_cat=1&ccb=1-3&_nc_sid=09cbfe&_nc_ohc=PNRMG3JZivEAX8fDiPY&_nc_ht=scontent.fsgn5-3.fna&oh=f9d490f5d7f7a1b81999da2845b80923&oe=609FA0C7",
+                });
+            }
+            /*var outPut = await query.Where(x => x.u.Id == userId).Select(entity => new TeamResponse
             {
                 TeamId = entity.t.TeamId,
                 TeamLeaderId = entity.t.TeamLeaderId,
@@ -134,7 +154,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TeamCreatedAt = entity.t.TeamCreatedAt.FormatTime(),
                 TeamCode = entity.t.TeamCode,
                 TeamIsDeleted = entity.t.TeamIsDeleted,
-            }).ToListAsync();
+            }).ToListAsync();*/
 
             return outPut;
         }
