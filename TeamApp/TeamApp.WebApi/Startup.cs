@@ -66,12 +66,14 @@ namespace TeamApp.WebApi
             app.UseCors("ClientPermission");
             app.UseRouting();
 
+            app.UseStaticFiles();
             app.UseErrorHandlingMiddleware();
             app.UseAuthentication();
             app.UseAuthorization();
 
 
             app.UseSwaggerExtension();
+            
 
             app.UseHealthChecks("/health");
 

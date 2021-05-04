@@ -52,4 +52,8 @@
     <ProjectReference Include="..\TeamApp.Infrastructure.Shared\TeamApp.Infrastructure.Shared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="wwwroot\" />
+  </ItemGroup>
+
 </Project>
