@@ -35,7 +35,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskPoint = taskReq.TaskPoint,
                 TaskCreatedAt = DateTime.UtcNow,
                 TaskStartDate = taskReq.TaskStartDate,
-                TaskDuration=taskReq.TaskDuration,
+                TaskDeadline=taskReq.TaskDeadline,
                 TaskStatus = taskReq.TaskStatus,
                 TaskCompletedPercent = 0,
                 TaskTeamId = taskReq.TaskTeamId,
@@ -175,7 +175,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskPoint = x.TaskPoint,
                 TaskCreatedAt = x.TaskCreatedAt.FormatTime(),
                 TaskStartDate = x.TaskStartDate.FormatTime(),
-                TaskDuration = x.TaskDuration,
+                TaskDeadline = x.TaskDeadline.FormatTime(),
                 TaskStatus = x.TaskStatus,
                 TaskCompletedPercent = x.TaskCompletedPercent,
                 TaskTeamId = x.TaskTeamId,
@@ -202,7 +202,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskPoint = x.ta.TaskPoint,
                 TaskCreatedAt = x.ta.TaskCreatedAt.FormatTime(),
                 TaskStartDate = x.ta.TaskStartDate.FormatTime(),
-                TaskDuration = x.ta.TaskDuration,
+                TaskDeadline = x.ta.TaskDeadline.FormatTime(),
                 TaskStatus = x.ta.TaskStatus,
                 TaskCompletedPercent = x.ta.TaskCompletedPercent,
                 TaskTeamId = x.ta.TaskTeamId,
@@ -229,7 +229,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskPoint = x.ta.TaskPoint,
                 TaskCreatedAt = x.ta.TaskCreatedAt.FormatTime(),
                 TaskStartDate = x.ta.TaskStartDate.FormatTime(),
-                TaskDuration = x.ta.TaskDuration,
+                TaskDeadline = x.ta.TaskDeadline.FormatTime(),
                 TaskStatus = x.ta.TaskStatus,
                 TaskCompletedPercent = x.ta.TaskCompletedPercent,
                 TaskTeamId = x.ta.TaskTeamId,
@@ -267,7 +267,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskPoint = task.t.TaskPoint,
                 TaskCreatedAt = task.t.TaskCreatedAt.FormatTime(),
                 TaskStartDate = task.t.TaskStartDate.FormatTime(),
-                TaskDuration = task.t.TaskDuration,
+                TaskDeadline = task.t.TaskDeadline.FormatTime(),
                 TaskStatus = task.t.TaskStatus,
                 TaskCompletedPercent = task.t.TaskCompletedPercent,
                 TaskTeamId = task.t.TaskTeamId,
@@ -297,7 +297,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskPoint = x.TaskPoint,
                 TaskCreatedAt = x.TaskCreatedAt.FormatTime(),
                 TaskStartDate = x.TaskStartDate.FormatTime(),
-                TaskDuration = x.TaskDuration,
+                TaskDeadline = x.TaskDeadline.FormatTime(),
                 TaskStatus = x.TaskStatus,
                 TaskCompletedPercent = x.TaskCompletedPercent,
                 TaskTeamId = x.TaskTeamId,
@@ -323,7 +323,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             entity.TaskStatus = taskReq.TaskStatus;
             entity.TaskCompletedPercent = taskReq.TaskCompletedPercent;
             entity.TaskImageUrl = taskReq.TaskImageUrl;
-            entity.TaskDuration = taskReq.TaskDuration;
+            entity.TaskDeadline = taskReq.TaskDeadline;
 
             entity.TaskPoint = taskReq.TaskPoint == null ? entity.TaskPoint : taskReq.TaskPoint;
             entity.TaskCreatedAt = taskReq.TaskCreatedAt == null ? entity.TaskCreatedAt : taskReq.TaskCreatedAt;

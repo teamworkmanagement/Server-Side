@@ -559,8 +559,9 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnName("task_start_date")
                     .HasColumnType("timestamp");
 
-                entity.Property(e => e.TaskDuration)
-                    .HasColumnName("task_duration");
+                entity.Property(e => e.TaskDeadline)
+                    .HasColumnName("task_deadline")
+                    .HasColumnType("timestamp");
 
                 entity.Property(e => e.TaskDescription)
                     .HasColumnName("task_description")

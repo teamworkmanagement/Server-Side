@@ -14,7 +14,7 @@ namespace TeamApp.Application.DTOs.Task
 
         public string TaskName { get; set; }
         public DateTime? TaskStartDate { get; set; }
-        public int? TaskDuration { get; set; }
+        public DateTime? TaskDeadline { get; set; }
         public string TaskDescription { get; set; }
         public string TaskStatus { get; set; }
 

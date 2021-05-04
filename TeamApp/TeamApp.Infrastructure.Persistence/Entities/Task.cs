@@ -26,7 +26,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public int? TaskOrderInList { get; set; }
         public string TaskThemeColor { get; set; }
         public string TaskImageUrl { get; set; }
-        public int? TaskDuration { get; set; }
+        public DateTime? TaskDeadline { get; set; }
 
         public virtual Team TaskTeam { get; set; }
         public virtual ICollection<HandleTask> HandleTask { get; set; }

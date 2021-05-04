@@ -19,6 +19,6 @@ namespace TeamApp.Application.DTOs.Task
         public int? TaskOrderInList { get; set; }
         public string TaskThemeColor { get; set; }
         public string TaskImageUrl { get; set; }
-        public int? TaskDuration { get; set; }
+        public DateTime? TaskDeadline { get; set; }
     }
 }

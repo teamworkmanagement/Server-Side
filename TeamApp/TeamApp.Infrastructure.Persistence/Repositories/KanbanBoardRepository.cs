@@ -104,7 +104,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                              TaskName = x.t.TaskName,
                              TaskStartDate = x.t.TaskStartDate.FormatTime(),
-                             TaskDuration = x.t.TaskDuration,
+                             TaskDeadline = x.t.TaskDeadline.FormatTime(),
                              TaskStatus = x.t.TaskStatus,
                              TaskDescription = x.t.TaskDescription,
 
