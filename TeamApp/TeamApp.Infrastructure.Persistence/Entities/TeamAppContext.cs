@@ -45,7 +45,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //optionsBuilder.UseLoggerFactory(MyLoggerFactory);
+            optionsBuilder.UseLoggerFactory(MyLoggerFactory);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -331,7 +331,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
                 entity.Property(e => e.MessageType)
                     .HasColumnName("message_type")
-                    .HasColumnType("enum('text','file')")
+                    .HasColumnType("enum('text','file','image')")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 

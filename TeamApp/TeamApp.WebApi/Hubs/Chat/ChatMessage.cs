@@ -12,5 +12,6 @@ namespace TeamApp.WebApi.Hubs.Chat
         public string UserName { get; set; }
         public string Message { get; set; }
         public long TimeSend { get; set; }
+        public string MessageType { get; set; }
     }
 }

@@ -62,6 +62,7 @@ namespace TeamApp.WebApi.Controllers.Test
                 MessageGroupChatId = message.GroupId,
                 MessageContent = message.Message,
                 MessageCreatedAt = date,
+                MessageType=message.MessageType,
             });
 
             //await _chatHub.Clients.Groups(groupId).NhanMessage(message);
