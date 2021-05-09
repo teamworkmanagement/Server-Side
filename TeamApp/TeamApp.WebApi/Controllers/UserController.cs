@@ -56,5 +56,22 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = outPut == null ? false : true,
             });
         }
+
+        /// <summary>
+        /// Get all user for tag
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
+        [HttpGet("getuser-inteam")]
+        public async Task<IActionResult> GetAllUserInTeam(string userId, string teamId = null)
+        {
+            var outPut = await _repo.GetAllUserInTeam(userId, teamId);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
+        }
     }
 }

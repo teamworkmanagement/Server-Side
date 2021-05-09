@@ -26,6 +26,48 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return await System.Threading.Tasks.Task.FromResult(false);
         }
 
+        public async Task<List<UserResponse>> GetAllUserInTeam(string userId, string teamId = null)
+        {
+            if (teamId != null)
+            {
+                var user = (from t in _dbContext.Team.AsNoTracking()
+                            join p in _dbContext.Participation.AsNoTracking() on t.TeamId equals p.ParticipationTeamId
+                            join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                            where t.TeamId == teamId
+                            select new { u.Id, u.FullName, u.ImageUrl }).Distinct();
+
+                return await user.Select(x => new UserResponse
+                {
+                    UserId = x.Id,
+                    UserFullname = x.FullName,
+                    UserImageUrl = x.ImageUrl,
+                }).ToListAsync();
+            }
+
+            else
+            {
+                var teamList = from t in _dbContext.Team.AsNoTracking()
+                               join par in _dbContext.Participation.AsNoTracking() on t.TeamId equals par.ParticipationTeamId
+                               join u in _dbContext.User.AsNoTracking() on par.ParticipationUserId equals u.Id
+                               select new { u, t.TeamId, t.TeamName };
+
+                //danh sách team mà user join
+                teamList = teamList.Where(x => x.u.Id == userId).Distinct();
+
+                var queryUser = await (from listTeam in teamList.AsNoTracking()
+                                       join p in _dbContext.Participation.AsNoTracking() on listTeam.TeamId equals p.ParticipationTeamId
+                                       join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                                       select new { u.Id, u.FullName, u.ImageUrl }).Distinct().ToListAsync();
+
+                return queryUser.Select(x => new UserResponse
+                {
+                    UserId = x.Id,
+                    UserFullname = x.FullName,
+                    UserImageUrl = x.ImageUrl,
+                }).ToList();
+            }
+        }
+
         public async Task<UserResponse> GetById(string userId)
         {
             var entity = await _dbContext.User.FindAsync(userId);
