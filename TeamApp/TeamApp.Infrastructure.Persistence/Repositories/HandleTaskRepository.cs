@@ -100,13 +100,26 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<bool> ReAssignTask(ReAssignModel reAssignModel)
         {
             var entity = await (from h in _dbContext.HandleTask
-                                where h.HandleTaskUserId == reAssignModel.PrevUserId
-                                && h.HandleTaskTaskId == reAssignModel.TaskId
+                                where h.HandleTaskTaskId == reAssignModel.TaskId
                                 select h).FirstOrDefaultAsync();
 
-            entity.HandleTaskUserId = reAssignModel.CurrentUserId;
+            if (entity == null)
+            {
+                await _dbContext.HandleTask.AddAsync(new HandleTask
+                {
+                    HandleTaskId = Guid.NewGuid().ToString(),
+                    HandleTaskUserId = reAssignModel.CurrentUserId,
+                    HandleTaskTaskId = reAssignModel.TaskId,
+                    HandleTaskCreatedAt = DateTime.UtcNow,
+                    HandleTaskIsDeleted = false,
+                });
+            }
+            else
+            {
+                entity.HandleTaskUserId = reAssignModel.CurrentUserId;
 
-            _dbContext.HandleTask.Update(entity);
+                _dbContext.HandleTask.Update(entity);
+            }
 
             return await _dbContext.SaveChangesAsync() > 0;
         }

@@ -19,7 +19,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new KanbanList
             {
-                KanbanListId = Guid.NewGuid().ToString(),
+                KanbanListId = string.IsNullOrEmpty(kanbanListRequest.KanbanListId) ? Guid.NewGuid().ToString() : kanbanListRequest.KanbanListId,
                 KanbanListTitle = kanbanListRequest.KanbanListTitle,
                 KanbanListBoardBelongedId = kanbanListRequest.KanbanListBoardBelongedId,
                 KanbanListOrderInBoard = kanbanListRequest.KanbanListOrderInBoard,

@@ -19,12 +19,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         private readonly IGroupChatRepository _groupChatRepository;
         private readonly IGroupChatUserRepository _groupChatUserRepository;
         private readonly IParticipationRepository _participationRepository;
-        public TeamRepository(TeamAppContext dbContext, IGroupChatRepository groupChatRepository, IGroupChatUserRepository groupChatUserRepository, IParticipationRepository participationRepository)
+        private readonly IKanbanBoardRepository _kanbanBoardRepository;
+        private readonly IKanbanListRepository _kanbanListRepository;
+        public TeamRepository(TeamAppContext dbContext, IGroupChatRepository groupChatRepository, IGroupChatUserRepository groupChatUserRepository
+            , IParticipationRepository participationRepository, IKanbanBoardRepository kanbanBoardRepository, IKanbanListRepository kanbanListRepository)
         {
             _dbContext = dbContext;
             _groupChatRepository = groupChatRepository;
             _groupChatUserRepository = groupChatUserRepository;
             _participationRepository = participationRepository;
+            _kanbanListRepository = kanbanListRepository;
+            _kanbanBoardRepository = kanbanBoardRepository;
         }
         public async Task<TeamResponse> AddTeam(TeamRequest teamReq)
         {
@@ -73,6 +78,22 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     GroupChatUserUserId = entity.TeamLeaderId,
                     GroupChatUserGroupChatId = entity.TeamId,
                     GroupChatUserIsDeleted = false,
+                });
+
+
+                await _kanbanBoardRepository.AddKanbanBoard(new Application.DTOs.KanbanBoard.KanbanBoardRequest
+                {
+                    KanbanBoardId = entity.TeamId,
+                    KanbanBoardIsOfTeam = true,
+                    KanbanBoardBelongedId = entity.TeamId,
+                });
+
+                await _kanbanListRepository.AddKanbanList(new Application.DTOs.KanbanList.KanbanListRequest
+                {
+                    KanbanListId = entity.TeamId,
+                    KanbanListTitle = "Mới được thêm",
+                    KanbanListBoardBelongedId = entity.TeamId,
+                    KanbanListOrderInBoard = 0,
                 });
 
                 var leader = await _dbContext.User.FindAsync(teamReq.TeamLeaderId);

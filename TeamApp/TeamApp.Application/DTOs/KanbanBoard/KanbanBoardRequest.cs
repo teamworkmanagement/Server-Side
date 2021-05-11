@@ -6,6 +6,7 @@ namespace TeamApp.Application.DTOs.KanbanBoard
 {
     public class KanbanBoardRequest
     {
+        public string KanbanBoardId { get; set; }
         public bool? KanbanBoardIsOfTeam { get; set; }
         public string KanbanBoardBelongedId { get; set; }
     }

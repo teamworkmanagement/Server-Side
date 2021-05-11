@@ -26,7 +26,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new KanbanBoard
             {
-                KanbanBoardId = Guid.NewGuid().ToString(),
+                KanbanBoardId = string.IsNullOrEmpty(kanbanBoardRequest.KanbanBoardId) ? Guid.NewGuid().ToString() : kanbanBoardRequest.KanbanBoardId,
                 KanbanBoardIsOfTeam = kanbanBoardRequest.KanbanBoardIsOfTeam,
                 KanbanBoardBelongedId = kanbanBoardRequest.KanbanBoardBelongedId,
             };
@@ -45,13 +45,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }
             return null;
         }
-
-        public class TaskData
-        {
-            public Entities.Task t { get; set; }
-            public string ImageUrl { get; set; }
-            public string Id { get; set; }
-        };
 
         public async Task<KanbanBoardUIResponse> GetKanbanBoardUI(string boardId)
         {
@@ -95,6 +88,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             foreach (var kl in listKanban)
             {
                 var kanbanListTasks = listTasks.Where(x => x.t.TaskBelongedId == kl.KanbanListId).OrderBy(x => x.t.TaskOrderInList);
+
                 var listUITasks = kanbanListTasks.Select(x =>
                          new TaskUIKanban
                          {
