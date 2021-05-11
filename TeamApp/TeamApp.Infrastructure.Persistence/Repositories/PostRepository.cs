@@ -422,8 +422,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             keyWord = keyWord.UnsignUnicode();
 
-            if (!string.IsNullOrEmpty(keyWord))
-                query = query.Where(x => x.FullName.UnsignUnicode().Contains(keyWord)).ToList();
+            /*if (!string.IsNullOrEmpty(keyWord))
+                query = query.Where(x => x.FullName.UnsignUnicode().Contains(keyWord)).ToList();*/
 
             var outPut = query.Select(x => new UserResponse
             {
