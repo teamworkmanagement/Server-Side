@@ -37,7 +37,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
 
             await _dbContext.File.AddAsync(entity);
-            var check=await _dbContext.SaveChangesAsync()>0;
+            var check = await _dbContext.SaveChangesAsync() > 0;
 
             if (check)
                 return new FileResponse
@@ -154,6 +154,25 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }).ToListAsync();
 
             return outPut;
+        }
+
+        public async Task<bool> UploadImageForPost(PostFileUploadRequest postFileUploadRequest)
+        {
+            List<File> files = new List<File>();
+            foreach (var link in postFileUploadRequest.ImageUrls)
+            {
+                files.Add(new File
+                {
+                    FileId = Guid.NewGuid().ToString(),
+                    FileUrl = link,
+                    FileBelongedId = postFileUploadRequest.PostId,
+                    FileUploadTime = DateTime.UtcNow,
+                });
+            }
+
+            await _dbContext.BulkInsertAsync(files);
+
+            return true;
         }
     }
 }

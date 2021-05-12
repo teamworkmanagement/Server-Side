@@ -21,5 +21,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// <param name="kanbanListId"></param>
         /// <returns></returns>
         Task<List<FileResponse>> GetAllByTask(string taskId);
+
+        Task<bool> UploadImageForPost(PostFileUploadRequest postFileUploadRequest);
     }
 }

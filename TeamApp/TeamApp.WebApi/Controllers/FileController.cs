@@ -57,7 +57,7 @@ namespace TeamApp.WebApi.Controllers
         /// <param name="parameter"></param>
         /// <returns></returns>
         [HttpGet]
-        [ProducesResponseType(typeof(ApiResponse<FileResponse>),200)]
+        [ProducesResponseType(typeof(ApiResponse<FileResponse>), 200)]
         public async Task<IActionResult> GetTask([FromQuery] FileRequestParameter parameter)
         {
             var outPut = await _repo.GetByBelong(parameter);
@@ -76,6 +76,17 @@ namespace TeamApp.WebApi.Controllers
             {
                 Succeeded = outPut == null ? false : true,
                 Data = outPut,
+            });
+        }
+
+        [HttpPost("upload-images-post")]
+        public async Task<IActionResult> UploadImagesForPost(PostFileUploadRequest postFileUploadRequest)
+        {
+            var outPut = await _repo.UploadImageForPost(postFileUploadRequest);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
             });
         }
     }

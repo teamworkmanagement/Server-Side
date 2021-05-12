@@ -293,6 +293,22 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 IsReacted = x.isReacted == null ? false : true,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
+
+            foreach (var ent in entityList)
+            {
+                /*var listImage = from f in _dbContext.File.AsNoTracking()
+                                where f.FileBelongedId == ent.PostId
+                                select new PostImage { ImageUrl = f.FileUrl };*/
+                List<string> lists = new List<string>
+                {
+                    "https://momoshop.com.vn/wp-content/uploads/2018/11/balo-laptop-dep8623079002_293603435.jpg"
+                    ,"https://momoshop.com.vn/wp-content/uploads/2018/11/balo-laptop-dep8623079002_293603435.jpg"
+                    ,"https://momoshop.com.vn/wp-content/uploads/2018/11/balo-laptop-dep8623079002_293603435.jpg"
+                };
+
+                ent.PostImages = lists;
+            }
+
             return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
         }
 
@@ -401,6 +417,22 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 IsReacted = x.isReacted == null ? false : true,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
+
+            foreach (var ent in entityList)
+            {
+                var listImage = await (from f in _dbContext.File.AsNoTracking()
+                                       where f.FileBelongedId == ent.PostId
+                                       orderby f.FileUploadTime
+                                       select f.FileUrl).ToListAsync();
+                List<string> lists = new List<string>
+                {
+
+                };
+
+                lists.AddRange(listImage);
+
+                ent.PostImages = lists;
+            }
             return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
 
         }
