@@ -159,12 +159,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<bool> UploadImageForPost(PostFileUploadRequest postFileUploadRequest)
         {
             List<File> files = new List<File>();
-            foreach (var link in postFileUploadRequest.ImageUrls)
+            foreach (var obj in postFileUploadRequest.ImageUrls)
             {
                 files.Add(new File
                 {
                     FileId = Guid.NewGuid().ToString(),
-                    FileUrl = link,
+                    FileUrl = obj.Link,
                     FileBelongedId = postFileUploadRequest.PostId,
                     FileUploadTime = DateTime.UtcNow,
                 });

@@ -62,11 +62,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
-        public Task<List<ParticipationResponse>> GetAllByTeamId(string teamId)
+        public async Task<List<ParticipationResponse>> GetAllByTeamId(string teamId)
         {
-            var entitylist = _dbContext.Participation.Where(x => x.ParticipationTeamId == teamId);
+            var entitylist = _dbContext.Participation.AsNoTracking().Where(x => x.ParticipationTeamId == teamId);
 
-            return entitylist.Select(x => new ParticipationResponse
+            return await entitylist.Select(x => new ParticipationResponse
             {
                 ParticipationId = x.ParticipationId,
                 ParticipationTeamId = x.ParticipationTeamId,

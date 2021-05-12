@@ -413,7 +413,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserName = x.q.u.FullName,
                 UserAvatar = x.q.u.ImageUrl,
                 PostReactCount = x.q.RCount,
-                TeamName = x.q.TeamName,
+                TeamName = $"<a href=\"/team/{x.q.p.PostTeamId}\">{x.q.TeamName}</a>",
                 IsReacted = x.isReacted == null ? false : true,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
@@ -426,7 +426,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                        select f.FileUrl).ToListAsync();
                 List<string> lists = new List<string>
                 {
-
+                    
                 };
 
                 lists.AddRange(listImage);

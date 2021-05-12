@@ -7,6 +7,6 @@ namespace TeamApp.Application.DTOs.Post
     public class PostImage
     {
         public int Index { get; set; }
-        public string ImageUrl { get; set; }
+        public string Link { get; set; }
     }
 }
