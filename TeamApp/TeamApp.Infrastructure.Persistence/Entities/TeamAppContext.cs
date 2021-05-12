@@ -159,7 +159,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
                 entity.Property(e => e.FileUrl)
                     .HasColumnName("file_url")
-                    .HasColumnType("varchar(200)")
+                    .HasColumnType("varchar(500)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
@@ -677,6 +677,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.TeamId)
                     .HasColumnName("team_id")
                     .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.TeamImageUrl)
+                    .HasColumnName("team_image_url")
+                    .HasColumnType("varchar(500)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
