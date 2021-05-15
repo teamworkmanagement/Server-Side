@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Message;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
-using TeamApp.WebApi.Hubs.Chat;
+using TeamApp.Infrastructure.Persistence.Hubs.Chat;
 using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.WebApi.Controllers.Test

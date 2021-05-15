@@ -11,6 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Notification;
 using TeamApp.Application.Utils;
 using TeamApp.Application.Interfaces;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Notification;
+using System.Collections.ObjectModel;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -18,10 +21,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
     {
         private readonly TeamAppContext _dbContext;
         private readonly IFirebaseMessagingService _firebaseMessagingService;
-        public NotificationRepository(TeamAppContext dbContext, IFirebaseMessagingService firebaseMessagingService)
+
+        private readonly IHubContext<HubNotificationClient, IHubNotificationClient> _notiHub;
+        public NotificationRepository(TeamAppContext dbContext, IFirebaseMessagingService firebaseMessagingService, IHubContext<HubNotificationClient, IHubNotificationClient> notiHub)
         {
             _dbContext = dbContext;
             _firebaseMessagingService = firebaseMessagingService;
+            _notiHub = notiHub;
         }
 
         public async Task<PagedResponse<NotificationResponse>> GetPaging(NotificationRequestParameter parameter)
@@ -52,7 +58,23 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<string> PushNoti(string token, string title, string body)
         {
-            return await _firebaseMessagingService.SendNotification(token, title, body);
+            var clientLists = await (from uc in _dbContext.UserConnection.AsNoTracking()
+                                     where uc.Type == "notification"
+                                     select uc.ConnectionId).ToListAsync();
+
+
+            Console.WriteLine("count = " + clientLists.Count());
+            var readOnlyList = new ReadOnlyCollection<string>(clientLists);
+            await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
+            {
+                Name = "Dunxg Nguyeenx",
+                Id = 10,
+            });
+
+            //await _notiHub.Clients.All.SendNoti();
+
+            return "abc";
+            //return await _firebaseMessagingService.SendNotification(token, title, body);
         }
 
         public async Task<bool> ReadNotificationSet(string notiId)

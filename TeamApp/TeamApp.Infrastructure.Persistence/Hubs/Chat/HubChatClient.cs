@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 using TeamApp.Infrastructure.Persistence.Entities;
 using Task = System.Threading.Tasks.Task;
 
-namespace TeamApp.WebApi.Hubs.Chat
+namespace TeamApp.Infrastructure.Persistence.Hubs.Chat
 {
     [Authorize]
     public class HubChatClient : Hub<IHubChatClient>

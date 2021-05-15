@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Task;
 
-namespace TeamApp.WebApi.Hubs.Kanban
+namespace TeamApp.Infrastructure.Persistence.Hubs.Kanban
 {
     public interface IHubKanbanClient
     {

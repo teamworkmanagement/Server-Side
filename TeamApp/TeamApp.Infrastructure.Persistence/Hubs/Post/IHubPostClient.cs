@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Comment;
 
-namespace TeamApp.WebApi.Hubs.Post
+namespace TeamApp.Infrastructure.Persistence.Hubs.Post
 {
     public interface IHubPostClient
     {

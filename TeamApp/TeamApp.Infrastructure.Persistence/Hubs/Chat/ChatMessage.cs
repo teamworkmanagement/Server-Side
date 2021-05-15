@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace TeamApp.WebApi.Hubs.Chat
+namespace TeamApp.Infrastructure.Persistence.Hubs.Chat
 {
     public class ChatMessage
     {

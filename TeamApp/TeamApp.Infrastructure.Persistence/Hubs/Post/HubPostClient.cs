@@ -8,20 +8,20 @@ using System.Security.Claims;
 using System.Threading.Tasks;
 using TeamApp.Infrastructure.Persistence.Entities;
 
-namespace TeamApp.WebApi.Hubs.Kanban
+namespace TeamApp.Infrastructure.Persistence.Hubs.Post
 {
     [Authorize]
-    public class HubKanbanClient: Hub<IHubKanbanClient>
+    public class HubPostClient : Hub<IHubPostClient>
     {
         private readonly TeamAppContext _dbContext;
-        public HubKanbanClient(TeamAppContext dbContext)
+        public HubPostClient(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }
         public override async System.Threading.Tasks.Task OnConnectedAsync()
         {
             var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine($"Kanban: Connected {Context.ConnectionId}, Usename {userName}");
+            Console.WriteLine($"Post: Connected {Context.ConnectionId}, Usename {userName}");
             var user = await _dbContext.User.AsNoTracking().Where(x => x.UserName == userName).FirstOrDefaultAsync();
 
             var uc = new UserConnection
@@ -40,7 +40,7 @@ namespace TeamApp.WebApi.Hubs.Kanban
         public override async System.Threading.Tasks.Task OnDisconnectedAsync(Exception exception)
         {
             var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine($"Kanban: Disconnected {Context.ConnectionId}, Username {userName}");
+            Console.WriteLine($"Post: Disconnected {Context.ConnectionId}, Username {userName}");
 
             var userCon = await _dbContext.UserConnection.Where(x => x.UserName == userName && x.ConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
 

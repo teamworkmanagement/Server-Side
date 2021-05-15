@@ -7,11 +7,12 @@ using System;
 using TeamApp.Application;
 using TeamApp.Application.Interfaces;
 using TeamApp.Infrastructure.Persistence;
+using TeamApp.Infrastructure.Persistence.Hubs.Chat;
+using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
+using TeamApp.Infrastructure.Persistence.Hubs.Notification;
+using TeamApp.Infrastructure.Persistence.Hubs.Post;
 using TeamApp.Infrastructure.Shared;
 using TeamApp.WebApi.Extensions;
-using TeamApp.WebApi.Hubs.Chat;
-using TeamApp.WebApi.Hubs.Kanban;
-using TeamApp.WebApi.Hubs.Post;
 using TeamApp.WebApi.Services;
 
 namespace TeamApp.WebApi
@@ -83,6 +84,7 @@ namespace TeamApp.WebApi
                  endpoints.MapHub<HubChatClient>("/hubchat");
                  endpoints.MapHub<HubPostClient>("/hubpost");
                  endpoints.MapHub<HubKanbanClient>("/hubkanban");
+                 endpoints.MapHub<HubNotificationClient>("/hubnoti");
              });
         }
     }
