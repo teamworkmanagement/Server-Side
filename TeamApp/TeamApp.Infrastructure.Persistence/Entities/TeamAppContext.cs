@@ -66,6 +66,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.Type)
+                    .HasColumnName("user_connection_type")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
             });
 
             modelBuilder.Entity<Comment>(entity =>

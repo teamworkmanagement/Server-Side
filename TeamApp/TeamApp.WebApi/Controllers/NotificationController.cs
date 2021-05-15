@@ -20,22 +20,8 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("byuserid/{userId}")]
-        public async Task<IActionResult> GetAllByUserId(string userId)
-        {
-            var res = await _repo.GetAllByUserId(userId);
-
-            var outPut = new ApiResponse<List<NotificationResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
         [HttpGet]
-        public async Task<IActionResult> GetPaging([FromQuery] RequestParameter parameter)
+        public async Task<IActionResult> GetPaging([FromQuery] NotificationRequestParameter parameter)
         {
             var res = await _repo.GetPaging(parameter);
 
@@ -60,29 +46,6 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
-
-        [HttpDelete("{notiId}")]
-        public async Task<IActionResult> DeleteNotification(string notiId)
-        {
-            var res = await _repo.DeleteNotification(notiId);
-
-            var outPut = new ApiResponse<bool>
-            {
-                Data = res,
-                Succeeded = res,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpGet("test")]
-        public IActionResult GetTest()
-        {
-            return Ok(new
-            {
-                Name = "Dũng Nguyễn",
-            });
         }
 
         [HttpPost("push")]

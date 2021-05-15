@@ -41,6 +41,7 @@ namespace TeamApp.WebApi.Controllers.Test
                          join b in _dbContext.GroupChatUser.AsNoTracking() on a.GroupChatId equals b.GroupChatUserGroupChatId
                          join c in _dbContext.User.AsNoTracking() on b.GroupChatUserUserId equals c.Id
                          join d in _dbContext.UserConnection.AsNoTracking() on c.Id equals d.UserId
+                         where d.Type == "chat"
                          select new { a, d };
 
             var query = await nhomTv.AsNoTracking().Where(x => x.a.GroupChatId == groupId).ToListAsync();
@@ -50,7 +51,7 @@ namespace TeamApp.WebApi.Controllers.Test
                 if (f.d.UserId != message.UserId)
                 {
                     //await _chatHub.Groups.AddToGroupAsync(f.d.ConnectionId, groupId);
-                    _chatHub.Clients.Client(f.d.ConnectionId).NhanMessage(message);
+                    await _chatHub.Clients.Client(f.d.ConnectionId).NhanMessage(message);
                 }
             }
 
@@ -62,7 +63,7 @@ namespace TeamApp.WebApi.Controllers.Test
                 MessageGroupChatId = message.GroupId,
                 MessageContent = message.Message,
                 MessageCreatedAt = date,
-                MessageType=message.MessageType,
+                MessageType = message.MessageType,
             });
 
             //await _chatHub.Clients.Groups(groupId).NhanMessage(message);

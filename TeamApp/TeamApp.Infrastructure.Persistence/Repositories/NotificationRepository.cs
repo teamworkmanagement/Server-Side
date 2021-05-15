@@ -23,40 +23,16 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
             _firebaseMessagingService = firebaseMessagingService;
         }
-        public async Task<bool> DeleteNotification(string notiId)
+
+        public async Task<PagedResponse<NotificationResponse>> GetPaging(NotificationRequestParameter parameter)
         {
-            var entity = await _dbContext.Notification.FindAsync(notiId);
-            if (entity == null)
-                return false;
-
-            entity.NotificationIsDeleted = true;
-            _dbContext.Notification.Update(entity);
-            await _dbContext.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<List<NotificationResponse>> GetAllByUserId(string userId)
-        {
-            var query = from n in _dbContext.Notification
-                        where n.NotificationUserId == userId
+            var query = from n in _dbContext.Notification.AsNoTracking()
+                        join u in _dbContext.User.AsNoTracking() on n.NotificationUserId equals u.Id
+                        orderby n.NotificationCreatedAt descending
+                        where n.NotificationUserId == parameter.UserId
                         select n;
-
-            return await query.Select(x => new NotificationResponse
-            {
-                NotificationId = x.NotificationId,
-                NotificationUserId = x.NotificationUserId,
-                NotificationContent = x.NotificationContent,
-                NotificationCreatedAt = x.NotificationCreatedAt.FormatTime(),
-                NotificationLink = x.NotificationLink,
-                NotificationStatus = x.NotificationStatus,
-                NotificationIsDeleted = x.NotificationIsDeleted,
-            }).ToListAsync();
-        }
-
-        public async Task<PagedResponse<NotificationResponse>> GetPaging(RequestParameter parameter)
-        {
-            var query = _dbContext.Notification.Skip(parameter.PageSize * parameter.PageNumber).Take(parameter.PageSize);
+            var totalRecords = await query.CountAsync();
+            query = query.AsNoTracking().Skip(parameter.SkipItems).Take(parameter.PageSize);
 
             var entityList = await query.Select(x => new NotificationResponse
             {
@@ -69,7 +45,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationIsDeleted = x.NotificationIsDeleted,
             }).ToListAsync();
 
-            var outPut = new PagedResponse<NotificationResponse>(entityList, parameter.PageNumber, parameter.PageSize, await query.CountAsync());
+            var outPut = new PagedResponse<NotificationResponse>(entityList, parameter.PageSize, totalRecords, skipRows: parameter.SkipItems);
 
             return outPut;
         }

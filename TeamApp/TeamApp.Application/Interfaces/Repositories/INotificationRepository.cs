@@ -10,10 +10,8 @@ namespace TeamApp.Application.Interfaces.Repositories
 {
     public interface INotificationRepository
     {
-        Task<List<NotificationResponse>> GetAllByUserId(string userId);
-        Task<PagedResponse<NotificationResponse>> GetPaging(RequestParameter parameter);
+        Task<PagedResponse<NotificationResponse>> GetPaging(NotificationRequestParameter parameter);
         Task<bool> ReadNotificationSet(string notiId);
-        Task<bool> DeleteNotification(string notiId);
         Task<string> PushNoti(string token, string title, string body);
     }
 }

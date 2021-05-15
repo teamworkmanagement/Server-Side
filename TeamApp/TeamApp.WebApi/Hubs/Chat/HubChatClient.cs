@@ -30,6 +30,7 @@ namespace TeamApp.WebApi.Hubs.Chat
                 ConnectionId = Context.ConnectionId,
                 UserName = userName,
                 UserId = user.Id,
+                Type = "chat"
             };
 
             await _dbContext.UserConnection.AddAsync(uc);
