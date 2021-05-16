@@ -12,6 +12,6 @@ namespace TeamApp.Application.Interfaces.Repositories
     {
         Task<PagedResponse<NotificationResponse>> GetPaging(NotificationRequestParameter parameter);
         Task<bool> ReadNotificationSet(string notiId);
-        Task<string> PushNoti(string token, string title, string body);
+        Task PushNoti(List<string> userIds, string title, string body);
     }
 }

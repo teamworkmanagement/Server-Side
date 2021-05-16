@@ -10,16 +10,19 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Comment;
 using TeamApp.Application.Utils;
+using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class CommentRepository : ICommentRepository
     {
         private readonly TeamAppContext _dbContext;
+        private readonly INotificationRepository _notificationRepository;
 
-        public CommentRepository(TeamAppContext dbContext)
+        public CommentRepository(TeamAppContext dbContext, INotificationRepository notificationRepository)
         {
             _dbContext = dbContext;
+            _notificationRepository = notificationRepository;
         }
 
         public async Task<CommentResponse> AddComment(CommentRequest cmtReq)
@@ -37,6 +40,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             await _dbContext.Comment.AddAsync(entity);
             var check = await _dbContext.SaveChangesAsync();
+            if (cmtReq.CommentUserTagIds.Count != 0)
+                await _notificationRepository.PushNoti(cmtReq.CommentUserTagIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bình luận");
             if (check > 0)
             {
 
@@ -52,6 +57,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 };
             }
             return null;
+        }
+
+        public async Task AddMentions(List<string> userIds)
+        {
+            await _notificationRepository.PushNoti(userIds, "Tag", "Bạn đã được đề cập đến trong một bình luận");
         }
 
         public async Task<bool> DeleteComment(string cmtId)

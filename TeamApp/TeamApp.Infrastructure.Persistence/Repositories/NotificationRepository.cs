@@ -14,6 +14,7 @@ using TeamApp.Application.Interfaces;
 using Microsoft.AspNetCore.SignalR;
 using TeamApp.Infrastructure.Persistence.Hubs.Notification;
 using System.Collections.ObjectModel;
+using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -49,6 +50,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationLink = x.NotificationLink,
                 NotificationStatus = x.NotificationStatus,
                 NotificationIsDeleted = x.NotificationIsDeleted,
+                NotificationImage = "https://firebasestorage.googleapis.com/v0/b/fir-fcm-5eb6f.appspot.com/o/notification_500px.png?alt=media&token=e68bc511-fdd4-4f76-90d9-11e86a143f21"
             }).ToListAsync();
 
             var outPut = new PagedResponse<NotificationResponse>(entityList, parameter.PageSize, totalRecords, skipRows: parameter.SkipItems);
@@ -56,25 +58,41 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
-        public async Task<string> PushNoti(string token, string title, string body)
+        public async Task PushNoti(List<string> userIds, string title, string body)
         {
-            var clientLists = await (from uc in _dbContext.UserConnection.AsNoTracking()
-                                     where uc.Type == "notification"
-                                     select uc.ConnectionId).ToListAsync();
+            userIds = userIds.Distinct().ToList();
+            var notiGroup = Guid.NewGuid().ToString();
+            List<Notification> notifications = new List<Notification>();
 
+            var clientLists = await (from uc in _dbContext.UserConnection.AsNoTracking()
+                                     where uc.Type == "notification" && userIds.Contains(uc.UserId)
+                                     select uc.ConnectionId).AsNoTracking().ToListAsync();
 
             Console.WriteLine("count = " + clientLists.Count());
             var readOnlyList = new ReadOnlyCollection<string>(clientLists);
+
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {
-                Name = "Dunxg Nguyeenx",
-                Id = 10,
+                NotificationGroup = notiGroup,
+                NotificationContent = body,
+                NotificationStatus = false
             });
 
-            //await _notiHub.Clients.All.SendNoti();
+            foreach (var u in userIds)
+            {
+                notifications.Add(new Notification
+                {
+                    NotificationId = Guid.NewGuid().ToString(),
+                    NotificationUserId = u,
+                    NotificationGroup = notiGroup,
+                    NotificationContent = body,
+                    NotificationCreatedAt = DateTime.UtcNow,
+                    NotificationStatus = false,
+                    NotificationIsDeleted = false,
+                });
+            }
 
-            return "abc";
-            //return await _firebaseMessagingService.SendNotification(token, title, body);
+            await _dbContext.BulkInsertAsync(notifications);
         }
 
         public async Task<bool> ReadNotificationSet(string notiId)

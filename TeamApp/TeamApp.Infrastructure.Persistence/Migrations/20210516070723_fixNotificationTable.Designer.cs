@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    partial class TeamAppContextModelSnapshot : ModelSnapshot
+    [Migration("20210516070723_fixNotificationTable")]
+    partial class fixNotificationTable
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -494,12 +496,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("NotificationCreatedAt")
                         .HasColumnName("notification_created_at")
                         .HasColumnType("timestamp");
-
-                    b.Property<string>("NotificationGroup")
-                        .HasColumnName("notification_group")
-                        .HasColumnType("varchar(50)")
-                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
-                        .HasAnnotation("MySql:CharSet", "utf8mb4");
 
                     b.Property<bool?>("NotificationIsDeleted")
                         .HasColumnName("notification_is_deleted")

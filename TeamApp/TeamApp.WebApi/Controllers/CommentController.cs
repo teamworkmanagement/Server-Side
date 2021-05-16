@@ -157,5 +157,17 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut
             });
         }
+
+        /// <summary>
+        /// Add mention tag in comment notification
+        /// </summary>
+        /// <param name="userIds"></param>
+        /// <returns></returns>
+        [HttpPost("add-mentions")]
+        public async Task<IActionResult> AddMentions([FromBody]List<string> userIds)
+        {
+            await _repo.AddMentions(userIds);
+            return Ok();
+        }
     }
 }
