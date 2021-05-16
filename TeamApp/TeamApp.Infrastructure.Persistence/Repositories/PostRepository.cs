@@ -11,16 +11,23 @@ using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Post;
 using TeamApp.Application.Utils;
 using TeamApp.Application.DTOs.User;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Post;
+using System.Collections.ObjectModel;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class PostRepository : IPostRepository
     {
         private readonly TeamAppContext _dbContext;
+        private readonly INotificationRepository _notificationRepository;
+        private readonly IHubContext<HubPostClient, IHubPostClient> _postHub;
 
-        public PostRepository(TeamAppContext dbContext)
+        public PostRepository(TeamAppContext dbContext, INotificationRepository notificationRepository, IHubContext<HubPostClient, IHubPostClient> postHub)
         {
             _dbContext = dbContext;
+            _notificationRepository = notificationRepository;
+            _postHub = postHub;
         }
         public async Task<PostResponse> AddPost(PostRequest postReq)
         {
@@ -38,6 +45,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             await _dbContext.Post.AddAsync(entity);
             var check = await _dbContext.SaveChangesAsync();
+
+            if (postReq.UserIds.Count != 0)
+                await _notificationRepository.PushNoti(postReq.UserIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bài viết");
+
             if (check > 0)
             {
                 var team = await _dbContext.Team.FindAsync(entity.PostTeamId);
@@ -63,6 +74,27 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostReactPostId = react.PostId,
                 PostReactUserId = react.UserId,
             };
+
+
+            var teamId = await (from p in _dbContext.Post.AsNoTracking()
+                                where p.PostId == react.PostId
+                                select p.PostTeamId).FirstOrDefaultAsync();
+
+            var query = from p in _dbContext.Participation.AsNoTracking()
+                        join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                        where p.ParticipationTeamId == teamId && uc.Type == "post"
+                        select uc;
+
+            query = query.Distinct();
+
+            var clients = await query.AsNoTracking().Where(x => x.UserId != react.UserId).Select(x => x.ConnectionId).ToListAsync();
+
+            var readOnlyStr = new ReadOnlyCollection<string>(clients);
+            await _postHub.Clients.Clients(readOnlyStr).NewAddReact(new
+            {
+                react.PostId
+            });
+
             await _dbContext.PostReact.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
             return entity.PostReactId;
@@ -85,9 +117,30 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = await _dbContext.PostReact.Where(x => x.PostReactPostId == react.PostId
               && x.PostReactUserId == react.UserId).FirstOrDefaultAsync();
+            if (entity == null)
+                return false;
 
             if (entity != null)
                 _dbContext.PostReact.Remove(entity);
+
+            var teamId = await (from p in _dbContext.Post.AsNoTracking()
+                                where p.PostId == react.PostId
+                                select p.PostTeamId).FirstOrDefaultAsync();
+
+            var query = from p in _dbContext.Participation.AsNoTracking()
+                        join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                        where p.ParticipationTeamId == teamId && uc.Type == "post"
+                        select uc;
+
+            query = query.Distinct();
+
+            var clients = await query.AsNoTracking().Where(x => x.UserId != react.UserId).Select(x => x.ConnectionId).ToListAsync();
+
+            var readOnlyStr = new ReadOnlyCollection<string>(clients);
+            await _postHub.Clients.Clients(readOnlyStr).RemoveReact(new
+            {
+                react.PostId
+            });
 
             await _dbContext.SaveChangesAsync();
 
@@ -426,7 +479,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                        select f.FileUrl).ToListAsync();
                 List<string> lists = new List<string>
                 {
-                    
+
                 };
 
                 lists.AddRange(listImage);

@@ -7,6 +7,7 @@ using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 using TeamApp.Infrastructure.Persistence.Entities;
+using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.Infrastructure.Persistence.Hubs.Post
 {
@@ -18,7 +19,7 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Post
         {
             _dbContext = dbContext;
         }
-        public override async System.Threading.Tasks.Task OnConnectedAsync()
+        public override async Task OnConnectedAsync()
         {
             var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
             Console.WriteLine($"Post: Connected {Context.ConnectionId}, Usename {userName}");
@@ -29,6 +30,7 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Post
                 ConnectionId = Context.ConnectionId,
                 UserName = userName,
                 UserId = user.Id,
+                Type = "post",
             };
 
             await _dbContext.UserConnection.AddAsync(uc);
@@ -37,7 +39,7 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Post
             await base.OnConnectedAsync();
         }
 
-        public override async System.Threading.Tasks.Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
             var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
             Console.WriteLine($"Post: Disconnected {Context.ConnectionId}, Username {userName}");
