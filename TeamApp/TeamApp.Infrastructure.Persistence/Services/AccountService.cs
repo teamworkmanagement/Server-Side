@@ -73,7 +73,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
             //response.Roles = rolesList.ToList();
             response.IsVerified = user.EmailConfirmed;
-            response.UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.ImageUrl}" : user.ImageUrl;
+            response.UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
             response.FullName = user.FullName;
 
             var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());

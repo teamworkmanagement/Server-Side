@@ -11,6 +11,9 @@ using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Comment;
 using TeamApp.Application.Utils;
 using Task = System.Threading.Tasks.Task;
+using TeamApp.Infrastructure.Persistence.Hubs.Post;
+using Microsoft.AspNetCore.SignalR;
+using System.Collections.ObjectModel;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -18,11 +21,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
     {
         private readonly TeamAppContext _dbContext;
         private readonly INotificationRepository _notificationRepository;
+        private readonly IHubContext<HubPostClient, IHubPostClient> _postHub;
 
-        public CommentRepository(TeamAppContext dbContext, INotificationRepository notificationRepository)
+        public CommentRepository(TeamAppContext dbContext, INotificationRepository notificationRepository, IHubContext<HubPostClient, IHubPostClient> postHub)
         {
             _dbContext = dbContext;
             _notificationRepository = notificationRepository;
+            _postHub = postHub;
         }
 
         public async Task<CommentResponse> AddComment(CommentRequest cmtReq)
@@ -42,6 +47,38 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var check = await _dbContext.SaveChangesAsync();
             if (cmtReq.CommentUserTagIds.Count != 0)
                 await _notificationRepository.PushNoti(cmtReq.CommentUserTagIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bình luận");
+
+
+            var teamId = await (from p in _dbContext.Post.AsNoTracking()
+                                where p.PostId == cmtReq.CommentPostId
+                                select p.PostTeamId).FirstOrDefaultAsync();
+
+            var query = from p in _dbContext.Participation.AsNoTracking()
+                        join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                        where p.ParticipationTeamId == teamId && uc.Type == "post"
+                        select uc;
+
+            query = query.Distinct();
+
+            var clients = await query.AsNoTracking().Where(x => x.UserId != cmtReq.CommentUserId).Select(x => x.ConnectionId).ToListAsync();
+
+            var readOnlyStr = new ReadOnlyCollection<string>(clients);
+
+
+            var user = await _dbContext.User.FindAsync(cmtReq.CommentUserId);
+            await _postHub.Clients.Clients(readOnlyStr).NewComment(new CommentResponse
+            {
+                CommentId = entity.CommentId,
+                CommentPostId = entity.CommentPostId,
+                CommentUserId = entity.CommentUserId,
+                CommentContent = entity.CommentContent,
+                CommentTaskId = entity.CommentTaskId,
+                CommentCreatedAt = entity.CommentCreatedAt,
+                CommentIsDeleted = entity.CommentIsDeleted,
+                UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
+                UserName = user.FullName,
+            });
+
             if (check > 0)
             {
 

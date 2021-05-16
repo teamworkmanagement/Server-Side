@@ -8,7 +8,7 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Post
 {
     public interface IHubPostClient
     {
-        Task NewComment(CommentRequest message);
+        Task NewComment(CommentResponse message);
         Task NewAddReact(object react);
         Task RemoveReact(object react);
     }
