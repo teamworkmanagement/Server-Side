@@ -202,7 +202,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentContent = x.c.CommentContent,
                 CommentCreatedAt = x.c.CommentCreatedAt.FormatTime(),
                 CommentIsDeleted = x.c.CommentIsDeleted,
-                UserAvatar = x.ImageUrl,
+                UserAvatar = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
                 UserName = x.FullName,
             }).ToListAsync();
 

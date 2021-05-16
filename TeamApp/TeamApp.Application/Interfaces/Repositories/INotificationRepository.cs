@@ -11,7 +11,7 @@ namespace TeamApp.Application.Interfaces.Repositories
     public interface INotificationRepository
     {
         Task<PagedResponse<NotificationResponse>> GetPaging(NotificationRequestParameter parameter);
-        Task<bool> ReadNotificationSet(string notiId);
+        Task<bool> ReadNotificationSet(ReadNotiModel readNotiModel);
         Task PushNoti(List<string> userIds, string title, string body);
     }
 }

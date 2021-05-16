@@ -34,10 +34,10 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpPost("{notiId}")]
-        public async Task<IActionResult> ReadNotificationSet(string notiId)
+        [HttpPost("read-noti")]
+        public async Task<IActionResult> ReadNotificationSet([FromBody]ReadNotiModel readNotiModel)
         {
-            var res = await _repo.ReadNotificationSet(notiId);
+            var res = await _repo.ReadNotificationSet(readNotiModel);
 
             var outPut = new ApiResponse<bool>
             {

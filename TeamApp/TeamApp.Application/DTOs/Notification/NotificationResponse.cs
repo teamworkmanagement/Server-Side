@@ -14,6 +14,7 @@ namespace TeamApp.Application.DTOs.Notification
         public bool? NotificationStatus { get; set; } //true: unread, false: read
         public bool? NotificationIsDeleted { get; set; }
         public string NotificationImage { get; set; }
+        public string NotificationGroup { get; set; }
         public Dictionary<string,string> NotificationPayload { get; set; }
     }
 }
