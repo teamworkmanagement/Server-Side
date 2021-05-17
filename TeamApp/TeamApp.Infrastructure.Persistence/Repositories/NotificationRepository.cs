@@ -32,12 +32,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<PagedResponse<NotificationResponse>> GetPaging(NotificationRequestParameter parameter)
         {
             var query = from n in _dbContext.Notification.AsNoTracking()
-                        /*join u in _dbContext.User.AsNoTracking() on n.NotificationUserId equals u.Id
+                        join u in _dbContext.User.AsNoTracking() on n.NotificationUserId equals u.Id
                         orderby n.NotificationCreatedAt descending
-                        where n.NotificationUserId == parameter.UserId*/
+                        where n.NotificationUserId == parameter.UserId
                         select n;
             var totalRecords = await query.CountAsync();
-            //query = query.AsNoTracking().Skip(parameter.SkipItems).Take(parameter.PageSize);
+            query = query.AsNoTracking().Skip(parameter.SkipItems).Take(parameter.PageSize);
 
             var entityList = await query.Select(x => new NotificationResponse
             {

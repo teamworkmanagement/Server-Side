@@ -22,12 +22,15 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         private readonly TeamAppContext _dbContext;
         private readonly INotificationRepository _notificationRepository;
         private readonly IHubContext<HubPostClient, IHubPostClient> _postHub;
+        private readonly IFileRepository _fileRepo;
 
-        public PostRepository(TeamAppContext dbContext, INotificationRepository notificationRepository, IHubContext<HubPostClient, IHubPostClient> postHub)
+        public PostRepository(TeamAppContext dbContext, INotificationRepository notificationRepository, IHubContext<HubPostClient, IHubPostClient> postHub, IFileRepository fileRepo)
         {
             _dbContext = dbContext;
             _notificationRepository = notificationRepository;
             _postHub = postHub;
+
+            _fileRepo = fileRepo;
         }
         public async Task<PostResponse> AddPost(PostRequest postReq)
         {
@@ -48,6 +51,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             if (postReq.UserIds.Count != 0)
                 await _notificationRepository.PushNoti(postReq.UserIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bài viết");
+
+
+            if (postReq.PostImages != null && postReq.PostImages.Count != 0)
+            {
+                var files = postReq.PostImages.Select(x => new File
+                {
+                    FileId = Guid.NewGuid().ToString(),
+                    FileUrl = x.Link,
+                    FileBelongedId = entity.PostId,
+                    FileUploadTime = DateTime.UtcNow,
+                });
+
+                await _dbContext.BulkInsertAsync(files);
+            }
 
             if (check > 0)
             {
