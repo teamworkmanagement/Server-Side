@@ -41,8 +41,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<List<GroupChatResponse>> GetAllByUserId(string userId)
         {
-            var query = from gc in _dbContext.GroupChat
-                        join grc in _dbContext.GroupChatUser on gc.GroupChatId equals grc.GroupChatUserGroupChatId
+            var query = from gc in _dbContext.GroupChat.AsNoTracking()
+                        join grc in _dbContext.GroupChatUser.AsNoTracking() on gc.GroupChatId equals grc.GroupChatUserGroupChatId
                         select new { gc, grc };
 
             var outputQuery = query.Where(x => x.grc.GroupChatUserUserId == userId).OrderByDescending(x => x.gc.GroupChatUpdatedAt);
@@ -76,6 +76,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NewMessage = x.grc.GroupChatUserSeen,
                 LastestMes = x.gc.Message.OrderByDescending(x => x.MessageCreatedAt).FirstOrDefault().MessageContent,
             }).ToListAsync();*/
+            lists = lists.OrderByDescending(x => x.GroupChatUpdatedAt).ToList();
 
             return lists;
         }

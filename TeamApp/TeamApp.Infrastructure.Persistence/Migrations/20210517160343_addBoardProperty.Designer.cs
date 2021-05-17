@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    partial class TeamAppContextModelSnapshot : ModelSnapshot
+    [Migration("20210517160343_addBoardProperty")]
+    partial class addBoardProperty
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -414,12 +416,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("varchar(50)")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
-
-                    b.Property<bool?>("KanbanListIsDeleted")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnName("kanban_list_is_deleted")
-                        .HasColumnType("tinyint(1)")
-                        .HasDefaultValue(false);
 
                     b.Property<int?>("KanbanListOrderInBoard")
                         .HasColumnName("kanban_list_order_in_board")

@@ -55,7 +55,7 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
-        [HttpGet("team-boards")]
+        [HttpGet("team-boards/{teamId}")]
         public async Task<IActionResult> GetKanbanBoardForTeam(string teamId)
         {
             var outPut = await _repo.GetBoardForTeam(teamId);

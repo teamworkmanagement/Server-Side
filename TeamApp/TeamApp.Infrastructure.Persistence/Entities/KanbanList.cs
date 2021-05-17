@@ -14,6 +14,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string KanbanListTitle{ get; set; }
         public string KanbanListBoardBelongedId { get; set; }
         public int? KanbanListOrderInBoard { get; set; }
+        public bool? KanbanListIsDeleted { get; set; }
 
         public virtual KanbanBoard KanbanBoard { get; set; }
         public virtual ICollection<Task> Tasks { get; set; }

@@ -29,6 +29,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 KanbanBoardId = string.IsNullOrEmpty(kanbanBoardRequest.KanbanBoardId) ? Guid.NewGuid().ToString() : kanbanBoardRequest.KanbanBoardId,
                 KanbanBoardIsOfTeam = kanbanBoardRequest.KanbanBoardIsOfTeam,
                 KanbanBoardBelongedId = kanbanBoardRequest.KanbanBoardBelongedId,
+                KanbanBoardName = kanbanBoardRequest.KanbanBoardName,
+                KanbanBoardCreatedAt = DateTime.UtcNow,
             };
 
             await _dbContext.KanbanBoard.AddAsync(entity);
@@ -41,6 +43,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     KanbanBoardId = entity.KanbanBoardId,
                     KanbanBoardIsOfTeam = entity.KanbanBoardIsOfTeam,
                     KanbanBoardBelongedId = entity.KanbanBoardBelongedId,
+                    KanbanBoardName = entity.KanbanBoardName,
+                    TaskCount = 0,
                 };
             }
             return null;
@@ -72,6 +76,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 KanbanBoardId = x.KanbanBoardId,
                 KanbanBoardBelongedId = x.KanbanBoardBelongedId,
+                KanbanBoardName = x.KanbanBoardName,
                 TaskCount = TaskCounts[x.KanbanBoardId]
             }).ToListAsync();
         }
@@ -95,7 +100,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             //danh sach kanbanlist cua 1 board
             var listKanbanQuery = from kl in _dbContext.KanbanList.AsNoTracking()
-                                  where kl.KanbanListBoardBelongedId == boardId
+                                  where kl.KanbanListBoardBelongedId == boardId && !kl.KanbanListIsDeleted.Value
                                   orderby kl.KanbanListOrderInBoard
                                   select kl;
 
@@ -224,7 +229,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<bool> SwapListKanban(SwapListModel swapListModel)
         {
-            var sourceList = await _dbContext.KanbanList.Where(x => x.KanbanListBoardBelongedId == swapListModel.KanbanBoardId
+            var sourceList = await _dbContext.KanbanList.Where(x => !x.KanbanListIsDeleted.Value && x.KanbanListBoardBelongedId == swapListModel.KanbanBoardId
               && (x.KanbanListOrderInBoard == swapListModel.SourceIndex || x.KanbanListOrderInBoard == swapListModel.DestinationIndex)).ToListAsync();
 
             if (sourceList == null || sourceList.Count != 2)

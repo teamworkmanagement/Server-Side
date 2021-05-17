@@ -846,6 +846,9 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.KanbanListOrderInBoard)
                     .HasColumnName("kanban_list_order_in_board");
 
+                entity.Property(e => e.KanbanListIsDeleted)
+                    .HasColumnName("kanban_list_is_deleted").HasDefaultValue(false);
+
                 entity.HasOne(e => e.KanbanBoard)
                 .WithMany(b => b.KanbanLists)
                 .HasForeignKey(e => e.KanbanListBoardBelongedId);
@@ -871,6 +874,16 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.KanbanBoardName)
+                    .HasColumnName("kanban_board_name")
+                    .HasColumnType("varchar(300)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.KanbanBoardCreatedAt)
+                    .HasColumnName("kanban_created_at")
+                    .HasColumnType("timestamp");
             });
 
             modelBuilder.Entity<IdentityRole>(entity =>

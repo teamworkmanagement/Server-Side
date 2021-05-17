@@ -261,8 +261,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
             refreshObj.UserId = userId;
 
             await _dbContext.RefreshToken.AddAsync(refreshObj);
-            _dbContext.RefreshToken.Remove(tokenObj);
             await _dbContext.SaveChangesAsync();
+
+            //_dbContext.RefreshToken.Remove(tokenObj);
+            //await _dbContext.SaveChangesAsync();
 
             var outPut = new ApiResponse<TokenModel>
             {
