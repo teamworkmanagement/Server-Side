@@ -31,6 +31,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
 
             await _dbContext.Participation.AddAsync(entity);
+
+
+            var grChatUser = new GroupChatUser
+            {
+                GroupChatUserId = Guid.NewGuid().ToString(),
+                GroupChatUserUserId = participationRequest.ParticipationUserId,
+                GroupChatUserGroupChatId = participationRequest.ParticipationTeamId,
+                GroupChatUserIsDeleted = false,
+            };
+
+            await _dbContext.GroupChatUser.AddAsync(grChatUser);
+            await _dbContext.SaveChangesAsync();
+
             if (await _dbContext.SaveChangesAsync() > 0)
             {
                 return new ParticipationResponse

@@ -36,35 +36,33 @@ namespace TeamApp.WebApi.Controllers.Test
             // get list connections by group
             //get user of group => get list connections by user
             //chuyển tin nhắn cho các client
-            var groupId = message.GroupId;
-            var nhomTv = from a in _dbContext.GroupChat.AsNoTracking()
-                         join b in _dbContext.GroupChatUser.AsNoTracking() on a.GroupChatId equals b.GroupChatUserGroupChatId
-                         join c in _dbContext.User.AsNoTracking() on b.GroupChatUserUserId equals c.Id
-                         join d in _dbContext.UserConnection.AsNoTracking() on c.Id equals d.UserId
-                         where d.Type == "chat"
-                         select new { a, d };
 
-            var query = await nhomTv.AsNoTracking().Where(x => x.a.GroupChatId == groupId).ToListAsync();
+            var connections = from gru in _dbContext.GroupChatUser.AsNoTracking()
+                              join d in _dbContext.UserConnection.AsNoTracking() on gru.GroupChatUserUserId equals d.UserId
+                              where d.Type == "chat" && gru.GroupChatUserGroupChatId == message.GroupId
+                              select d;
 
-            foreach (var f in query)
-            {
-                if (f.d.UserId != message.UserId)
-                {
-                    //await _chatHub.Groups.AddToGroupAsync(f.d.ConnectionId, groupId);
-                    await _chatHub.Clients.Client(f.d.ConnectionId).NhanMessage(message);
-                }
-            }
+            var query = await connections.AsNoTracking().ToListAsync();
 
-            var date = Application.Utils.Extensions.UnixTimeStampToDateTime(message.TimeSend);
+              foreach (var f in query)
+              {
+                  if (f.UserId != message.UserId)
+                  {
+                      //await _chatHub.Groups.AddToGroupAsync(f.d.ConnectionId, groupId);
+                      await _chatHub.Clients.Client(f.ConnectionId).NhanMessage(message);
+                  }
+              }
 
-            await _messageRepository.AddMessage(new MessageRequest
-            {
-                MessageUserId = message.UserId,
-                MessageGroupChatId = message.GroupId,
-                MessageContent = message.Message,
-                MessageCreatedAt = date,
-                MessageType = message.MessageType,
-            });
+              var date = Application.Utils.Extensions.UnixTimeStampToDateTime(message.TimeSend);
+
+              await _messageRepository.AddMessage(new MessageRequest
+              {
+                  MessageUserId = message.UserId,
+                  MessageGroupChatId = message.GroupId,
+                  MessageContent = message.Message,
+                  MessageCreatedAt = date,
+                  MessageType = message.MessageType,
+              });
 
             //await _chatHub.Clients.Groups(groupId).NhanMessage(message);
         }

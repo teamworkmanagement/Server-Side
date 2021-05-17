@@ -60,12 +60,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             if (check)
             {
-                await _participationRepository.AddParticipation(new Application.DTOs.Paricipation.ParticipationRequest
-                {
-                    ParticipationUserId = entity.TeamLeaderId,
-                    ParticipationTeamId = entity.TeamId,
-                });
-
                 await _groupChatRepository.AddGroupChat(new Application.DTOs.GroupChat.GroupChatRequest
                 {
                     GroupChatId = entity.TeamId,
@@ -73,7 +67,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     GroupChatUpdatedAt = DateTime.UtcNow,
                 });
 
-                await _groupChatUserRepository.AddGroupChatUser(new Application.DTOs.GroupChatUser.GroupChatUserRequest
+                await _participationRepository.AddParticipation(new Application.DTOs.Paricipation.ParticipationRequest
+                {
+                    ParticipationUserId = entity.TeamLeaderId,
+                    ParticipationTeamId = entity.TeamId,
+                });
+
+                /*await _groupChatUserRepository.AddGroupChatUser(new Application.DTOs.GroupChatUser.GroupChatUserRequest
                 {
                     GroupChatUserUserId = entity.TeamLeaderId,
                     GroupChatUserGroupChatId = entity.TeamId,
@@ -94,7 +94,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     KanbanListTitle = "Mới được thêm",
                     KanbanListBoardBelongedId = entity.TeamId,
                     KanbanListOrderInBoard = 0,
-                });
+                });*/
 
                 var leader = await _dbContext.User.FindAsync(teamReq.TeamLeaderId);
 
@@ -240,29 +240,24 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 return null;
 
 
-            team = await (from t in _dbContext.Team.AsNoTracking()
-                          join p in _dbContext.Participation.AsNoTracking() on t.TeamId equals p.ParticipationTeamId
-                          where t.TeamCode == request.TeamCode && p.ParticipationUserId == request.UserId
-                          select t).FirstOrDefaultAsync();
-
-            if (team != null)
+            var team2 = await (from t in _dbContext.Team.AsNoTracking()
+                               join p in _dbContext.Participation.AsNoTracking() on t.TeamId equals p.ParticipationTeamId
+                               where t.TeamCode == request.TeamCode && p.ParticipationUserId == request.UserId
+                               select t).FirstOrDefaultAsync();
+            //đã join
+            if (team2 != null)
                 return new TeamResponse
                 {
                     TeamId = team.TeamId,
                 };
 
-            await _dbContext.Participation.AddAsync(new Participation
+
+            await _participationRepository.AddParticipation(new Application.DTOs.Paricipation.ParticipationRequest
             {
-                ParticipationId = Guid.NewGuid().ToString(),
                 ParticipationUserId = request.UserId,
                 ParticipationTeamId = team.TeamId,
-                ParticipationCreatedAt = DateTime.UtcNow,
-                ParticipationIsDeleted = false,
             });
 
-            team = await (from t in _dbContext.Team.AsNoTracking()
-                          where t.TeamCode == request.TeamCode
-                          select t).FirstOrDefaultAsync();
 
             return new TeamResponse
             {
