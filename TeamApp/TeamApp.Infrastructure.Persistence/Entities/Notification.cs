@@ -12,6 +12,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string NotificationLink { get; set; }
         public bool? NotificationStatus { get; set; }
         public bool? NotificationIsDeleted { get; set; }
+        public string NotificationGroup { get; set; }
 
         public virtual User NotificationUser { get; set; }
     }

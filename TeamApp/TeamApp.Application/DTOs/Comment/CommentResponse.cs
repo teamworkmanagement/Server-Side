@@ -8,6 +8,7 @@ namespace TeamApp.Application.DTOs.Comment
     {
         public string CommentId { get; set; }
         public string CommentPostId { get; set; }
+        public string CommentTaskId { get; set; }
         public string CommentUserId { get; set; }
         public string CommentContent { get; set; }
         public DateTime? CommentCreatedAt { get; set; }

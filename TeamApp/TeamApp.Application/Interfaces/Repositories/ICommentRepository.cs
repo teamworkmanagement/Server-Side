@@ -19,5 +19,13 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<CommentResponse> AddComment(CommentRequest cmtReq);
         Task<bool> UpdateComment(string cmtId, CommentRequest cmtReq);
         Task<bool> DeleteComment(string cmtId);
+        /// <summary>
+        /// Get all comment for task
+        /// </summary>
+        /// <param name="kanbanListId"></param>
+        /// <returns></returns>
+        Task<List<CommentResponse>> GetListByTask(string taskId, int skipItems = 0, int pageSize = 3);
+
+        Task AddMentions(List<string> userIds);
     }
 }

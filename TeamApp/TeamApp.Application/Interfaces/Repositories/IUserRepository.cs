@@ -6,10 +6,22 @@ namespace TeamApp.Application.Interfaces.Repositories
 {
     public interface IUserRepository
     {
-        //for test
-        Task<List<UserResponse>> GetAllByTeamId(string teamId);
         Task<UserResponse> GetById(string userId);
         Task<bool> UpdateUser(string userId, UserRequest userReq);
         Task<bool> DeleteUser(string userId);
+        /// <summary>
+        /// keyWord can be email or name
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <param name="keyWord"></param>
+        /// <returns></returns>
+        Task<List<UserResponse>> SearchUserNoJoinTeam(string teamId, string keyWord);
+        /// <summary>
+        /// Get user in team of user
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
+        Task<List<UserResponse>> GetAllUserInTeam(string userId, string teamId = null);
     }
 }

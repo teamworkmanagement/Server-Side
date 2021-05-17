@@ -26,24 +26,47 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return await System.Threading.Tasks.Task.FromResult(false);
         }
 
-        public async Task<List<UserResponse>> GetAllByTeamId(string teamId)
+        public async Task<List<UserResponse>> GetAllUserInTeam(string userId, string teamId = null)
         {
-            var query = from p in _dbContext.Participation
-                        join t in _dbContext.Team on p.ParticipationTeamId equals t.TeamId
-                        join u in _dbContext.User on p.ParticipationUserId equals u.Id
-                        select new { u, t };
-
-
-            var outPut = await query.Where(x => x.t.TeamId == teamId).Select(x => new UserResponse
+            if (teamId != null)
             {
+                var user = (from t in _dbContext.Team.AsNoTracking()
+                            join p in _dbContext.Participation.AsNoTracking() on t.TeamId equals p.ParticipationTeamId
+                            join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                            where t.TeamId == teamId
+                            select new { u.Id, u.FullName, u.ImageUrl }).Distinct();
 
-                
-            }).ToListAsync();
+                return await user.Select(x => new UserResponse
+                {
+                    UserId = x.Id,
+                    UserFullname = x.FullName,
+                    UserImageUrl = x.ImageUrl,
+                }).ToListAsync();
+            }
 
-            return outPut;
+            else
+            {
+                var teamList = from t in _dbContext.Team.AsNoTracking()
+                               join par in _dbContext.Participation.AsNoTracking() on t.TeamId equals par.ParticipationTeamId
+                               join u in _dbContext.User.AsNoTracking() on par.ParticipationUserId equals u.Id
+                               select new { u, t.TeamId, t.TeamName };
+
+                //danh sách team mà user join
+                teamList = teamList.Where(x => x.u.Id == userId).Distinct();
+
+                var queryUser = await (from listTeam in teamList.AsNoTracking()
+                                       join p in _dbContext.Participation.AsNoTracking() on listTeam.TeamId equals p.ParticipationTeamId
+                                       join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                                       select new { u.Id, u.FullName, u.ImageUrl }).Distinct().ToListAsync();
+
+                return queryUser.Select(x => new UserResponse
+                {
+                    UserId = x.Id,
+                    UserFullname = x.FullName,
+                    UserImageUrl = x.ImageUrl,
+                }).ToList();
+            }
         }
-
-
 
         public async Task<UserResponse> GetById(string userId)
         {
@@ -52,9 +75,34 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 return null;
             var userRes = new UserResponse
             {
-               
+
             };
             return userRes;
+        }
+
+        public async Task<List<UserResponse>> SearchUserNoJoinTeam(string teamId, string keyWord)
+        {
+            var query = await (from p in _dbContext.Participation.AsNoTracking()
+                               join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                               where p.ParticipationTeamId != teamId
+                               select u).Distinct().AsNoTracking().ToListAsync();
+
+            keyWord = keyWord.UnsignUnicode();
+
+            if (!string.IsNullOrEmpty(keyWord))
+                query = query.Where(x => x.FullName.UnsignUnicode().Contains(keyWord) || x.Email.UnsignUnicode().Contains(keyWord)).ToList();
+
+            var outPut = query.Select(x => new UserResponse
+            {
+                UserId = x.Id,
+
+                UserFullname = x.FullName,
+
+                UserImageUrl = x.ImageUrl,
+
+            }).ToList();
+
+            return outPut;
         }
 
         public async Task<bool> UpdateUser(string userId, UserRequest user)
@@ -62,7 +110,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var entity = await _dbContext.User.FindAsync(userId);
             if (entity == null)
                 return false;
-            
+
 
             _dbContext.User.Update(entity);
             await _dbContext.SaveChangesAsync();

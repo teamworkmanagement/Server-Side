@@ -13,5 +13,7 @@ namespace TeamApp.Application.DTOs.Post
         public int? PostCommentCount { get; set; }
         public bool? PostIsDeleted { get; set; }
         public bool? PostIsPinned { get; set; }
+        public List<string> UserIds { get; set; }
+        public List<PostImage> PostImages { get; set; }
     }
 }

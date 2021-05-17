@@ -16,10 +16,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
     public class TaskRepository : ITaskRepository
     {
         private readonly TeamAppContext _dbContext;
+        private readonly IFileRepository _file;
+        private readonly ICommentRepository _comment;
 
-        public TaskRepository(TeamAppContext dbContext)
+        public TaskRepository(TeamAppContext dbContext, IFileRepository file, ICommentRepository comment)
         {
             _dbContext = dbContext;
+            _file = file;
+            _comment = comment;
         }
         public async Task<string> AddTask(TaskRequest taskReq)
         {
@@ -30,15 +34,37 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskDescription = taskReq.TaskDescription,
                 TaskPoint = taskReq.TaskPoint,
                 TaskCreatedAt = DateTime.UtcNow,
-                TaskDeadline = taskReq.TaskDeadline,
+                TaskStartDate = taskReq.TaskStartDate,
+                TaskDeadline=taskReq.TaskDeadline,
                 TaskStatus = taskReq.TaskStatus,
-                TaskCompletedPercent = taskReq.TaskCompletedPercent,
+                TaskCompletedPercent = 0,
                 TaskTeamId = taskReq.TaskTeamId,
-                TaskIsDeleted = false
+                TaskIsDeleted = false,
+                TaskBelongedId = taskReq.TaskBelongedId,
+                TaskOrderInList = taskReq.TaskOrderInList,
+                TaskThemeColor = taskReq.TaskThemeColor,
             };
 
             await _dbContext.Task.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
+
+
+            if (taskReq.TaskOrderInList != null && taskReq.TaskBelongedId != null)
+            {
+                var allTasks = await _dbContext.Task.Where(t => t.TaskBelongedId == taskReq.TaskBelongedId
+                  && t.TaskId != entity.TaskId).ToListAsync();
+
+                foreach (var t in allTasks)
+                {
+                    if (t.TaskOrderInList >= taskReq.TaskOrderInList)
+                    {
+                        t.TaskOrderInList++;
+                        _dbContext.Task.Update(t);
+                        await _dbContext.SaveChangesAsync();
+                    }
+                }
+            }
+
             return entity.TaskId;
         }
 
@@ -49,10 +75,90 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (entity == null)
                 return false;
 
-            entity.TaskIsDeleted = true;
-            _dbContext.Task.Update(entity);
-            await _dbContext.SaveChangesAsync();
+            var listTasksQuery = from t in _dbContext.Task
+                                 join kl in _dbContext.KanbanList on t.TaskBelongedId equals kl.KanbanListId
+                                 select t;
+
+            var listTasks = await listTasksQuery.ToListAsync();
+
+            foreach (var t in listTasks)
+            {
+                if (t.TaskId == entity.TaskId)
+                {
+                    entity.TaskIsDeleted = true;
+                    _dbContext.Task.Update(entity);
+                    await _dbContext.SaveChangesAsync();
+                }
+                else
+                {
+                    if (t.TaskOrderInList > entity.TaskOrderInList)
+                    {
+                        t.TaskOrderInList--;
+                        _dbContext.Task.Update(t);
+                        await _dbContext.SaveChangesAsync();
+                    }
+                }
+            }
+
             return true;
+        }
+
+        public async Task<bool> DragTask(DragTaskModel dragTaskModel)
+        {
+            var count = 0;
+            var listTaskDestinationQuery = from t in _dbContext.Task
+                                           where t.TaskBelongedId == dragTaskModel.DestinationDroppableId && t.TaskIsDeleted == false
+                                           select t;
+
+            var listTaskDestination = await listTaskDestinationQuery.ToListAsync();
+            if (dragTaskModel.DestinationDroppableId == dragTaskModel.SourceDroppableId)
+            {
+                var source = listTaskDestination.Where(x => x.TaskOrderInList == dragTaskModel.SourceIndex).FirstOrDefault();
+                var destination = listTaskDestination.Where(x => x.TaskOrderInList == dragTaskModel.DestinationIndex).FirstOrDefault();
+
+                source.TaskOrderInList = dragTaskModel.DestinationIndex;
+                destination.TaskOrderInList = dragTaskModel.SourceIndex;
+                _dbContext.Task.Update(source);
+                _dbContext.Task.Update(destination);
+                var check = await _dbContext.SaveChangesAsync() > 0;
+                return check;
+            }
+            foreach (var t in listTaskDestination)
+            {
+                if (t.TaskOrderInList >= dragTaskModel.DestinationIndex)
+                    t.TaskOrderInList++;
+
+                _dbContext.Task.Update(t);
+                var check = await _dbContext.SaveChangesAsync() > 0;
+                if (check)
+                    count++;
+            }
+
+
+            var listTaskSourceQuery = from t in _dbContext.Task
+                                      where t.TaskBelongedId == dragTaskModel.SourceDroppableId
+                                      select t;
+            var listTaskSource = await listTaskSourceQuery.ToListAsync();
+            foreach (var t in listTaskSource)
+            {
+                if (t.TaskOrderInList == dragTaskModel.SourceIndex)
+                {
+                    t.TaskBelongedId = dragTaskModel.DestinationDroppableId;
+                    t.TaskOrderInList = dragTaskModel.DestinationIndex;
+                }
+
+                else if (t.TaskOrderInList > dragTaskModel.SourceIndex)
+                {
+                    t.TaskOrderInList--;
+                }
+
+                _dbContext.Task.Update(t);
+                var check = await _dbContext.SaveChangesAsync() > 0;
+                if (check)
+                    count++;
+            }
+
+            return count == listTaskDestination.Count + listTaskSource.Count;
         }
 
         public async Task<List<TaskResponse>> GetAllByTeamId(string teamId)
@@ -68,6 +174,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskDescription = x.TaskDescription,
                 TaskPoint = x.TaskPoint,
                 TaskCreatedAt = x.TaskCreatedAt.FormatTime(),
+                TaskStartDate = x.TaskStartDate.FormatTime(),
                 TaskDeadline = x.TaskDeadline.FormatTime(),
                 TaskStatus = x.TaskStatus,
                 TaskCompletedPercent = x.TaskCompletedPercent,
@@ -94,6 +201,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskDescription = x.ta.TaskDescription,
                 TaskPoint = x.ta.TaskPoint,
                 TaskCreatedAt = x.ta.TaskCreatedAt.FormatTime(),
+                TaskStartDate = x.ta.TaskStartDate.FormatTime(),
                 TaskDeadline = x.ta.TaskDeadline.FormatTime(),
                 TaskStatus = x.ta.TaskStatus,
                 TaskCompletedPercent = x.ta.TaskCompletedPercent,
@@ -120,12 +228,59 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskDescription = x.ta.TaskDescription,
                 TaskPoint = x.ta.TaskPoint,
                 TaskCreatedAt = x.ta.TaskCreatedAt.FormatTime(),
+                TaskStartDate = x.ta.TaskStartDate.FormatTime(),
                 TaskDeadline = x.ta.TaskDeadline.FormatTime(),
                 TaskStatus = x.ta.TaskStatus,
                 TaskCompletedPercent = x.ta.TaskCompletedPercent,
                 TaskTeamId = x.ta.TaskTeamId,
                 TaskIsDeleted = x.ta.TaskIsDeleted
             }).ToListAsync();
+
+            return outPut;
+        }
+
+        public async Task<TaskResponse> GetById(string taskId)
+        {
+            var query = from t in _dbContext.Task.AsNoTracking()
+                        join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
+
+                        from th in tHandle.DefaultIfEmpty()
+                        join u in _dbContext.User.AsNoTracking() on th.HandleTaskUserId equals u.Id into tUser
+
+                        from tu in tUser.DefaultIfEmpty()
+                        where t.TaskId == taskId
+                        select new { t, tu.FullName, tu.Id, tu.ImageUrl };
+
+            var listComments = await _comment.GetListByTask(taskId);
+            var listFiles = await _file.GetAllByTask(taskId);
+
+            var task = await query.AsNoTracking().FirstOrDefaultAsync();
+
+            if (task == null)
+                return null;
+            var outPut = new TaskResponse
+            {
+                KanbanListId = task.t.TaskBelongedId,
+                TaskId = task.t.TaskId,
+                TaskName = task.t.TaskName,
+                TaskDescription = task.t.TaskDescription,
+                TaskPoint = task.t.TaskPoint,
+                TaskCreatedAt = task.t.TaskCreatedAt.FormatTime(),
+                TaskStartDate = task.t.TaskStartDate.FormatTime(),
+                TaskDeadline = task.t.TaskDeadline.FormatTime(),
+                TaskStatus = task.t.TaskStatus,
+                TaskCompletedPercent = task.t.TaskCompletedPercent,
+                TaskTeamId = task.t.TaskTeamId,
+                TaskIsDeleted = task.t.TaskIsDeleted,
+                TaskThemeColor = task.t.TaskThemeColor,
+                UserId = task.Id,
+                UserName = task.FullName,
+                UserAvatar = task.ImageUrl,
+                OrderInList = task.t.TaskOrderInList,
+                Comments = listComments,
+                Files = listFiles,
+                TaskImageUrl = task.t.TaskImageUrl,
+            };
 
             return outPut;
         }
@@ -141,6 +296,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskDescription = x.TaskDescription,
                 TaskPoint = x.TaskPoint,
                 TaskCreatedAt = x.TaskCreatedAt.FormatTime(),
+                TaskStartDate = x.TaskStartDate.FormatTime(),
                 TaskDeadline = x.TaskDeadline.FormatTime(),
                 TaskStatus = x.TaskStatus,
                 TaskCompletedPercent = x.TaskCompletedPercent,
@@ -153,26 +309,33 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
-        public async Task<bool> UpdateTask(string taskId, TaskRequest taskReq)
+        public async Task<bool> UpdateTask(TaskUpdateRequest taskReq)
         {
-            var entity = await _dbContext.Task.FindAsync(taskId);
+            var entity = await _dbContext.Task.FindAsync(taskReq.TaskId);
             if (entity == null)
                 return false;
 
-            entity.TaskName = taskReq.TaskName;
-            entity.TaskDeadline = taskReq.TaskDeadline;
-            entity.TaskPoint = taskReq.TaskPoint;
-            entity.TaskCreatedAt = taskReq.TaskCreatedAt;
-            entity.TaskDeadline = taskReq.TaskDeadline;
+            entity.TaskDescription = taskReq.TaskDescription == null ? entity.TaskDescription : taskReq.TaskDescription;
+            entity.TaskName = taskReq.TaskName == null ? entity.TaskName : taskReq.TaskName;
+
+            entity.TaskThemeColor = taskReq.TaskThemeColor;
+            entity.TaskStartDate = taskReq.TaskStartDate;
             entity.TaskStatus = taskReq.TaskStatus;
             entity.TaskCompletedPercent = taskReq.TaskCompletedPercent;
-            entity.TaskTeamId = taskReq.TaskTeamId;
-            entity.TaskIsDeleted = taskReq.TaskIsDeleted;
+            entity.TaskImageUrl = taskReq.TaskImageUrl;
+            entity.TaskDeadline = taskReq.TaskDeadline;
+
+            entity.TaskPoint = taskReq.TaskPoint == null ? entity.TaskPoint : taskReq.TaskPoint;
+            entity.TaskCreatedAt = taskReq.TaskCreatedAt == null ? entity.TaskCreatedAt : taskReq.TaskCreatedAt;
+
+
+            //entity.TaskTeamId = taskReq.TaskTeamId == null ? entity.TaskTeamId : taskReq.TaskTeamId;
+            //entity.TaskIsDeleted = taskReq.TaskIsDeleted == null ? entity.TaskIsDeleted : taskReq.TaskIsDeleted;
 
             _dbContext.Task.Update(entity);
-            await _dbContext.SaveChangesAsync();
+            var check = await _dbContext.SaveChangesAsync() > 0;
 
-            return true;
+            return check;
         }
     }
 }

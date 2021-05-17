@@ -10,6 +10,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Message;
 using TeamApp.Application.Utils;
+using System.Web;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -30,7 +31,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MessageGroupChatId = msgReq.MessageGroupChatId,
                 MessageContent = msgReq.MessageContent,
                 MessageCreatedAt = DateTime.UtcNow,
-                MessageIsDeleted = msgReq.MessageIsDeleted,
+                MessageIsDeleted = false,
+                MessageType = msgReq.MessageType,
             };
 
             await _dbContext.Message.AddAsync(entity);

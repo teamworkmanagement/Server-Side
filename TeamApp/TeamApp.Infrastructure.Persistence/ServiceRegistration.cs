@@ -51,8 +51,10 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IGroupChatRepository, GroupChatRepository>();
             services.AddTransient<IGroupChatUserRepository, GroupChatUserRepository>();
             services.AddTransient<IMessageRepository, MessageRepository>();
+            services.AddTransient<IKanbanBoardRepository, KanbanBoardRepository>();
+            services.AddTransient<IKanbanListRepository, KanbanListRepository>();
             #endregion
-
+            services.AddTransient<IFirebaseMessagingService, FirebaseMessagingService>();
             ConfigAuthService(services, configuration);
         }
         public static void ConfigAuthService(IServiceCollection services, IConfiguration configuration)

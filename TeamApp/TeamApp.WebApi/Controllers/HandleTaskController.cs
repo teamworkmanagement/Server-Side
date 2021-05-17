@@ -4,6 +4,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.HandleTask;
+using TeamApp.Application.DTOs.Task;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -48,11 +49,11 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddHandleTask([FromForm] HandleTaskRequest handleTaskReq)
+        public async Task<IActionResult> AddHandleTask(HandleTaskRequest handleTaskReq)
         {
             var res = await _repo.AddHandleTask(handleTaskReq);
 
-            var outPut = new ApiResponse<string>
+            var outPut = new ApiResponse<HandleTaskResponse>
             {
                 Data = res,
                 Succeeded = res == null ? false : true,
@@ -90,6 +91,17 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpPost("reassign-task")]
+        public async Task<IActionResult> ReAssignTask(ReAssignModel reAssignModel)
+        {
+            var outPut = await _repo.ReAssignTask(reAssignModel);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
+            });
         }
     }
 }

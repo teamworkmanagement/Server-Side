@@ -183,6 +183,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("CommentTaskId")
+                        .HasColumnName("comment_task_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
                     b.Property<string>("CommentType")
                         .HasColumnName("comment_type")
                         .HasColumnType("enum('text','file')")
@@ -199,6 +205,8 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.HasIndex("CommentPostId")
                         .HasName("comment_post_id");
+
+                    b.HasIndex("CommentTaskId");
 
                     b.HasIndex("CommentUserId")
                         .HasName("comment_user_id");
@@ -242,7 +250,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("FileUrl")
                         .HasColumnName("file_url")
-                        .HasColumnType("varchar(200)")
+                        .HasColumnType("varchar(500)")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
@@ -448,7 +456,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("MessageType")
                         .HasColumnName("message_type")
-                        .HasColumnType("enum('text','file')")
+                        .HasColumnType("enum('text','file','image')")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
@@ -486,6 +494,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.Property<DateTime?>("NotificationCreatedAt")
                         .HasColumnName("notification_created_at")
                         .HasColumnType("timestamp");
+
+                    b.Property<string>("NotificationGroup")
+                        .HasColumnName("notification_group")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
 
                     b.Property<bool?>("NotificationIsDeleted")
                         .HasColumnName("notification_is_deleted")
@@ -729,6 +743,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("TaskImageUrl")
+                        .HasColumnName("task_image_url")
+                        .HasColumnType("varchar(200)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
                     b.Property<bool?>("TaskIsDeleted")
                         .HasColumnName("task_is_deleted")
                         .HasColumnType("tinyint(1)");
@@ -739,13 +759,17 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<int>("TaskOrderInList")
+                    b.Property<int?>("TaskOrderInList")
                         .HasColumnName("task_order_inlist")
                         .HasColumnType("int");
 
                     b.Property<int?>("TaskPoint")
                         .HasColumnName("task_point")
                         .HasColumnType("int");
+
+                    b.Property<DateTime?>("TaskStartDate")
+                        .HasColumnName("task_start_date")
+                        .HasColumnType("timestamp");
 
                     b.Property<string>("TaskStatus")
                         .HasColumnName("task_status")
@@ -756,6 +780,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.Property<string>("TaskTeamId")
                         .HasColumnName("task_team_id")
                         .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("TaskThemeColor")
+                        .HasColumnName("task_theme_color")
+                        .HasColumnType("varchar(10)")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
@@ -849,6 +879,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("TeamDescription")
                         .HasColumnName("team_description")
+                        .HasColumnType("varchar(500)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("TeamImageUrl")
+                        .HasColumnName("team_image_url")
                         .HasColumnType("varchar(500)")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
@@ -987,6 +1023,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("Type")
+                        .HasColumnName("user_connection_type")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
                     b.Property<string>("UserName")
                         .HasColumnType("longtext CHARACTER SET utf8mb4");
 
@@ -1052,6 +1094,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .WithMany("Comment")
                         .HasForeignKey("CommentPostId")
                         .HasConstraintName("comment_ibfk_1");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Task", "CommentTask")
+                        .WithMany("Comments")
+                        .HasForeignKey("CommentTaskId");
 
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "CommentUser")
                         .WithMany("Comment")

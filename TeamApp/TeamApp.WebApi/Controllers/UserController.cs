@@ -1,7 +1,9 @@
 ﻿using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Interfaces.Repositories;
+using TeamApp.Application.Wrappers;
 
 namespace TeamApp.WebApi.Controllers
 {
@@ -25,13 +27,6 @@ namespace TeamApp.WebApi.Controllers
         }
 
 
-
-        [HttpGet("getbyteamid/{teamId}")]
-        public async Task<IActionResult> GetByTeamId(string teamId)
-        {
-            return Ok(await _repo.GetAllByTeamId(teamId));
-        }
-
         [HttpGet("getbyuserid/{userId}")]
         public async Task<IActionResult> GetByUserId(string userId)
         {
@@ -49,6 +44,34 @@ namespace TeamApp.WebApi.Controllers
         public async Task<IActionResult> DeleteUser(string userId)
         {
             return Ok(await _repo.DeleteUser(userId));
+        }
+
+        [HttpGet("searchuser-nojointeam")]
+        public async Task<IActionResult> SearchUserNoJoinTeam(string teamId, string keyWord)
+        {
+            var outPut = await _repo.SearchUserNoJoinTeam(teamId, keyWord);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = outPut,
+                Succeeded = outPut == null ? false : true,
+            });
+        }
+
+        /// <summary>
+        /// Get all user for tag
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
+        [HttpGet("getuser-inteam")]
+        public async Task<IActionResult> GetAllUserInTeam(string userId, string teamId = null)
+        {
+            var outPut = await _repo.GetAllUserInTeam(userId, teamId);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
         }
     }
 }

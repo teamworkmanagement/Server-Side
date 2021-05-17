@@ -1,8 +1,11 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Globalization;
+using System.IO;
 using System.Threading.Tasks;
 using System.Web;
 using TeamApp.Application.Exceptions;
@@ -21,11 +24,13 @@ namespace TeamApp.WebApi.Controllers.Test
     {
         private readonly IAuthenticatedUserService authenticatedUserService;
         private readonly TeamAppContext _dbContext;
+        private readonly IWebHostEnvironment _environment;
 
-        public TestController(IAuthenticatedUserService _authenticatedUserService, TeamAppContext dbContext)
+        public TestController(IAuthenticatedUserService _authenticatedUserService, TeamAppContext dbContext, IWebHostEnvironment environment)
         {
             authenticatedUserService = _authenticatedUserService;
             _dbContext = dbContext;
+            _environment = environment;
         }
         [Authorize]
         [HttpGet]
@@ -107,7 +112,10 @@ namespace TeamApp.WebApi.Controllers.Test
             var value = "value";
             if (check)
                 value = "CfDJ8Ow0LkUrqFdFuyvzQuWx8xMeVTPT_Qmwf40WdCw4SOOYx7jV_KbK6lnAqIbsguLDypCcOOa-2BbPFJpZhVIvDCUFoIpkE3M-u1oFB6bGx8ZqdKLgdd0WTRRSUyXtd0kCRc3UwCh08bZ1YgUObrSKO64MKJY4ntq-XbgJ7HpdBTLmP3ifdDABrMvazMYUCBocZ5-55wMXkSisvwSva6fziluLphg1f6J7GRx_XVVsiVYVihqB_BR6Ynhl4U_qtW6v6yx8oACAAjW7uiM4xzo3z_2rPiU3Scp4bPV9wqTaEGh8z6Z05OSir8ZUWaP3N5RjO-3xRATydslEGPTO6Cq3Yq5gJOGQ3_2UWRwCHldIEoF6_Y0HNxDTfux6XTUyuRdHUQPVYKuQzWy7aCPchwaRNn0qVh5rEYZJBSt8u2unqRIWC9qwrb6kK_6ql9NSyHd72tkZbRPeWNF1rnmWMhal3mM8PUx5-qbzrFgbdpoxY7E0BGTdYMS7UJoFofyTgR0yAfwL-8SdsH8PZ7TyfWiRRQmH4yagYmOOE5uv3QqSFwPCD5F8cVISRkvf8Ym5t64GtQmxXmzogcfVkesuVmYNGIvw-rpK_LLVP1Vllw4MeNAl__lIwBIdSJUyTU03I19ZeQfVkesuVmYNGIvw-rpK_LLVP1Vllw4MeNAl__lIwBIdSJUyTU03I19ZeQ";
-            HttpContext.Response.Cookies.Append(Guid.NewGuid().ToString(), value);
+
+            HttpContext.Response.Cookies.Append(Guid.NewGuid().ToString(), value,
+                    new CookieOptions { Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+
             return Ok("niceeeee");
         }
 
@@ -125,6 +133,25 @@ namespace TeamApp.WebApi.Controllers.Test
                     Data = mes,
                 }
             );
+        }
+
+        [HttpPost("upload-file")]
+        public IActionResult UpLoadFile(IFormFile file)
+        {
+            if (file.Length > 0)
+            {
+                var folder = Guid.NewGuid().ToString();
+                Directory.CreateDirectory(_environment.WebRootPath + "\\Upload\\" + folder);
+
+
+                using (FileStream fs = System.IO.File.Create(_environment.WebRootPath +
+                    "\\Upload\\" + folder + "\\" + file.FileName))
+                {
+                    file.CopyTo(fs);
+                    fs.Flush();
+                }
+            }
+            return Ok(file.FileName);
         }
     }
 }

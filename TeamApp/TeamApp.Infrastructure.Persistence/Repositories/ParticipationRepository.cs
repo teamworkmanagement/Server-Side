@@ -19,6 +19,46 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
+        public async Task<ParticipationResponse> AddParticipation(ParticipationRequest participationRequest)
+        {
+            var entity = new Participation
+            {
+                ParticipationId = Guid.NewGuid().ToString(),
+                ParticipationUserId = participationRequest.ParticipationUserId,
+                ParticipationTeamId = participationRequest.ParticipationTeamId,
+                ParticipationCreatedAt = DateTime.UtcNow,
+                ParticipationIsDeleted = false,
+            };
+
+            await _dbContext.Participation.AddAsync(entity);
+
+
+            var grChatUser = new GroupChatUser
+            {
+                GroupChatUserId = Guid.NewGuid().ToString(),
+                GroupChatUserUserId = participationRequest.ParticipationUserId,
+                GroupChatUserGroupChatId = participationRequest.ParticipationTeamId,
+                GroupChatUserIsDeleted = false,
+            };
+
+            await _dbContext.GroupChatUser.AddAsync(grChatUser);
+            await _dbContext.SaveChangesAsync();
+
+            if (await _dbContext.SaveChangesAsync() > 0)
+            {
+                return new ParticipationResponse
+                {
+                    ParticipationId = entity.ParticipationId,
+                    ParticipationUserId = entity.ParticipationUserId,
+                    ParticipationTeamId = entity.ParticipationTeamId,
+                    ParticipationCreatedAt = entity.ParticipationCreatedAt,
+                    ParticipationIsDeleted = entity.ParticipationIsDeleted,
+                };
+            }
+
+            return null;
+        }
+
         public async Task<bool> DeleteParticipation(string userId, string teamId)
         {
             var entity = _dbContext.Participation.Where(x => x.ParticipationUserId == userId
@@ -35,11 +75,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
-        public Task<List<ParticipationResponse>> GetAllByTeamId(string teamId)
+        public async Task<List<ParticipationResponse>> GetAllByTeamId(string teamId)
         {
-            var entitylist = _dbContext.Participation.Where(x => x.ParticipationTeamId == teamId);
+            var entitylist = _dbContext.Participation.AsNoTracking().Where(x => x.ParticipationTeamId == teamId);
 
-            return entitylist.Select(x => new ParticipationResponse
+            return await entitylist.Select(x => new ParticipationResponse
             {
                 ParticipationId = x.ParticipationId,
                 ParticipationTeamId = x.ParticipationTeamId,

@@ -23,7 +23,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = new GroupChat
             {
-                GroupChatId = Guid.NewGuid().ToString(),
+                GroupChatId = string.IsNullOrEmpty(grChatReq.GroupChatId) ? Guid.NewGuid().ToString() : grChatReq.GroupChatId,
                 GroupChatName = grChatReq.GroupChatName,
                 GroupChatUpdatedAt = DateTime.UtcNow,
             };
@@ -45,17 +45,39 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         join grc in _dbContext.GroupChatUser on gc.GroupChatId equals grc.GroupChatUserGroupChatId
                         select new { gc, grc };
 
-            var outPut = query.Where(x => x.grc.GroupChatUserUserId == userId).OrderByDescending(x => x.gc.GroupChatUpdatedAt);
+            var outputQuery = query.Where(x => x.grc.GroupChatUserUserId == userId).OrderByDescending(x => x.gc.GroupChatUpdatedAt);
 
+            var outPut = await outputQuery.ToListAsync();
 
-            return await outPut.Select(x => new GroupChatResponse
+            var lists = new List<GroupChatResponse>();
+            foreach (var gr in outPut)
+            {
+                //get lastest message
+                var lastest = await (from m in _dbContext.Message.AsNoTracking()
+                                     where m.MessageGroupChatId == gr.gc.GroupChatId
+                                     orderby m.MessageCreatedAt descending
+                                     select m).FirstOrDefaultAsync();
+
+                lists.Add(new GroupChatResponse
+                {
+                    GroupChatId = gr.gc.GroupChatId,
+                    GroupChatName = gr.gc.GroupChatName,
+                    GroupChatUpdatedAt = lastest == null ? null : lastest.MessageCreatedAt.FormatTime(),
+                    NewMessage = gr.grc.GroupChatUserSeen,
+                    LastestMes = lastest == null ? null : lastest.MessageType == "file" ? "[Tệp tin]" : lastest.MessageType == "image" ? "[Hình ảnh]" : lastest.MessageContent,
+                });
+            }
+
+            /*return await outputQuery.Select(x => new GroupChatResponse
             {
                 GroupChatId = x.gc.GroupChatId,
                 GroupChatName = x.gc.GroupChatName,
                 GroupChatUpdatedAt = x.gc.Message.OrderByDescending(x => x.MessageCreatedAt).FirstOrDefault().MessageCreatedAt.FormatTime(),
                 NewMessage = x.grc.GroupChatUserSeen,
                 LastestMes = x.gc.Message.OrderByDescending(x => x.MessageCreatedAt).FirstOrDefault().MessageContent,
-            }).ToListAsync();
+            }).ToListAsync();*/
+
+            return lists;
         }
 
         public async Task<bool> UpdateGroupChat(string grchatId, GroupChatRequest grChatReq)

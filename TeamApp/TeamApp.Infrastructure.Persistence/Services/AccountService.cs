@@ -73,7 +73,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
             //response.Roles = rolesList.ToList();
             response.IsVerified = user.EmailConfirmed;
-            response.UserAvatar = user.ImageUrl;
+            response.UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
             response.FullName = user.FullName;
 
             var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
@@ -261,6 +261,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             refreshObj.UserId = userId;
 
             await _dbContext.RefreshToken.AddAsync(refreshObj);
+            _dbContext.RefreshToken.Remove(tokenObj);
             await _dbContext.SaveChangesAsync();
 
             var outPut = new ApiResponse<TokenModel>

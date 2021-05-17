@@ -11,5 +11,6 @@ namespace TeamApp.Application.DTOs.Message
         public string MessageContent { get; set; }
         public DateTime? MessageCreatedAt { get; set; }
         public bool? MessageIsDeleted { get; set; }
+        public string MessageType { get; set; }
     }
 }

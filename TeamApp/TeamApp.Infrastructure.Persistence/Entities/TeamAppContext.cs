@@ -3,18 +3,24 @@ using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Identity.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace TeamApp.Infrastructure.Persistence.Entities
 {
     public partial class TeamAppContext : IdentityDbContext<User>
     {
+        public static readonly ILoggerFactory MyLoggerFactory
+    = LoggerFactory.Create(builder => { builder.AddConsole(); });
         public TeamAppContext()
         {
+
         }
 
         public TeamAppContext(DbContextOptions<TeamAppContext> options)
             : base(options)
         {
+
         }
 
         public virtual DbSet<Comment> Comment { get; set; }
@@ -34,10 +40,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<UserConnection> UserConnection { get; set; }
         public virtual DbSet<RefreshToken> RefreshToken { get; set; }
         public virtual DbSet<PostReact> PostReact { get; set; }
+        public virtual DbSet<KanbanBoard> KanbanBoard { get; set; }
+        public virtual DbSet<KanbanList> KanbanList { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-
+            //optionsBuilder.UseLoggerFactory(MyLoggerFactory);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -55,6 +63,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.HasKey(e => new { e.UserId, e.ConnectionId });
                 entity.Property(e => e.ConnectionId)
                     .HasColumnName("user_connection_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.Type)
+                    .HasColumnName("user_connection_type")
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
@@ -94,6 +108,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.CommentTaskId)
+                    .HasColumnName("comment_task_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
                 entity.Property(e => e.CommentUserId)
                     .HasColumnName("comment_user_id")
                     .HasColumnType("varchar(50)")
@@ -115,6 +135,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .WithMany(p => p.Comment)
                     .HasForeignKey(d => d.CommentUserId)
                     .HasConstraintName("comment_ibfk_2");
+
+                entity.HasOne(d => d.CommentTask)
+                .WithMany(t => t.Comments)
+                .HasForeignKey(d => d.CommentTaskId);
             });
 
             modelBuilder.Entity<File>(entity =>
@@ -141,7 +165,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
                 entity.Property(e => e.FileUrl)
                     .HasColumnName("file_url")
-                    .HasColumnType("varchar(200)")
+                    .HasColumnType("varchar(500)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
@@ -313,7 +337,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
                 entity.Property(e => e.MessageType)
                     .HasColumnName("message_type")
-                    .HasColumnType("enum('text','file')")
+                    .HasColumnType("enum('text','file','image')")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
@@ -347,6 +371,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
                 entity.Property(e => e.NotificationId)
                     .HasColumnName("notification_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.NotificationGroup)
+                    .HasColumnName("notification_group")
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
@@ -519,10 +549,26 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.TaskImageUrl)
+                    .HasColumnName("task_image_url")
+                    .HasColumnType("varchar(200)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.TaskThemeColor)
+                    .HasColumnName("task_theme_color")
+                    .HasColumnType("varchar(10)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
                 entity.Property(e => e.TaskCompletedPercent).HasColumnName("task_completed_percent");
 
                 entity.Property(e => e.TaskCreatedAt)
                     .HasColumnName("task_created_at")
+                    .HasColumnType("timestamp");
+
+                entity.Property(e => e.TaskStartDate)
+                    .HasColumnName("task_start_date")
                     .HasColumnType("timestamp");
 
                 entity.Property(e => e.TaskDeadline)
@@ -643,6 +689,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.TeamId)
                     .HasColumnName("team_id")
                     .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.TeamImageUrl)
+                    .HasColumnName("team_image_url")
+                    .HasColumnType("varchar(500)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 

@@ -11,16 +11,26 @@ using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.Post;
 using TeamApp.Application.Utils;
 using TeamApp.Application.DTOs.User;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Post;
+using System.Collections.ObjectModel;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class PostRepository : IPostRepository
     {
         private readonly TeamAppContext _dbContext;
+        private readonly INotificationRepository _notificationRepository;
+        private readonly IHubContext<HubPostClient, IHubPostClient> _postHub;
+        private readonly IFileRepository _fileRepo;
 
-        public PostRepository(TeamAppContext dbContext)
+        public PostRepository(TeamAppContext dbContext, INotificationRepository notificationRepository, IHubContext<HubPostClient, IHubPostClient> postHub, IFileRepository fileRepo)
         {
             _dbContext = dbContext;
+            _notificationRepository = notificationRepository;
+            _postHub = postHub;
+
+            _fileRepo = fileRepo;
         }
         public async Task<PostResponse> AddPost(PostRequest postReq)
         {
@@ -37,9 +47,28 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
 
             await _dbContext.Post.AddAsync(entity);
-            var check=await _dbContext.SaveChangesAsync();
+            var check = await _dbContext.SaveChangesAsync();
+
+            if (postReq.UserIds.Count != 0)
+                await _notificationRepository.PushNoti(postReq.UserIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bài viết");
+
+
+            if (postReq.PostImages != null && postReq.PostImages.Count != 0)
+            {
+                var files = postReq.PostImages.Select(x => new File
+                {
+                    FileId = Guid.NewGuid().ToString(),
+                    FileUrl = x.Link,
+                    FileBelongedId = entity.PostId,
+                    FileUploadTime = DateTime.UtcNow,
+                });
+
+                await _dbContext.BulkInsertAsync(files);
+            }
+
             if (check > 0)
             {
+                var team = await _dbContext.Team.FindAsync(entity.PostTeamId);
                 return new PostResponse
                 {
                     PostId = entity.PostId,
@@ -47,6 +76,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     PostTeamId = entity.PostTeamId,
                     PostContent = entity.PostContent,
                     PostCreatedAt = entity.PostCreatedAt,
+                    TeamName = team.TeamName,
                 };
             }
 
@@ -61,6 +91,27 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostReactPostId = react.PostId,
                 PostReactUserId = react.UserId,
             };
+
+
+            var teamId = await (from p in _dbContext.Post.AsNoTracking()
+                                where p.PostId == react.PostId
+                                select p.PostTeamId).FirstOrDefaultAsync();
+
+            var query = from p in _dbContext.Participation.AsNoTracking()
+                        join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                        where p.ParticipationTeamId == teamId && uc.Type == "post"
+                        select uc;
+
+            query = query.Distinct();
+
+            var clients = await query.AsNoTracking().Where(x => x.UserId != react.UserId).Select(x => x.ConnectionId).ToListAsync();
+
+            var readOnlyStr = new ReadOnlyCollection<string>(clients);
+            await _postHub.Clients.Clients(readOnlyStr).NewAddReact(new
+            {
+                react.PostId
+            });
+
             await _dbContext.PostReact.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
             return entity.PostReactId;
@@ -83,9 +134,30 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = await _dbContext.PostReact.Where(x => x.PostReactPostId == react.PostId
               && x.PostReactUserId == react.UserId).FirstOrDefaultAsync();
+            if (entity == null)
+                return false;
 
             if (entity != null)
                 _dbContext.PostReact.Remove(entity);
+
+            var teamId = await (from p in _dbContext.Post.AsNoTracking()
+                                where p.PostId == react.PostId
+                                select p.PostTeamId).FirstOrDefaultAsync();
+
+            var query = from p in _dbContext.Participation.AsNoTracking()
+                        join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                        where p.ParticipationTeamId == teamId && uc.Type == "post"
+                        select uc;
+
+            query = query.Distinct();
+
+            var clients = await query.AsNoTracking().Where(x => x.UserId != react.UserId).Select(x => x.ConnectionId).ToListAsync();
+
+            var readOnlyStr = new ReadOnlyCollection<string>(clients);
+            await _postHub.Clients.Clients(readOnlyStr).RemoveReact(new
+            {
+                react.PostId
+            });
 
             await _dbContext.SaveChangesAsync();
 
@@ -193,7 +265,124 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
-        public async Task<PagedResponse<PostResponse>> GetPostPaging(PostRequestParameter parameter)
+        public async Task<PagedResponse<PostResponse>> GetPostPagingTeam(PostRequestParameter parameter)
+        {
+            bool advanced = false;
+            if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))
+                advanced = true;
+
+
+            //bảng chứa toàn bộ thông tin các post của team
+            var query = from p in _dbContext.Post.AsNoTracking()
+                        join t in _dbContext.Team.AsNoTracking() on p.PostTeamId equals t.TeamId
+                        join u in _dbContext.User on p.PostUserId equals u.Id
+                        where t.TeamId == parameter.TeamId
+                        select new { p, u, p.Comment.Count, RCount = p.PostReacts.Count, t.TeamName };
+
+            //tìm kiếm nâng cao
+            if (advanced)
+            {
+                if (parameter.FromDate != null)
+                {
+                    DateTime dtFrom = (DateTimeOffset.FromUnixTimeMilliseconds((long)parameter.FromDate)).UtcDateTime;
+                    query = query.Where(x => x.p.PostCreatedAt >= dtFrom);
+                }
+                if (parameter.ToDate != null)
+                {
+                    DateTime dateTo = (DateTimeOffset.FromUnixTimeMilliseconds((long)parameter.ToDate)).UtcDateTime;
+                    query = query.Where(x => x.p.PostCreatedAt <= dateTo);
+                }
+                if (parameter.GroupId != null)
+                {
+                    query = query.Where(x => x.p.PostTeamId == parameter.GroupId);
+                }
+                if (parameter.PostUser != null)
+                {
+                    query = query.Where(x => x.u.Id == parameter.PostUser);
+                }
+            }
+
+            if (!string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
+            {
+                DateTime now = DateTime.UtcNow;
+                DateTime baseDate = now.Date;
+
+                switch (parameter.BasicFilter)
+                {
+                    case BasicFilter.Lastest:
+                        query = query.OrderByDescending(x => x.p.PostCreatedAt);
+                        break;
+                    case BasicFilter.LastHour:
+                        var lastHour = now.AddMinutes(-60);
+                        query = query.Where(x => x.p.PostCreatedAt >= lastHour && x.p.PostCreatedAt <= now);
+                        break;
+                    case BasicFilter.Today:
+                        query = query.Where(x => ((DateTime)x.p.PostCreatedAt).Date == baseDate);
+                        break;
+                    case BasicFilter.ThisWeek:
+                        var thisWeekStart = baseDate.AddDays(-(int)baseDate.DayOfWeek);
+                        var thisWeekEnd = thisWeekStart.AddDays(7).AddSeconds(-1);
+                        query = from q in query
+                                where q.p.PostCreatedAt >= thisWeekStart && q.p.PostCreatedAt <= thisWeekEnd
+                                select q;
+                        //query.Where(x => x.p.PostCreatedAt >= flagstart && x.p.PostCreatedAt <= flagend);
+                        break;
+                    case BasicFilter.ThisMonth:
+                        var thisMonthStart = baseDate.AddDays(1 - baseDate.Day);
+                        var thisMonthEnd = thisMonthStart.AddMonths(1).AddSeconds(-1);
+                        query = from q in query
+                                where q.p.PostCreatedAt >= thisMonthStart && q.p.PostCreatedAt <= thisMonthEnd
+                                select q;
+                        break;
+                    default:
+                        break;
+                }
+            }
+
+            if (string.IsNullOrEmpty(parameter.BasicFilter) && !advanced)
+                query = query.OrderByDescending(x => x.p.PostCreatedAt);
+
+            var reactQuery = from q in query
+                             from r in _dbContext.PostReact.Where(r => r.PostReactPostId == q.p.PostId && r.PostReactUserId == parameter.UserId).DefaultIfEmpty()
+                             select new { q, isReacted = r.PostReactUserId };
+
+            var entityList = await reactQuery.Select(x => new PostResponse
+            {
+                PostId = x.q.p.PostId,
+                PostUserId = x.q.p.PostUserId,
+                PostTeamId = x.q.p.PostTeamId,
+                PostContent = x.q.p.PostContent,
+                PostCreatedAt = x.q.p.PostCreatedAt.FormatTime(),
+                PostCommentCount = x.q.Count,
+                PostIsDeleted = x.q.p.PostIsDeleted,
+                PostIsPinned = x.q.p.PostIsPinned,
+                UserName = x.q.u.FullName,
+                UserAvatar = x.q.u.ImageUrl,
+                PostReactCount = x.q.RCount,
+                TeamName = x.q.TeamName,
+                IsReacted = x.isReacted == null ? false : true,
+            }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
+
+
+            foreach (var ent in entityList)
+            {
+                /*var listImage = from f in _dbContext.File.AsNoTracking()
+                                where f.FileBelongedId == ent.PostId
+                                select new PostImage { ImageUrl = f.FileUrl };*/
+                List<string> lists = new List<string>
+                {
+                    "https://momoshop.com.vn/wp-content/uploads/2018/11/balo-laptop-dep8623079002_293603435.jpg"
+                    ,"https://momoshop.com.vn/wp-content/uploads/2018/11/balo-laptop-dep8623079002_293603435.jpg"
+                    ,"https://momoshop.com.vn/wp-content/uploads/2018/11/balo-laptop-dep8623079002_293603435.jpg"
+                };
+
+                ent.PostImages = lists;
+            }
+
+            return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
+        }
+
+        public async Task<PagedResponse<PostResponse>> GetPostPagingUser(PostRequestParameter parameter)
         {
             bool advanced = false;
             if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))
@@ -294,10 +483,26 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserName = x.q.u.FullName,
                 UserAvatar = x.q.u.ImageUrl,
                 PostReactCount = x.q.RCount,
-                TeamName = x.q.TeamName,
+                TeamName = $"<a href=\"/team/{x.q.p.PostTeamId}\">{x.q.TeamName}</a>",
                 IsReacted = x.isReacted == null ? false : true,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
+
+            foreach (var ent in entityList)
+            {
+                var listImage = await (from f in _dbContext.File.AsNoTracking()
+                                       where f.FileBelongedId == ent.PostId
+                                       orderby f.FileUploadTime
+                                       select f.FileUrl).ToListAsync();
+                List<string> lists = new List<string>
+                {
+
+                };
+
+                lists.AddRange(listImage);
+
+                ent.PostImages = lists;
+            }
             return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
 
         }
@@ -319,8 +524,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             keyWord = keyWord.UnsignUnicode();
 
-            if (!string.IsNullOrEmpty(keyWord))
-                query = query.Where(x => x.FullName.UnsignUnicode().Contains(keyWord)).ToList();
+            /*if (!string.IsNullOrEmpty(keyWord))
+                query = query.Where(x => x.FullName.UnsignUnicode().Contains(keyWord)).ToList();*/
 
             var outPut = query.Select(x => new UserResponse
             {

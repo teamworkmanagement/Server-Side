@@ -9,27 +9,28 @@ using System.Threading.Tasks;
 using TeamApp.Infrastructure.Persistence.Entities;
 using Task = System.Threading.Tasks.Task;
 
-namespace TeamApp.WebApi.Hubs.Chat
+namespace TeamApp.Infrastructure.Persistence.Hubs.Post
 {
     [Authorize]
-    public class HubChatClient : Hub<IHubChatClient>
+    public class HubPostClient : Hub<IHubPostClient>
     {
         private readonly TeamAppContext _dbContext;
-        public HubChatClient(TeamAppContext dbContext)
+        public HubPostClient(TeamAppContext dbContext)
         {
             _dbContext = dbContext;
         }
         public override async Task OnConnectedAsync()
         {
             var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine($"Connected {Context.ConnectionId}, Usename {userName}");
-            var user = await _dbContext.User.Where(x => x.UserName == userName).FirstOrDefaultAsync();
+            Console.WriteLine($"Post: Connected {Context.ConnectionId}, Usename {userName}");
+            var user = await _dbContext.User.AsNoTracking().Where(x => x.UserName == userName).FirstOrDefaultAsync();
 
             var uc = new UserConnection
             {
                 ConnectionId = Context.ConnectionId,
                 UserName = userName,
                 UserId = user.Id,
+                Type = "post",
             };
 
             await _dbContext.UserConnection.AddAsync(uc);
@@ -38,10 +39,10 @@ namespace TeamApp.WebApi.Hubs.Chat
             await base.OnConnectedAsync();
         }
 
-        public override async System.Threading.Tasks.Task OnDisconnectedAsync(Exception exception)
+        public override async Task OnDisconnectedAsync(Exception exception)
         {
             var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine($"Disconnected {Context.ConnectionId}, Username {userName}");
+            Console.WriteLine($"Post: Disconnected {Context.ConnectionId}, Username {userName}");
 
             var userCon = await _dbContext.UserConnection.Where(x => x.UserName == userName && x.ConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
 

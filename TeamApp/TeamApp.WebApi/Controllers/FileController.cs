@@ -51,7 +51,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Get file pagination in upload file
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HttpGet]
+        [ProducesResponseType(typeof(ApiResponse<FileResponse>), 200)]
         public async Task<IActionResult> GetTask([FromQuery] FileRequestParameter parameter)
         {
             var outPut = await _repo.GetByBelong(parameter);
@@ -66,10 +72,21 @@ namespace TeamApp.WebApi.Controllers
         public async Task<IActionResult> AddFile(FileRequest fileRequest)
         {
             var outPut = await _repo.AddFile(fileRequest);
-            return Ok(new ApiResponse<string>
+            return Ok(new ApiResponse<FileResponse>
             {
                 Succeeded = outPut == null ? false : true,
                 Data = outPut,
+            });
+        }
+
+        [HttpPost("upload-images-post")]
+        public async Task<IActionResult> UploadImagesForPost(PostFileUploadRequest postFileUploadRequest)
+        {
+            var outPut = await _repo.UploadImageForPost(postFileUploadRequest);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
             });
         }
     }

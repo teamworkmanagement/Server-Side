@@ -8,6 +8,7 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.HandleTask;
 using TeamApp.Application.Utils;
+using TeamApp.Application.DTOs.Task;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -19,21 +20,32 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             _dbContext = dbContext;
         }
-        public async Task<string> AddHandleTask(HandleTaskRequest handleTaskReq)
+        public async Task<HandleTaskResponse> AddHandleTask(HandleTaskRequest handleTaskReq)
         {
             var entity = new HandleTask
             {
                 HandleTaskId = Guid.NewGuid().ToString(),
                 HandleTaskUserId = handleTaskReq.HandleTaskUserId,
                 HandleTaskTaskId = handleTaskReq.HandleTaskTaskId,
-                HandleTaskCreatedAt = handleTaskReq.HandleTaskCreatedAt,
-                HandleTaskIsDeleted = handleTaskReq.HandleTaskIsDeleted,
+                HandleTaskCreatedAt = DateTime.UtcNow,
+                HandleTaskIsDeleted = false,
             };
 
             await _dbContext.HandleTask.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            var check = await _dbContext.SaveChangesAsync();
 
-            return entity.HandleTaskId;
+            if (check > 0)
+            {
+                return new HandleTaskResponse
+                {
+                    HandleTaskId = entity.HandleTaskId,
+                    HandleTaskUserId = entity.HandleTaskUserId,
+                    HandleTaskTaskId = entity.HandleTaskTaskId,
+                    HandleTaskCreatedAt = entity.HandleTaskCreatedAt,
+                    HandleTaskIsDeleted = entity.HandleTaskIsDeleted,
+                };
+            }
+            return null;
         }
 
         public async Task<bool> DeleteHandleTask(string handleTaskId)
@@ -83,6 +95,33 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }).ToListAsync();
 
             return outPut;
+        }
+
+        public async Task<bool> ReAssignTask(ReAssignModel reAssignModel)
+        {
+            var entity = await (from h in _dbContext.HandleTask
+                                where h.HandleTaskTaskId == reAssignModel.TaskId
+                                select h).FirstOrDefaultAsync();
+
+            if (entity == null)
+            {
+                await _dbContext.HandleTask.AddAsync(new HandleTask
+                {
+                    HandleTaskId = Guid.NewGuid().ToString(),
+                    HandleTaskUserId = reAssignModel.CurrentUserId,
+                    HandleTaskTaskId = reAssignModel.TaskId,
+                    HandleTaskCreatedAt = DateTime.UtcNow,
+                    HandleTaskIsDeleted = false,
+                });
+            }
+            else
+            {
+                entity.HandleTaskUserId = reAssignModel.CurrentUserId;
+
+                _dbContext.HandleTask.Update(entity);
+            }
+
+            return await _dbContext.SaveChangesAsync() > 0;
         }
 
         public async Task<bool> UpdateHandleTask(string handleTaskId, HandleTaskRequest handleTaskReq)

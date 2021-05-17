@@ -22,7 +22,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
-        public async Task<string> AddFile(FileRequest fileReq)
+        public async Task<FileResponse> AddFile(FileRequest fileReq)
         {
             var entity = new File
             {
@@ -37,9 +37,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
 
             await _dbContext.File.AddAsync(entity);
-            await _dbContext.SaveChangesAsync();
+            var check = await _dbContext.SaveChangesAsync() > 0;
 
-            return entity.FileId;
+            if (check)
+                return new FileResponse
+                {
+                    FileId = entity.FileId,
+                    FileName = entity.FileName,
+                    FileUrl = entity.FileUrl,
+                    FileType = entity.FileType,
+                    FileSize = entity.FileSize,
+                    FileBelongedId = entity.FileBelongedId,
+                    FileUserId = entity.FileUserId,
+                    FileUploadTime = entity.FileUploadTime.FormatTime(),
+                };
+            return null;
         }
 
         public async Task<string> AddFileTask(string taskId, FileRequest fileReq)
@@ -87,13 +99,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<PagedResponse<FileResponse>> GetByBelong(FileRequestParameter par)
         {
-            var query = from f in _dbContext.File
-                        join u in _dbContext.User on f.FileUserId equals u.Id
+            var query = from f in _dbContext.File.AsNoTracking()
+                        join u in _dbContext.User.AsNoTracking() on f.FileUserId equals u.Id
                         orderby f.FileUploadTime descending
                         where f.FileBelongedId == par.BelongedId
                         select new { f, u.FullName, u.ImageUrl };
 
-            var zzz = await query.CountAsync();
+            var zzz = await query.AsNoTracking().CountAsync();
 
             var outFile = query.Skip((par.PageNumber - 1) * par.PageSize).Take(par.PageSize);
 
@@ -119,6 +131,48 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public Task<bool> UpdateFile(string fileId)
         {
             throw new NotImplementedException();
+        }
+
+        public async Task<List<FileResponse>> GetAllByTask(string taskId)
+        {
+            var query = from t in _dbContext.Task.AsNoTracking()
+                        join f in _dbContext.File.AsNoTracking() on t.TaskId equals f.FileBelongedId
+                        where t.TaskId == taskId
+                        orderby f.FileUploadTime descending
+                        select f;
+
+            var outPut = await query.AsNoTracking().Select(entity => new FileResponse
+            {
+                FileId = entity.FileId,
+                FileName = entity.FileName,
+                FileUrl = entity.FileUrl,
+                FileType = entity.FileType,
+                FileSize = entity.FileSize,
+                FileBelongedId = entity.FileBelongedId,
+                FileUserId = entity.FileUserId,
+                FileUploadTime = entity.FileUploadTime.FormatTime(),
+            }).ToListAsync();
+
+            return outPut;
+        }
+
+        public async Task<bool> UploadImageForPost(PostFileUploadRequest postFileUploadRequest)
+        {
+            List<File> files = new List<File>();
+            foreach (var obj in postFileUploadRequest.ImageUrls)
+            {
+                files.Add(new File
+                {
+                    FileId = Guid.NewGuid().ToString(),
+                    FileUrl = obj.Link,
+                    FileBelongedId = postFileUploadRequest.PostId,
+                    FileUploadTime = DateTime.UtcNow,
+                });
+            }
+
+            await _dbContext.BulkInsertAsync(files);
+
+            return true;
         }
     }
 }

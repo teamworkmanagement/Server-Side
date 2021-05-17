@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Team;
+using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -29,7 +30,7 @@ namespace TeamApp.WebApi.Controllers
             var outPut = new ApiResponse<List<TeamResponse>>
             {
                 Data = res,
-                Succeeded = true,
+                Succeeded = res == null ? false : true,
             };
 
             return Ok(outPut);
@@ -51,11 +52,11 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTeam([FromForm] TeamRequest teamReq)
+        public async Task<IActionResult> AddTeam(TeamRequest teamReq)
         {
             var res = await _repo.AddTeam(teamReq);
 
-            var outPut = new ApiResponse<string>
+            var outPut = new ApiResponse<TeamResponse>
             {
                 Data = res,
                 Succeeded = res == null ? false : true,
@@ -66,7 +67,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateTeam([FromForm] string teamId, [FromForm] TeamRequest teamReq)
+        public async Task<IActionResult> UpdateTeam(string teamId, TeamRequest teamReq)
         {
             var res = await _repo.UpdateTeam(teamId, teamReq);
 
@@ -95,6 +96,27 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        [HttpGet("getalluser/{teamId}")]
+        public async Task<IActionResult> GetByTeamId(string teamId)
+        {
+            var outPut = await _repo.GetAllByTeamId(teamId);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut
+            });
+        }
 
+        [HttpPost("join-team")]
+        public async Task<IActionResult> JoinTeam(JoinTeamRequest request)
+        {
+            var outPut = await _repo.JoinTeam(request);
+
+            return Ok(new ApiResponse<TeamResponse>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut,
+            });
+        }
     }
 }

@@ -21,5 +21,6 @@ namespace TeamApp.Application.DTOs.Post
         public long? ToDate { get; set; }
         public string GroupId { get; set; }
         public string PostUser { get; set; }
+        public string TeamId { get; set; }
     }
 }

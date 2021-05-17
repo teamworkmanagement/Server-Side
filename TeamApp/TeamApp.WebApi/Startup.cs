@@ -7,9 +7,12 @@ using System;
 using TeamApp.Application;
 using TeamApp.Application.Interfaces;
 using TeamApp.Infrastructure.Persistence;
+using TeamApp.Infrastructure.Persistence.Hubs.Chat;
+using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
+using TeamApp.Infrastructure.Persistence.Hubs.Notification;
+using TeamApp.Infrastructure.Persistence.Hubs.Post;
 using TeamApp.Infrastructure.Shared;
 using TeamApp.WebApi.Extensions;
-using TeamApp.WebApi.Hubs.Chat;
 using TeamApp.WebApi.Services;
 
 namespace TeamApp.WebApi
@@ -37,11 +40,11 @@ namespace TeamApp.WebApi
                 {
                     policy.AllowAnyHeader()
                         .AllowAnyMethod()
-                        //.SetIsOriginAllowed(origin => true)
-                        .WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://192.168.137.1:3000",
+                        .SetIsOriginAllowed(origin => true)
+                        /*.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://192.168.137.1:3000",
                         "https://localhost:3000", "https://localhost:3001", "https://localhost:3002", "https://192.168.137.1:3000",
                         "http://localhost:9000", "http://localhost:9001",
-                        "https://ezteamapp.space", "https://*.ezteamapp.space")
+                        "https://ezteamapp.space", "https://*.ezteamapp.space")*/
                         .AllowCredentials();
                 });
             });
@@ -64,12 +67,14 @@ namespace TeamApp.WebApi
             app.UseCors("ClientPermission");
             app.UseRouting();
 
+            app.UseStaticFiles();
             app.UseErrorHandlingMiddleware();
             app.UseAuthentication();
             app.UseAuthorization();
 
 
             app.UseSwaggerExtension();
+            
 
             app.UseHealthChecks("/health");
 
@@ -77,6 +82,9 @@ namespace TeamApp.WebApi
              {
                  endpoints.MapControllers();
                  endpoints.MapHub<HubChatClient>("/hubchat");
+                 endpoints.MapHub<HubPostClient>("/hubpost");
+                 endpoints.MapHub<HubKanbanClient>("/hubkanban");
+                 endpoints.MapHub<HubNotificationClient>("/hubnoti");
              });
         }
     }

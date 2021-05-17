@@ -19,6 +19,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public DateTime? TeamCreatedAt { get; set; }
         public string TeamCode { get; set; }
         public bool? TeamIsDeleted { get; set; }
+        public string TeamImageUrl { get; set; }
 
         public virtual User TeamLeader { get; set; }
         public virtual ICollection<Participation> Participation { get; set; }

@@ -15,7 +15,8 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<List<PostResponse>> GetAllByTeamId(string teamId);
         Task<List<PostResponse>> GetAllByUserTeamId(string userId, string teamId);
         Task<PagedResponse<PostResponse>> GetPaging(RequestParameter parameter);
-        Task<PagedResponse<PostResponse>> GetPostPaging(PostRequestParameter parameter);
+        Task<PagedResponse<PostResponse>> GetPostPagingUser(PostRequestParameter parameter);
+        Task<PagedResponse<PostResponse>> GetPostPagingTeam(PostRequestParameter parameter);
         Task<PostResponse> AddPost(PostRequest postReq);
         Task<bool> UpdatePost(string postId, PostRequest postReq);
         Task<bool> DeletePost(string postId);

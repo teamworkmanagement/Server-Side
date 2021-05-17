@@ -19,5 +19,6 @@ namespace TeamApp.Application.DTOs.Post
         public string UserName { get; set; }
         public string TeamName { get; set; }
         public bool IsReacted { get; set; }
+        public List<string> PostImages { get; set; }
     }
 }

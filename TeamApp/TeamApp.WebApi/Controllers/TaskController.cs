@@ -77,7 +77,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddTask([FromForm] TaskRequest taskReq)
+        public async Task<IActionResult> AddTask(TaskRequest taskReq)
         {
             var res = await _repo.AddTask(taskReq);
 
@@ -90,10 +90,10 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpPut("{taskId}")]
-        public async Task<IActionResult> UpdateTask(string taskId, [FromForm] TaskRequest taskReq)
+        [HttpPut]
+        public async Task<IActionResult> UpdateTask(TaskUpdateRequest taskReq)
         {
-            var res = await _repo.UpdateTask(taskId, taskReq);
+            var res = await _repo.UpdateTask(taskReq);
 
             var outPut = new ApiResponse<bool>
             {
@@ -118,6 +118,31 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpGet("{taskId}")]
+        [ProducesDefaultResponseType(typeof(TaskResponse))]
+        public async Task<IActionResult> GetTaskById(string taskId)
+        {
+            var outPut = await _repo.GetById(taskId);
+
+            return Ok(new ApiResponse<TaskResponse>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut,
+            });
+        }
+
+        [HttpPost("drag-task")]
+        public async Task<IActionResult> DragTask(DragTaskModel dragTaskModel)
+        {
+            var outPut = await _repo.DragTask(dragTaskModel);
+            return Ok(
+                new ApiResponse<bool>
+                {
+                    Succeeded = outPut,
+                    Data = outPut,
+                });
         }
     }
 }

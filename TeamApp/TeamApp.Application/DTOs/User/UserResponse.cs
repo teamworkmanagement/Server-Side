@@ -14,6 +14,5 @@ namespace TeamApp.Application.DTOs.User
         public string UsePhoneNumber { get; set; }
         public string UserImageUrl { get; set; }
         public DateTime? UserCreatedAt { get; set; }
-        public bool? UserIsThemeLight { get; set; }
     }
 }

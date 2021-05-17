@@ -13,7 +13,9 @@ namespace TeamApp.Application.DTOs.Team
         public DateTime? TeamCreatedAt { get; set; }
         public string TeamCode { get; set; }
         public bool? TeamIsDeleted { get; set; }
-        public string TeamAvatar { get; set; }
+        public string TeamImageUrl { get; set; }
         public int? TeamMemberCount { get; set; }
+        public string TeamLeaderName { get; set; }
+        public string TeamLeaderImageUrl { get; set; }
     }
 }
