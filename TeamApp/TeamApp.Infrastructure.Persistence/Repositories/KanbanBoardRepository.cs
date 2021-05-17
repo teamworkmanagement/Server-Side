@@ -46,6 +46,36 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return null;
         }
 
+        public async Task<List<KanbanBoardResponse>> GetBoardForTeam(string teamId)
+        {
+            var list = from kb in _dbContext.KanbanBoard.AsNoTracking()
+                       where kb.KanbanBoardBelongedId == teamId
+                       select kb;
+            if (list == null)
+                return null;
+            var listBoards = await list.ToListAsync();
+
+            Dictionary<string, int> TaskCounts = new Dictionary<string, int>();
+
+            foreach (var lb in listBoards)
+            {
+                var taskCount = await (from t in _dbContext.Task.AsNoTracking()
+                                       join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                       where kl.KanbanListBoardBelongedId == lb.KanbanBoardId
+                                       select t.TaskId).CountAsync();
+
+                TaskCounts.Add(lb.KanbanBoardId, taskCount);
+            }
+
+
+            return await list.Select(x => new KanbanBoardResponse
+            {
+                KanbanBoardId = x.KanbanBoardId,
+                KanbanBoardBelongedId = x.KanbanBoardBelongedId,
+                TaskCount = TaskCounts[x.KanbanBoardId]
+            }).ToListAsync();
+        }
+
         public async Task<KanbanBoardUIResponse> GetKanbanBoardUI(string boardId)
         {
             var board = await (from b in _dbContext.KanbanBoard.AsNoTracking()

@@ -54,5 +54,16 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             });
         }
+
+        [HttpGet("team-boards")]
+        public async Task<IActionResult> GetKanbanBoardForTeam(string teamId)
+        {
+            var outPut = await _repo.GetBoardForTeam(teamId);
+            return Ok(new ApiResponse<List<KanbanBoardResponse>>
+            {
+                Data = outPut,
+                Succeeded = outPut != null
+            });
+        }
     }
 }

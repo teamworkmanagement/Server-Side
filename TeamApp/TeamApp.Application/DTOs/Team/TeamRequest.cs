@@ -12,5 +12,6 @@ namespace TeamApp.Application.DTOs.Team
         public DateTime? TeamCreatedAt { get; set; }
         public string TeamCode { get; set; }
         public bool? TeamIsDeleted { get; set; }
+        public bool IsRequestJoin { get; set; }
     }
 }
