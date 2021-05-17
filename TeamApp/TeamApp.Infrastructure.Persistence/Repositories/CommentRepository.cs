@@ -45,27 +45,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             await _dbContext.Comment.AddAsync(entity);
             var check = await _dbContext.SaveChangesAsync();
+
             if (cmtReq.CommentUserTagIds.Count != 0)
                 await _notificationRepository.PushNoti(cmtReq.CommentUserTagIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bình luận");
 
 
-            var teamId = await (from p in _dbContext.Post.AsNoTracking()
-                                where p.PostId == cmtReq.CommentPostId
-                                select p.PostTeamId).FirstOrDefaultAsync();
-
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
-                        where p.ParticipationTeamId == teamId && uc.Type == "post"
-                        select uc;
+                        where p.ParticipationTeamId == cmtReq.CommentTeamId && uc.Type == "post" && uc.UserId != cmtReq.CommentUserId
+                        select uc.ConnectionId;
 
             query = query.Distinct();
-
-            var clients = await query.AsNoTracking().Where(x => x.UserId != cmtReq.CommentUserId).Select(x => x.ConnectionId).ToListAsync();
+            var clients = await query.ToListAsync();
 
             var readOnlyStr = new ReadOnlyCollection<string>(clients);
 
-
-            var user = await _dbContext.User.FindAsync(cmtReq.CommentUserId);
             await _postHub.Clients.Clients(readOnlyStr).NewComment(new CommentResponse
             {
                 CommentId = entity.CommentId,
@@ -75,8 +69,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 CommentTaskId = entity.CommentTaskId,
                 CommentCreatedAt = entity.CommentCreatedAt,
                 CommentIsDeleted = entity.CommentIsDeleted,
-                UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
-                UserName = user.FullName,
+                UserAvatar = cmtReq.CommentUserAvatar,
+                UserName = cmtReq.CommentUserName,
             });
 
             if (check > 0)
@@ -91,6 +85,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     CommentTaskId = entity.CommentTaskId,
                     CommentCreatedAt = entity.CommentCreatedAt,
                     CommentIsDeleted = entity.CommentIsDeleted,
+                    UserAvatar = cmtReq.CommentUserAvatar,
+                    UserName = cmtReq.CommentUserName,
                 };
             }
             return null;
