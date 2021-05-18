@@ -366,15 +366,16 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             foreach (var ent in entityList)
             {
-                /*var listImage = from f in _dbContext.File.AsNoTracking()
-                                where f.FileBelongedId == ent.PostId
-                                select new PostImage { ImageUrl = f.FileUrl };*/
+                var listImage = await (from f in _dbContext.File.AsNoTracking()
+                                       where f.FileBelongedId == ent.PostId
+                                       orderby f.FileUploadTime
+                                       select f.FileUrl).ToListAsync();
                 List<string> lists = new List<string>
                 {
-                    "https://momoshop.com.vn/wp-content/uploads/2018/11/balo-laptop-dep8623079002_293603435.jpg"
-                    ,"https://momoshop.com.vn/wp-content/uploads/2018/11/balo-laptop-dep8623079002_293603435.jpg"
-                    ,"https://momoshop.com.vn/wp-content/uploads/2018/11/balo-laptop-dep8623079002_293603435.jpg"
+
                 };
+
+                lists.AddRange(listImage);
 
                 ent.PostImages = lists;
             }

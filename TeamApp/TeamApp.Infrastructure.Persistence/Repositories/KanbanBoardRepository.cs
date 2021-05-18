@@ -54,6 +54,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var list = from kb in _dbContext.KanbanBoard.AsNoTracking()
                        where kb.KanbanBoardBelongedId == teamId
+                       orderby kb.KanbanBoardCreatedAt
                        select kb;
             if (list == null)
                 return null;
