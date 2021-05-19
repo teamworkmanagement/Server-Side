@@ -110,7 +110,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     //await _userManager.AddToRoleAsync(user, Roles.Basic.ToString());
                     var verificationUri = await SendVerificationEmail(user, origin);
                     //TODO: Attach Email Service here and configure it via appsettings
-                    await _emailService.SendAsync(new Application.DTOs.Email.EmailRequest() { From = "KD", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
+                    await _emailService.SendAsyncAWS(new Application.DTOs.Email.EmailRequest() { From = "KD", To = user.Email, Body = $"Hãy xác thực tài khoản của bạn bằng việc nhấn vào link dưới <br> <a href=\'{verificationUri}\'>Xác thực</a>", Subject = "Confirm Registration" });
                     return new ApiResponse<string>(user.Id, message: $"User Registered. Please confirm your account by visiting this URL {verificationUri}");
                 }
                 else
@@ -221,7 +221,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 To = model.Email,
                 Subject = "Reset Password",
             };
-            await _emailService.SendAsync(emailRequest);
+            await _emailService.SendAsyncAWS(emailRequest);
         }
 
         public async Task<ApiResponse<string>> ResetPassword(ResetPasswordRequest model)
