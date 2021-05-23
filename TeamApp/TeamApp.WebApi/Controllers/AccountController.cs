@@ -46,11 +46,11 @@ namespace TeamApp.WebApi.Controllers
                 var data = outPut.Data;
 
                 HttpContext.Response.Cookies.Append("access_token", data.JWToken,
-                    new CookieOptions { Domain="ezteam.engineer", Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
                 HttpContext.Response.Cookies.Append("refresh_token", data.RefreshToken,
-                    new CookieOptions { Domain = "ezteam.engineer", Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
+                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
                 HttpContext.Response.Cookies.Append("backup", Guid.NewGuid().ToString(),
-                    new CookieOptions { Domain = "ezteam.engineer", Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
             }
 
             return Ok(outPut);
@@ -136,11 +136,11 @@ namespace TeamApp.WebApi.Controllers
             if (outPut.Succeeded)
             {
                 HttpContext.Response.Cookies.Append("access_token", outPut.Data.AccessToken,
-                    new CookieOptions { Domain = "ezteam.engineer", Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
                 HttpContext.Response.Cookies.Append("refresh_token", outPut.Data.RefreshToken,
-                    new CookieOptions { Domain = "ezteam.engineer", Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
+                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
                 HttpContext.Response.Cookies.Append("backup", Guid.NewGuid().ToString(),
-                    new CookieOptions { Domain = "ezteam.engineer", Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
             }
             return Ok(outPut);
         }
@@ -158,11 +158,11 @@ namespace TeamApp.WebApi.Controllers
             if (outPut.Succeeded)
             {
                 HttpContext.Response.Cookies.Append("access_token", outPut.Data.JWToken,
-                    new CookieOptions { Domain = "ezteam.engineer", Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
                 HttpContext.Response.Cookies.Append("refresh_token", outPut.Data.RefreshToken,
-                    new CookieOptions { Domain = "ezteam.engineer", Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
+                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
                 HttpContext.Response.Cookies.Append("backup", Guid.NewGuid().ToString(),
-                    new CookieOptions { Domain = "ezteam.engineer", Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
             }
 
             return Ok(outPut);

@@ -104,7 +104,6 @@ namespace TeamApp.Infrastructure.Persistence
                                 c.Response.Headers.Add("X-Token-Expired", "true");
                                 c.Response.Cookies.Append("TokenExpired", "true", new CookieOptions
                                 {
-                                    Domain = "ezteam.engineer",
                                     Expires = DateTime.UtcNow.AddMinutes(5),
                                     Secure = true,
                                     HttpOnly = false,
