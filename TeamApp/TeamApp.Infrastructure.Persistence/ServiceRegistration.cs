@@ -60,7 +60,11 @@ namespace TeamApp.Infrastructure.Persistence
         public static void ConfigAuthService(IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton<IAuthorizationHandler, IpCheckHandler>();
-            services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<TeamAppContext>().AddDefaultTokenProviders();
+            services.AddIdentity<User, IdentityRole>(options =>
+            {
+                options.Tokens.PasswordResetTokenProvider = nameof(SixDigitTokenProvider<User>);
+            }).AddEntityFrameworkStores<TeamAppContext>().AddDefaultTokenProviders()
+            .AddTokenProvider<SixDigitTokenProvider<User>>(nameof(SixDigitTokenProvider<User>));
             #region Services
             services.AddTransient<IAccountService, AccountService>();
             #endregion

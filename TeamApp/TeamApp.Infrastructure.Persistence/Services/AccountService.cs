@@ -43,7 +43,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
             _signInManager = signInManager;
-            this._emailService = emailService;
+            _emailService = emailService;
             _dbContext = dbContext;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -229,6 +229,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var account = await _userManager.FindByEmailAsync(model.Email);
             if (account == null) throw new ApiException($"No Accounts Registered with {model.Email}.");
             var result = await _userManager.ResetPasswordAsync(account, model.Token, model.Password);
+
             if (result.Succeeded)
             {
                 return new ApiResponse<string>(model.Email, message: $"Password Resetted.");
