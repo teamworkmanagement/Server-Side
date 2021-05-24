@@ -4,11 +4,9 @@ using System.Text;
 
 namespace TeamApp.Application.DTOs.Task
 {
-    public class DragTaskModel
+    public class TaskRemoveModel
     {
         public string TaskId { get; set; }
-        public float Position { get; set; }
-        public string OldList { get; set; }
-        public string NewList { get; set; }
+        public string KanbanListId { get; set; }
     }
 }

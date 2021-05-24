@@ -11,7 +11,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 namespace TeamApp.Infrastructure.Persistence.Hubs.Kanban
 {
     [Authorize]
-    public class HubKanbanClient: Hub<IHubKanbanClient>
+    public class HubKanbanClient : Hub<IHubKanbanClient>
     {
         private readonly TeamAppContext _dbContext;
         public HubKanbanClient(TeamAppContext dbContext)
@@ -29,6 +29,7 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Kanban
                 ConnectionId = Context.ConnectionId,
                 UserName = userName,
                 UserId = user.Id,
+                Type = "kanban",
             };
 
             await _dbContext.UserConnection.AddAsync(uc);

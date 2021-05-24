@@ -9,6 +9,6 @@ namespace TeamApp.Application.DTOs.KanbanList
         public string KanbanListId { get; set; }
         public string KanbanListTitle { get; set; }
         public string KanbanListBoardBelongedId { get; set; }
-        public int? KanbanListOrderInBoard { get; set; }
+        public float? KanbanListOrderInBoard { get; set; }
     }
 }

@@ -11,15 +11,19 @@ using TeamApp.Application.DTOs.Task;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.Utils;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class KanbanBoardRepository : IKanbanBoardRepository
     {
         private readonly TeamAppContext _dbContext;
-        public KanbanBoardRepository(TeamAppContext teamAppContext)
+        private readonly IHubContext<HubKanbanClient, IHubKanbanClient> _hubKanban;
+        public KanbanBoardRepository(TeamAppContext teamAppContext, IHubContext<HubKanbanClient, IHubKanbanClient> hubKanban)
         {
             _dbContext = teamAppContext;
+            _hubKanban = hubKanban;
         }
 
         public async Task<KanbanBoardResponse> AddKanbanBoard(KanbanBoardRequest kanbanBoardRequest)
@@ -66,7 +70,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 var taskCount = await (from t in _dbContext.Task.AsNoTracking()
                                        join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
-                                       where kl.KanbanListBoardBelongedId == lb.KanbanBoardId
+                                       where kl.KanbanListBoardBelongedId == lb.KanbanBoardId && t.TaskIsDeleted == false
                                        select t.TaskId).CountAsync();
 
                 TaskCounts.Add(lb.KanbanBoardId, taskCount);
@@ -120,7 +124,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                                  select new { t, tu.ImageUrl, tu.Id, t.Comments };
 
-            var listTasks = await listTasksQuery.AsNoTracking().ToListAsync();
+            var listTasks = await listTasksQuery.AsNoTracking().Where(x => x.t.TaskIsDeleted == false).ToListAsync();
+
             foreach (var kl in listKanban)
             {
                 var kanbanListTasks = listTasks.Where(x => x.t.TaskBelongedId == kl.KanbanListId).OrderBy(x => x.t.TaskOrderInList);
@@ -230,27 +235,39 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<bool> SwapListKanban(SwapListModel swapListModel)
         {
-            var sourceList = await _dbContext.KanbanList.Where(x => !x.KanbanListIsDeleted.Value && x.KanbanListBoardBelongedId == swapListModel.KanbanBoardId
-              && (x.KanbanListOrderInBoard == swapListModel.SourceIndex || x.KanbanListOrderInBoard == swapListModel.DestinationIndex)).ToListAsync();
+            var kblEntity = await _dbContext.KanbanList.Where(x => x.KanbanListId == swapListModel.KanbanListId && x.KanbanListIsDeleted == false).FirstOrDefaultAsync();
 
-            if (sourceList == null || sourceList.Count != 2)
+            if (kblEntity == null)
                 return false;
 
-            if (sourceList[0].KanbanListOrderInBoard == swapListModel.DestinationIndex)
+            var done = false;
+            using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                sourceList[0].KanbanListOrderInBoard = swapListModel.SourceIndex;
-                sourceList[1].KanbanListOrderInBoard = swapListModel.DestinationIndex;
-                _dbContext.KanbanList.Update(sourceList[0]);
-                _dbContext.KanbanList.Update(sourceList[1]);
-                await _dbContext.SaveChangesAsync();
+                try
+                {
+                    kblEntity.KanbanListOrderInBoard = swapListModel.Position;
+                    Console.WriteLine("Begin Transaction");
+                    _dbContext.KanbanList.Update(kblEntity);
+                    await _dbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    done = true;
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine(ex.ToString());
+                }
             }
-            else
+
+            if (done)
             {
-                sourceList[0].KanbanListOrderInBoard = swapListModel.DestinationIndex;
-                sourceList[1].KanbanListOrderInBoard = swapListModel.SourceIndex;
-                _dbContext.KanbanList.Update(sourceList[0]);
-                _dbContext.KanbanList.Update(sourceList[1]);
-                await _dbContext.SaveChangesAsync();
+                var board = await _dbContext.KanbanBoard.FindAsync(swapListModel.KanbanBoardId);
+
+                var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                     join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                     where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardBelongedId
+                                     select u.ConnectionId).ToListAsync();
+
+                await _hubKanban.Clients.Clients(clients).MoveList(swapListModel);
             }
 
             return true;

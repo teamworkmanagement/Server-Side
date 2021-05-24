@@ -7,15 +7,20 @@ using TeamApp.Application.DTOs.KanbanList;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
+using System.Collections.ObjectModel;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class KanbanListRepository : IKanbanListRepository
     {
         private readonly TeamAppContext _dbContext;
-        public KanbanListRepository(TeamAppContext dbContext)
+        private readonly IHubContext<HubKanbanClient, IHubKanbanClient> _hubKanban;
+        public KanbanListRepository(TeamAppContext dbContext, IHubContext<HubKanbanClient, IHubKanbanClient> hubKanban)
         {
             _dbContext = dbContext;
+            _hubKanban = hubKanban;
         }
         public async Task<KanbanListUIResponse> AddKanbanList(KanbanListRequest kanbanListRequest)
         {
@@ -30,25 +35,37 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.AddAsync(entity);
             var check = await _dbContext.SaveChangesAsync() > 0;
 
+            var board = await _dbContext.KanbanBoard.FindAsync(kanbanListRequest.KanbanListBoardBelongedId);
+
+            var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                             join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                             where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardBelongedId
+                             select u.ConnectionId).ToListAsync();
+
+            var response = new KanbanListUIResponse
+            {
+                KanbanListId = entity.KanbanListId,
+                KanbanListTitle = entity.KanbanListTitle,
+                KanbanListBoardBelongedId = entity.KanbanListBoardBelongedId,
+                KanbanListOrderInBoard = entity.KanbanListOrderInBoard,
+                TaskUIKanbans = new List<Application.DTOs.Task.TaskUIKanban>(),
+            };
+
+            var cPush = new ReadOnlyCollection<string>(clients);
+            await _hubKanban.Clients.Clients(cPush).AddNewList(response);
+
             if (check)
             {
-                return new KanbanListUIResponse
-                {
-                    KanbanListId = entity.KanbanListId,
-                    KanbanListTitle = entity.KanbanListTitle,
-                    KanbanListBoardBelongedId = entity.KanbanListBoardBelongedId,
-                    KanbanListOrderInBoard = entity.KanbanListOrderInBoard,
-                    TaskUIKanbans = new List<Application.DTOs.Task.TaskUIKanban>(),
-                };
+                return response;
             }
 
             return null;
         }
 
-        public async Task<bool> RemoveList(string kbListId)
+        public async Task<bool> RemoveList(KanbanListRequest kanbanListRequest)
         {
             var kbListEntity = await (from kl in _dbContext.KanbanList.AsNoTracking()
-                                      where kl.KanbanListId == kbListId
+                                      where kl.KanbanListId == kanbanListRequest.KanbanListId
                                       select kl).FirstOrDefaultAsync();
 
             if (kbListEntity == null)
@@ -57,22 +74,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             kbListEntity.KanbanListIsDeleted = true;
             await _dbContext.KanbanList.SingleUpdateAsync(kbListEntity);
 
-            var kbListsBoard = await (from kl in _dbContext.KanbanList
-                                      join k in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals k.KanbanBoardId
-                                      where k.KanbanBoardId == kbListEntity.KanbanListBoardBelongedId
-                                      select kl).ToListAsync();
+            var board = await _dbContext.KanbanBoard.FindAsync(kanbanListRequest.KanbanListBoardBelongedId);
+            
+            var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                 join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                 where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardBelongedId
+                                 select u.ConnectionId).ToListAsync();
 
-            var newListsBoard = new List<KanbanList>();
-            foreach (var e in kbListsBoard)
+            var response = new KanbanListUIResponse
             {
-                if (e.KanbanListOrderInBoard > kbListEntity.KanbanListOrderInBoard)
-                {
-                    e.KanbanListOrderInBoard--;
-                    newListsBoard.Add(e);
-                }
-            }
+                KanbanListId = kanbanListRequest.KanbanListId,
+                KanbanListBoardBelongedId = kanbanListRequest.KanbanListBoardBelongedId,
+            };
 
-            await _dbContext.BulkUpdateAsync(newListsBoard);
+            await _hubKanban.Clients.Clients(clients).RemoveList(response);
 
             return true;
         }

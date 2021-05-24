@@ -10,6 +10,8 @@ using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Application.Utils;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -18,12 +20,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         private readonly TeamAppContext _dbContext;
         private readonly IFileRepository _file;
         private readonly ICommentRepository _comment;
+        private readonly IHubContext<HubKanbanClient, IHubKanbanClient> _hubKanban;
 
-        public TaskRepository(TeamAppContext dbContext, IFileRepository file, ICommentRepository comment)
+        public TaskRepository(TeamAppContext dbContext, IFileRepository file, ICommentRepository comment, IHubContext<HubKanbanClient, IHubKanbanClient> hubKanban)
         {
             _dbContext = dbContext;
             _file = file;
             _comment = comment;
+            _hubKanban = hubKanban;
         }
         public async Task<string> AddTask(TaskRequest taskReq)
         {
@@ -35,7 +39,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskPoint = taskReq.TaskPoint,
                 TaskCreatedAt = DateTime.UtcNow,
                 TaskStartDate = taskReq.TaskStartDate,
-                TaskDeadline=taskReq.TaskDeadline,
+                TaskDeadline = taskReq.TaskDeadline,
                 TaskStatus = taskReq.TaskStatus,
                 TaskCompletedPercent = 0,
                 TaskTeamId = taskReq.TaskTeamId,
@@ -48,22 +52,36 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.Task.AddAsync(entity);
             await _dbContext.SaveChangesAsync();
 
-
-            if (taskReq.TaskOrderInList != null && taskReq.TaskBelongedId != null)
+            var taskUIKanban = new TaskUIKanban
             {
-                var allTasks = await _dbContext.Task.Where(t => t.TaskBelongedId == taskReq.TaskBelongedId
-                  && t.TaskId != entity.TaskId).ToListAsync();
+                OrderInList = entity.TaskOrderInList,
+                KanbanListId = entity.TaskBelongedId,
+                TaskId = entity.TaskId,
+                TaskImageUrl = null,
+                TaskName = entity.TaskName,
+                TaskStartDate = entity.TaskStartDate,
+                TaskDeadline = entity.TaskDeadline,
+                TaskDescription = entity.TaskDescription,
+                TaskStatus = entity.TaskStatus,
+                CommentsCount = 0,
+                FilesCount = 0,
+                UserId = null,
+                UserAvatar = null,
+                TaskCompletedPercent = 0,
+                TaskThemeColor = null,
+            };
 
-                foreach (var t in allTasks)
-                {
-                    if (t.TaskOrderInList >= taskReq.TaskOrderInList)
-                    {
-                        t.TaskOrderInList++;
-                        _dbContext.Task.Update(t);
-                        await _dbContext.SaveChangesAsync();
-                    }
-                }
-            }
+            var board = await (from kl in _dbContext.KanbanList.AsNoTracking()
+                               join k in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals k.KanbanBoardId
+                               where kl.KanbanListId == taskReq.TaskBelongedId
+                               select k).FirstOrDefaultAsync();
+
+            var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                 join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                 where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardBelongedId
+                                 select u.ConnectionId).ToListAsync();
+
+            await _hubKanban.Clients.Clients(clients).AddNewTask(taskUIKanban);
 
             return entity.TaskId;
         }
@@ -75,90 +93,72 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (entity == null)
                 return false;
 
-            var listTasksQuery = from t in _dbContext.Task
-                                 join kl in _dbContext.KanbanList on t.TaskBelongedId equals kl.KanbanListId
-                                 select t;
+            entity.TaskIsDeleted = true;
+            _dbContext.Task.Update(entity);
+            await _dbContext.SaveChangesAsync();
 
-            var listTasks = await listTasksQuery.ToListAsync();
+            var board = await (from kl in _dbContext.KanbanList.AsNoTracking()
+                               join k in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals k.KanbanBoardId
+                               where kl.KanbanListId == entity.TaskBelongedId
+                               select k).FirstOrDefaultAsync();
 
-            foreach (var t in listTasks)
+            var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                 join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                 where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardBelongedId
+                                 select u.ConnectionId).ToListAsync();
+
+            await _hubKanban.Clients.Clients(clients).RemoveTask(new TaskRemoveModel
             {
-                if (t.TaskId == entity.TaskId)
-                {
-                    entity.TaskIsDeleted = true;
-                    _dbContext.Task.Update(entity);
-                    await _dbContext.SaveChangesAsync();
-                }
-                else
-                {
-                    if (t.TaskOrderInList > entity.TaskOrderInList)
-                    {
-                        t.TaskOrderInList--;
-                        _dbContext.Task.Update(t);
-                        await _dbContext.SaveChangesAsync();
-                    }
-                }
-            }
+                TaskId = taskId,
+                KanbanListId = entity.TaskBelongedId,
+            });
 
             return true;
         }
 
         public async Task<bool> DragTask(DragTaskModel dragTaskModel)
         {
-            var count = 0;
-            var listTaskDestinationQuery = from t in _dbContext.Task
-                                           where t.TaskBelongedId == dragTaskModel.DestinationDroppableId && t.TaskIsDeleted == false
-                                           select t;
+            var entity = await _dbContext.Task.FindAsync(dragTaskModel.TaskId);
 
-            var listTaskDestination = await listTaskDestinationQuery.ToListAsync();
-            if (dragTaskModel.DestinationDroppableId == dragTaskModel.SourceDroppableId)
+            if (entity == null)
+                return false;
+            var done = false;
+
+            using (var transaction = _dbContext.Database.BeginTransaction())
             {
-                var source = listTaskDestination.Where(x => x.TaskOrderInList == dragTaskModel.SourceIndex).FirstOrDefault();
-                var destination = listTaskDestination.Where(x => x.TaskOrderInList == dragTaskModel.DestinationIndex).FirstOrDefault();
-
-                source.TaskOrderInList = dragTaskModel.DestinationIndex;
-                destination.TaskOrderInList = dragTaskModel.SourceIndex;
-                _dbContext.Task.Update(source);
-                _dbContext.Task.Update(destination);
-                var check = await _dbContext.SaveChangesAsync() > 0;
-                return check;
-            }
-            foreach (var t in listTaskDestination)
-            {
-                if (t.TaskOrderInList >= dragTaskModel.DestinationIndex)
-                    t.TaskOrderInList++;
-
-                _dbContext.Task.Update(t);
-                var check = await _dbContext.SaveChangesAsync() > 0;
-                if (check)
-                    count++;
-            }
-
-
-            var listTaskSourceQuery = from t in _dbContext.Task
-                                      where t.TaskBelongedId == dragTaskModel.SourceDroppableId
-                                      select t;
-            var listTaskSource = await listTaskSourceQuery.ToListAsync();
-            foreach (var t in listTaskSource)
-            {
-                if (t.TaskOrderInList == dragTaskModel.SourceIndex)
+                try
                 {
-                    t.TaskBelongedId = dragTaskModel.DestinationDroppableId;
-                    t.TaskOrderInList = dragTaskModel.DestinationIndex;
+                    entity.TaskOrderInList = dragTaskModel.Position;
+                    if (dragTaskModel.OldList != dragTaskModel.NewList)
+                        entity.TaskBelongedId = dragTaskModel.NewList;
+                    Console.WriteLine("Begin Transaction");
+                    _dbContext.Task.Update(entity);
+                    await _dbContext.SaveChangesAsync();
+                    await transaction.CommitAsync();
+                    done = true;
                 }
-
-                else if (t.TaskOrderInList > dragTaskModel.SourceIndex)
+                catch (Exception ex)
                 {
-                    t.TaskOrderInList--;
+                    Console.WriteLine(ex.ToString());
                 }
-
-                _dbContext.Task.Update(t);
-                var check = await _dbContext.SaveChangesAsync() > 0;
-                if (check)
-                    count++;
             }
 
-            return count == listTaskDestination.Count + listTaskSource.Count;
+            if (done)
+            {
+                var board = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                                   join kl in _dbContext.KanbanList.AsNoTracking() on b.KanbanBoardId equals kl.KanbanListBoardBelongedId
+                                   where kl.KanbanListId == dragTaskModel.NewList
+                                   select b).FirstOrDefaultAsync();
+
+                var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                     join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                     where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardBelongedId
+                                     select u.ConnectionId).ToListAsync();
+
+                await _hubKanban.Clients.Clients(clients).MoveTask(dragTaskModel);
+            }
+
+            return true;
         }
 
         public async Task<List<TaskResponse>> GetAllByTeamId(string teamId)

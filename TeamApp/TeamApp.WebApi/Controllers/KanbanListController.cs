@@ -36,12 +36,12 @@ namespace TeamApp.WebApi.Controllers
         /// <summary>
         /// Remove kanbanlist
         /// </summary>
-        /// <param name="kanbanListId"></param>
+        /// <param name="kanbanListRequest"></param>
         /// <returns></returns>
-        [HttpDelete("{kanbanListId}")]
-        public async Task<IActionResult> RemoveKanbanList(string kanbanListId)
+        [HttpDelete]
+        public async Task<IActionResult> RemoveKanbanList([FromQuery]KanbanListRequest kanbanListRequest)
         {
-            var result = await _repo.RemoveList(kanbanListId);
+            var result = await _repo.RemoveList(kanbanListRequest);
             return Ok(new ApiResponse<bool>
             {
                 Data = result,

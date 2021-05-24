@@ -23,7 +23,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string TaskTeamId { get; set; }
         public bool? TaskIsDeleted { get; set; }
         public string TaskBelongedId { get; set; }
-        public int? TaskOrderInList { get; set; }
+        public float? TaskOrderInList { get; set; }
         public string TaskThemeColor { get; set; }
         public string TaskImageUrl { get; set; }
         public DateTime? TaskDeadline { get; set; }
