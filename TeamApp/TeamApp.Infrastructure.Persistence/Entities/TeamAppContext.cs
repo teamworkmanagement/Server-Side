@@ -210,6 +210,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.GroupChatType)
+                    .HasColumnName("group_chat_type")
+                    .HasColumnType("enum('double','multi')")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
                 entity.Property(e => e.GroupChatUpdatedAt)
                     .HasColumnName("group_chat_updated_at")
                     .HasColumnType("timestamp");

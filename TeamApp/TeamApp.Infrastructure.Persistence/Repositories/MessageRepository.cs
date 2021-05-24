@@ -111,7 +111,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MessageIsDeleted = x.m.MessageIsDeleted,
                 IsMessage = x.m.IsMessage,
                 MessageType = x.m.MessageType,
-                MessengerUserAvatar = x.u.ImageUrl,
+                MessengerUserAvatar = string.IsNullOrEmpty(x.u.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.u.FullName}" : x.u.ImageUrl,
                 MessengerUserName = x.u.FullName,
             }).ToListAsync();
 
