@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.DTOs.User;
+using TeamApp.Application.Wrappers;
 
 namespace TeamApp.Application.Interfaces.Repositories
 {
@@ -19,7 +20,8 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// </summary>
         /// <param name="teamId"></param>
         /// <returns></returns>
-        Task<List<UserResponse>> GetAllByTeamId(string teamId);
+        Task<PagedResponse<UserResponse>> GetUsersByTeamIdPaging(TeamUserParameter userParameter);
+        Task<UserResponse> GetAdmin(string teamId);
         Task<TeamResponse> JoinTeam(JoinTeamRequest request);
     }
 }
