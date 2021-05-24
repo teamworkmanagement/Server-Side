@@ -54,10 +54,49 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return null;
         }
 
-        public async Task<List<KanbanBoardResponse>> GetBoardForTeam(string teamId)
+        public async Task<List<KanbanBoardResponse>> GetBoardForUserTeams(string userId)
+        {
+            //get all team for user
+            var teams = await (from p in _dbContext.Participation.AsNoTracking()
+                               join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
+                               join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                               where u.Id == userId
+                               select t).ToListAsync();
+
+            List<KanbanBoardResponse> responses = new List<KanbanBoardResponse>();
+
+            foreach (var team in teams)
+            {
+                var boards = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                                    where b.KanbanBoardBelongedId == team.TeamId
+                                    select b).ToListAsync();
+
+                foreach (var board in boards)
+                {
+                    var taskCount = await (from t in _dbContext.Task.AsNoTracking()
+                                           join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                           where kl.KanbanListBoardBelongedId == board.KanbanBoardId && t.TaskIsDeleted == false
+                                           select t.TaskId).CountAsync();
+
+                    responses.Add(new KanbanBoardResponse
+                    {
+                        KanbanBoardId = board.KanbanBoardId,
+                        KanbanBoardBelongedId = board.KanbanBoardBelongedId,
+                        KanbanBoardName = board.KanbanBoardName,
+                        TaskCount = taskCount,
+                        KanbanBoardGroupName = team.TeamName,
+                        GroupImageUrl = string.IsNullOrEmpty(team.TeamImageUrl) ? $"https://ui-avatars.com/api/?name={team.TeamName}" : team.TeamImageUrl,
+                    });
+                }
+            }
+
+            return responses;
+        }
+
+        public async Task<List<KanbanBoardResponse>> GetBoardForUser(string userId)
         {
             var list = from kb in _dbContext.KanbanBoard.AsNoTracking()
-                       where kb.KanbanBoardBelongedId == teamId
+                       where kb.KanbanBoardBelongedId == userId
                        orderby kb.KanbanBoardCreatedAt
                        select kb;
             if (list == null)

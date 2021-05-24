@@ -70,5 +70,16 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             });
         }
+
+        [HttpGet("search-user/{userId}/{keyword}")]
+        public async Task<IActionResult> SearchUser(string userId, string keyword)
+        {
+            var outPut = await _repo.SearchUser(userId, keyword);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = outPut,
+                Succeeded = outPut != null
+            });
+        }
     }
 }

@@ -22,10 +22,10 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("byuserid/{userId}")]
-        public async Task<IActionResult> GetAllByUserId(string userId)
+        [HttpGet("byuserid")]
+        public async Task<IActionResult> GetAllByUserId([FromQuery] GroupChatSearch search)
         {
-            var res = await _repo.GetAllByUserId(userId);
+            var res = await _repo.GetAllByUserId(search);
 
             var outPut = new ApiResponse<List<GroupChatResponse>>
             {

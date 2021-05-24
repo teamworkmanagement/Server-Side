@@ -40,14 +40,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return await Task.FromResult(false);
         }
 
-        public async Task<List<GroupChatResponse>> GetAllByUserId(string userId)
+        public async Task<List<GroupChatResponse>> GetAllByUserId(GroupChatSearch search)
         {
             var query = from gc in _dbContext.GroupChat.AsNoTracking()
                         join grc in _dbContext.GroupChatUser.AsNoTracking() on gc.GroupChatId equals grc.GroupChatUserGroupChatId
                         join t in _dbContext.Team.AsNoTracking() on gc.GroupChatId equals t.TeamId
                         select new { gc, grc, t.TeamImageUrl };
 
-            var outputQuery = query.Where(x => x.grc.GroupChatUserUserId == userId).OrderByDescending(x => x.gc.GroupChatUpdatedAt);
+            var outputQuery = query.Where(x => x.grc.GroupChatUserUserId == search.UserId).OrderByDescending(x => x.gc.GroupChatUpdatedAt);
 
             var outPut = await outputQuery.ToListAsync();
 
@@ -88,7 +88,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     var user = await (from grc in _dbContext.GroupChatUser.AsNoTracking()
                                       join u in _dbContext.User.AsNoTracking() on grc.GroupChatUserUserId equals u.Id
-                                      where grc.GroupChatUserUserId != userId && grc.GroupChatUserGroupChatId == l.GroupChatId
+                                      where grc.GroupChatUserUserId != search.UserId && grc.GroupChatUserGroupChatId == l.GroupChatId
                                       select new { u.FullName, u.ImageUrl }).FirstOrDefaultAsync();
 
                     l.GroupChatName = user.FullName;
@@ -97,6 +97,15 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             }
 
+
+            if (search.IsSearch)
+            {
+                if (!string.IsNullOrEmpty(search.KeyWord))
+                {
+                    var xoadau = search.KeyWord.UnsignUnicode();
+                    lists = lists.Where(x => x.GroupChatName.UnsignUnicode().Contains(xoadau)).Select(x => x).ToList();
+                }
+            }
             return lists;
         }
 

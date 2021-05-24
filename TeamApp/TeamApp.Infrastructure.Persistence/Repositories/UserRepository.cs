@@ -80,6 +80,23 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return userRes;
         }
 
+        public async Task<List<UserResponse>> SearchUser(string userId, string keyWord)
+        {
+            var query = "SELECT * FROM user " +
+                $"where user.user_id <> '{userId}' and user.user_fullname like '%{keyWord}%'";
+            Console.WriteLine(query);
+
+            var outPut = await _dbContext.User.FromSqlRaw(query).ToListAsync();
+
+            return outPut.Select(x => new UserResponse
+            {
+                UserId = x.Id,
+                UserEmail = x.Email,
+                UserFullname = x.FullName,
+                UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
+            }).ToList();
+        }
+
         public async Task<List<UserResponse>> SearchUserNoJoinTeam(string teamId, string keyWord)
         {
             var query = await (from p in _dbContext.Participation.AsNoTracking()
