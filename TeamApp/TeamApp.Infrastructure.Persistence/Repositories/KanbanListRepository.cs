@@ -39,7 +39,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                              join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                             where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardBelongedId
+                             where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
                              select u.ConnectionId).ToListAsync();
 
             var response = new KanbanListUIResponse
@@ -78,7 +78,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                 where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardBelongedId
+                                 where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
                                  select u.ConnectionId).ToListAsync();
 
             var response = new KanbanListUIResponse

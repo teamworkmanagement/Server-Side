@@ -9,8 +9,11 @@ namespace TeamApp.Application.DTOs.File
         public string FileName { get; set; }
         public string FileUrl { get; set; }
         public string FileType { get; set; }
-        public string UserId { get; set; }
-        public string FileBelongedId { get; set; }
+        public string FileUserUploadId { get; set; }
+        public string FileUserOwnerId { get; set; }
+        public string FileTeamOwnerId { get; set; }
+        public string FileTaskOwnerId { get; set; }
+        public string FilePostOwnerId { get; set; }
         public double FileSize { get; set; }
     }
 }

@@ -9,8 +9,8 @@ using TeamApp.Infrastructure.Persistence.Entities;
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    [Migration("20210524022758_fixchatdb")]
-    partial class fixchatdb
+    [Migration("20210525042836_20210524022758_fixchatdb")]
+    partial class _20210524022758_fixchatdb
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -224,21 +224,33 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<string>("FileBelongedId")
-                        .HasColumnName("file_belonged_id")
-                        .HasColumnType("varchar(50)")
-                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
-                        .HasAnnotation("MySql:CharSet", "utf8mb4");
-
                     b.Property<string>("FileName")
                         .HasColumnName("file_name")
                         .HasColumnType("varchar(100)")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("FilePostOwnerId")
+                        .HasColumnName("file_postowner_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
                     b.Property<double>("FileSize")
                         .HasColumnName("file_size")
                         .HasColumnType("double");
+
+                    b.Property<string>("FileTaskOwnerId")
+                        .HasColumnName("file_taskowner_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("FileTeamOwnerId")
+                        .HasColumnName("file_teamowner_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
 
                     b.Property<string>("FileType")
                         .HasColumnName("file_type")
@@ -256,15 +268,29 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<string>("FileUserId")
-                        .HasColumnName("file_user_id")
+                    b.Property<string>("FileUserOwnerId")
+                        .HasColumnName("file_userowner_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("FileUserUploadId")
+                        .HasColumnName("file_userupload_id")
                         .HasColumnType("varchar(50)")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
                     b.HasKey("FileId");
 
-                    b.HasIndex("FileUserId");
+                    b.HasIndex("FilePostOwnerId");
+
+                    b.HasIndex("FileTaskOwnerId");
+
+                    b.HasIndex("FileTeamOwnerId");
+
+                    b.HasIndex("FileUserOwnerId");
+
+                    b.HasIndex("FileUserUploadId");
 
                     b.ToTable("file");
                 });
@@ -384,15 +410,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<string>("KanbanBoardBelongedId")
-                        .HasColumnName("kanban_board_belonged_id")
-                        .HasColumnType("varchar(50)")
-                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
-                        .HasAnnotation("MySql:CharSet", "utf8mb4");
-
                     b.Property<DateTime?>("KanbanBoardCreatedAt")
                         .HasColumnName("kanban_created_at")
                         .HasColumnType("timestamp");
+
+                    b.Property<bool?>("KanbanBoardIsDeleted")
+                        .HasColumnType("tinyint(1)");
 
                     b.Property<bool?>("KanbanBoardIsOfTeam")
                         .HasColumnName("kanban_board_is_of_team")
@@ -404,7 +427,23 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("KanbanBoardTeamId")
+                        .HasColumnName("kanban_board_teamid")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("KanbanBoardUserId")
+                        .HasColumnName("kanban_board_userid")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
                     b.HasKey("KanbanBoardId");
+
+                    b.HasIndex("KanbanBoardTeamId");
+
+                    b.HasIndex("KanbanBoardUserId");
 
                     b.ToTable("kanban_board");
                 });
@@ -1115,7 +1154,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Comment", b =>
                 {
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Post", "CommentPost")
-                        .WithMany("Comment")
+                        .WithMany("Comments")
                         .HasForeignKey("CommentPostId")
                         .HasConstraintName("comment_ibfk_1");
 
@@ -1131,9 +1170,25 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.File", b =>
                 {
-                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "User")
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Post", "PostOwner")
                         .WithMany("Files")
-                        .HasForeignKey("FileUserId");
+                        .HasForeignKey("FilePostOwnerId");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Task", "TaskOwner")
+                        .WithMany("Files")
+                        .HasForeignKey("FileTaskOwnerId");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Team", "TeamOwner")
+                        .WithMany("Files")
+                        .HasForeignKey("FileTeamOwnerId");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "UserOwner")
+                        .WithMany("FilesOwner")
+                        .HasForeignKey("FileUserOwnerId");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "UserUpload")
+                        .WithMany("FilesUpload")
+                        .HasForeignKey("FileUserUploadId");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.GroupChatUser", b =>
@@ -1160,6 +1215,17 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .WithMany("HandleTask")
                         .HasForeignKey("HandleTaskUserId")
                         .HasConstraintName("handle_task_ibfk_1");
+                });
+
+            modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.KanbanBoard", b =>
+                {
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Team", "Team")
+                        .WithMany("Boards")
+                        .HasForeignKey("KanbanBoardTeamId");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "User")
+                        .WithMany("Boards")
+                        .HasForeignKey("KanbanBoardUserId");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.KanbanList", b =>

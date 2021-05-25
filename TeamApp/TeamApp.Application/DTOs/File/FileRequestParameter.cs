@@ -7,6 +7,7 @@ namespace TeamApp.Application.DTOs.File
 {
     public class FileRequestParameter: RequestParameter
     {
-        public string BelongedId { get; set; }
+        public string OwnerId { get; set; }
+        public string OwnerType { get; set; }
     }
 }

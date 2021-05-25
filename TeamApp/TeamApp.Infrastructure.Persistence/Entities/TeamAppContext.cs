@@ -45,7 +45,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
-            //optionsBuilder.UseLoggerFactory(MyLoggerFactory);
+            optionsBuilder.UseLoggerFactory(MyLoggerFactory);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -127,7 +127,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCharSet("utf8mb4");
 
                 entity.HasOne(d => d.CommentPost)
-                    .WithMany(p => p.Comment)
+                    .WithMany(p => p.Comments)
                     .HasForeignKey(d => d.CommentPostId)
                     .HasConstraintName("comment_ibfk_1");
 
@@ -172,14 +172,38 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.FileSize)
                     .HasColumnName("file_size");
 
-                entity.Property(e => e.FileBelongedId)
-                    .HasColumnName("file_belonged_id")
+                entity.Property(e => e.FileUserUploadId)
+                    .HasColumnName("file_userupload_id")
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.FileUserId)
-                    .HasColumnName("file_user_id")
+                entity.Property(e => e.FileUserOwnerId)
+                    .HasColumnName("file_userowner_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FileTeamOwnerId)
+                    .HasColumnName("file_teamowner_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FilePostOwnerId)
+                    .HasColumnName("file_postowner_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FileTaskOwnerId)
+                    .HasColumnName("file_taskowner_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FileTeamOwnerId)
+                    .HasColumnName("file_teamowner_id")
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
@@ -189,9 +213,25 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnType("timestamp");
 
 
-                entity.HasOne(e => e.User)
+                entity.HasOne(e => e.UserUpload)
+                .WithMany(u => u.FilesUpload)
+                .HasForeignKey(e => e.FileUserUploadId);
+
+                entity.HasOne(e => e.UserOwner)
+                .WithMany(u => u.FilesOwner)
+                .HasForeignKey(e => e.FileUserOwnerId);
+
+                entity.HasOne(e => e.TeamOwner)
                 .WithMany(u => u.Files)
-                .HasForeignKey(e => e.FileUserId);
+                .HasForeignKey(e => e.FileTeamOwnerId);
+
+                entity.HasOne(e => e.TaskOwner)
+                .WithMany(u => u.Files)
+                .HasForeignKey(e => e.FileTaskOwnerId);
+
+                entity.HasOne(e => e.PostOwner)
+                .WithMany(u => u.Files)
+                .HasForeignKey(e => e.FilePostOwnerId);
             });
 
             modelBuilder.Entity<GroupChat>(entity =>
@@ -875,8 +915,14 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.KanbanBoardIsOfTeam)
                     .HasColumnName("kanban_board_is_of_team");
 
-                entity.Property(e => e.KanbanBoardBelongedId)
-                    .HasColumnName("kanban_board_belonged_id")
+                entity.Property(e => e.KanbanBoardUserId)
+                    .HasColumnName("kanban_board_userid")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.KanbanBoardTeamId)
+                    .HasColumnName("kanban_board_teamid")
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
@@ -890,6 +936,14 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.KanbanBoardCreatedAt)
                     .HasColumnName("kanban_created_at")
                     .HasColumnType("timestamp");
+
+                entity.HasOne(e => e.Team)
+                .WithMany(e => e.Boards)
+                .HasForeignKey(x => x.KanbanBoardTeamId);
+
+                entity.HasOne(e => e.User)
+                .WithMany(e => e.Boards)
+                .HasForeignKey(x => x.KanbanBoardUserId);
             });
 
             modelBuilder.Entity<IdentityRole>(entity =>

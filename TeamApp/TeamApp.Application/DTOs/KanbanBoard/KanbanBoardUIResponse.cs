@@ -9,7 +9,8 @@ namespace TeamApp.Application.DTOs.KanbanBoard
     {
         public string KanbanBoardId { get; set; }
         public bool? KanbanBoardIsOfTeam { get; set; }
-        public string KanbanBoardBelongedId { get; set; }
+        public string KanbanBoardUserId { get; set; }
+        public string KanbanBoardTeamId { get; set; }
         public List<KanbanListUIResponse> KanbanListUIs { get; set; }
     }
 }

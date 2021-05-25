@@ -32,7 +32,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 KanbanBoardId = string.IsNullOrEmpty(kanbanBoardRequest.KanbanBoardId) ? Guid.NewGuid().ToString() : kanbanBoardRequest.KanbanBoardId,
                 KanbanBoardIsOfTeam = kanbanBoardRequest.KanbanBoardIsOfTeam,
-                KanbanBoardBelongedId = kanbanBoardRequest.KanbanBoardBelongedId,
+                KanbanBoardUserId = kanbanBoardRequest.KanbanBoardUserId,
+                KanbanBoardTeamId = kanbanBoardRequest.KanbanBoardTeamId,
                 KanbanBoardName = kanbanBoardRequest.KanbanBoardName,
                 KanbanBoardCreatedAt = DateTime.UtcNow,
             };
@@ -46,7 +47,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     KanbanBoardId = entity.KanbanBoardId,
                     KanbanBoardIsOfTeam = entity.KanbanBoardIsOfTeam,
-                    KanbanBoardBelongedId = entity.KanbanBoardBelongedId,
+                    KanbanBoardUserId = kanbanBoardRequest.KanbanBoardUserId,
+                    KanbanBoardTeamId = kanbanBoardRequest.KanbanBoardTeamId,
                     KanbanBoardName = entity.KanbanBoardName,
                     TaskCount = 0,
                 };
@@ -68,7 +70,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             foreach (var team in teams)
             {
                 var boards = await (from b in _dbContext.KanbanBoard.AsNoTracking()
-                                    where b.KanbanBoardBelongedId == team.TeamId
+                                    where b.KanbanBoardTeamId == team.TeamId
                                     select b).ToListAsync();
 
                 foreach (var board in boards)
@@ -81,7 +83,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     responses.Add(new KanbanBoardResponse
                     {
                         KanbanBoardId = board.KanbanBoardId,
-                        KanbanBoardBelongedId = board.KanbanBoardBelongedId,
+                        KanbanBoardUserId = board.KanbanBoardUserId,
+                        KanbanBoardTeamId = board.KanbanBoardTeamId,
                         KanbanBoardName = board.KanbanBoardName,
                         TaskCount = taskCount,
                         KanbanBoardGroupName = team.TeamName,
@@ -96,7 +99,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<List<KanbanBoardResponse>> GetBoardForUser(string userId)
         {
             var list = from kb in _dbContext.KanbanBoard.AsNoTracking()
-                       where kb.KanbanBoardBelongedId == userId
+                       where kb.KanbanBoardUserId == userId
                        orderby kb.KanbanBoardCreatedAt
                        select kb;
             if (list == null)
@@ -119,7 +122,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return await list.Select(x => new KanbanBoardResponse
             {
                 KanbanBoardId = x.KanbanBoardId,
-                KanbanBoardBelongedId = x.KanbanBoardBelongedId,
+                KanbanBoardUserId = x.KanbanBoardUserId,
+                KanbanBoardTeamId = x.KanbanBoardTeamId,
                 KanbanBoardName = x.KanbanBoardName,
                 TaskCount = TaskCounts[x.KanbanBoardId]
             }).ToListAsync();
@@ -137,7 +141,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var outPut = new KanbanBoardUIResponse
             {
                 KanbanBoardId = board.KanbanBoardId,
-                KanbanBoardBelongedId = board.KanbanBoardBelongedId,
+                KanbanBoardUserId = board.KanbanBoardUserId,
+                KanbanBoardTeamId = board.KanbanBoardTeamId,
                 KanbanBoardIsOfTeam = board.KanbanBoardIsOfTeam,
                 KanbanListUIs = new List<KanbanListUIResponse>(),
             };
@@ -185,7 +190,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                              TaskImageUrl = x.t.TaskImageUrl,
 
                              CommentsCount = x.Comments.Count,
-                             FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileBelongedId == x.t.TaskId).Count(),
+                             FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileTaskOwnerId == x.t.TaskId).Count(),
 
                              UserId = x.Id,
                              UserAvatar = x.ImageUrl,
@@ -303,13 +308,40 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                     where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardBelongedId
+                                     where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
                                      select u.ConnectionId).ToListAsync();
 
                 await _hubKanban.Clients.Clients(clients).MoveList(swapListModel);
             }
 
             return true;
+        }
+
+        public async Task<List<KanbanBoardResponse>> GetBoardsForTeam(string teamId)
+        {
+            List<KanbanBoardResponse> responses = new List<KanbanBoardResponse>();
+            var boards = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                                where b.KanbanBoardTeamId == teamId
+                                select b).ToListAsync();
+
+            foreach (var board in boards)
+            {
+                var taskCount = await (from t in _dbContext.Task.AsNoTracking()
+                                       join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                       where kl.KanbanListBoardBelongedId == board.KanbanBoardId && t.TaskIsDeleted == false
+                                       select t.TaskId).CountAsync();
+
+                responses.Add(new KanbanBoardResponse
+                {
+                    KanbanBoardId = board.KanbanBoardId,
+                    KanbanBoardUserId = board.KanbanBoardUserId,
+                    KanbanBoardTeamId = board.KanbanBoardTeamId,
+                    KanbanBoardName = board.KanbanBoardName,
+                    TaskCount = taskCount,
+                });
+            }
+
+            return responses;
         }
     }
 }

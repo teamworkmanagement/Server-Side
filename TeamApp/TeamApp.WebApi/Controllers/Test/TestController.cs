@@ -9,6 +9,7 @@ using System.IO;
 using System.Threading.Tasks;
 using System.Web;
 using TeamApp.Application.DTOs.Email;
+using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.Exceptions;
 using TeamApp.Application.Interfaces;
 using TeamApp.Application.Wrappers;
@@ -169,6 +170,20 @@ namespace TeamApp.WebApi.Controllers.Test
             await _emailService.SendAsyncAWS(obj);
 
             return Ok("zzzzzzzzzz");
+        }
+
+        [Authorize(Policy = "TeamPolicy")]
+        [HttpGet("test-policy")]
+        public IActionResult TestPolicy([FromQuery]TeamResponse teamResponse)
+        {
+            return Ok("zzzzzzzz");
+        }
+
+        [Authorize(Policy = "TeamPolicy")]
+        [HttpPost("test-policy2")]
+        public IActionResult TestPolicy2([FromBody] TeamResponse teamResponse)
+        {
+            return Ok("zzzzzzzz");
         }
     }
 }

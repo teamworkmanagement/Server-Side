@@ -59,7 +59,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     FileId = Guid.NewGuid().ToString(),
                     FileUrl = x.Link,
-                    FileBelongedId = entity.PostId,
+                    FilePostOwnerId = entity.PostId,
                     FileUploadTime = DateTime.UtcNow,
                 });
 
@@ -169,7 +169,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Post
                         join t in _dbContext.Team on p.PostTeamId equals t.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u.ImageUrl, u.FullName, p.Comment.Count };
+                        select new { p, u.ImageUrl, u.FullName, p.Comments.Count };
             query = query.Where(x => x.p.PostTeamId == teamId);
 
             var outPut = await query.Select(x => new PostResponse
@@ -193,7 +193,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var query = from p in _dbContext.Post
                         join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u.ImageUrl, u.Id, u.FullName, p.Comment.Count };
+                        select new { p, u.ImageUrl, u.Id, u.FullName, p.Comments.Count };
 
             query = query.Where(x => x.Id == userId);
 
@@ -239,7 +239,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var queryUserPost = from p in _dbContext.Post
                                 join u in _dbContext.User on p.PostUserId equals u.Id
-                                select new { p, u.ImageUrl, u.Id, u.FullName, p.Comment.Count };
+                                select new { p, u.ImageUrl, u.Id, u.FullName, p.Comments.Count };
 
             var queryOrder = queryUserPost.OrderByDescending(x => x.p.PostCreatedAt);
 
@@ -277,7 +277,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         join t in _dbContext.Team.AsNoTracking() on p.PostTeamId equals t.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
                         where t.TeamId == parameter.TeamId
-                        select new { p, u, p.Comment.Count, RCount = p.PostReacts.Count, t.TeamName };
+                        select new { p, u, p.Comments.Count, RCount = p.PostReacts.Count, t.TeamName };
 
             //tìm kiếm nâng cao
             if (advanced)
@@ -367,7 +367,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             foreach (var ent in entityList)
             {
                 var listImage = await (from f in _dbContext.File.AsNoTracking()
-                                       where f.FileBelongedId == ent.PostId
+                                       where f.FilePostOwnerId == ent.PostId
                                        orderby f.FileUploadTime
                                        select f.FileUrl).ToListAsync();
                 List<string> lists = new List<string>
@@ -401,7 +401,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Post
                         join listTeam in teamList on p.PostTeamId equals listTeam.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u, p.Comment.Count, RCount = p.PostReacts.Count, listTeam.TeamName };
+                        select new { p, u, p.Comments.Count, RCount = p.PostReacts.Count, listTeam.TeamName };
 
 
             //tìm kiếm nâng cao
@@ -492,7 +492,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             foreach (var ent in entityList)
             {
                 var listImage = await (from f in _dbContext.File.AsNoTracking()
-                                       where f.FileBelongedId == ent.PostId
+                                       where f.FilePostOwnerId == ent.PostId
                                        orderby f.FileUploadTime
                                        select f.FileUrl).ToListAsync();
                 List<string> lists = new List<string>

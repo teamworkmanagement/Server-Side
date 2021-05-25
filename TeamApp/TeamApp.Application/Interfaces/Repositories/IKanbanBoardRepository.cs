@@ -27,7 +27,8 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// <param name="swapListModel"></param>
         /// <returns></returns>
         Task<bool> SwapListKanban(SwapListModel swapListModel);
-        Task<List<KanbanBoardResponse>> GetBoardForUserTeams(string teamId);
+        Task<List<KanbanBoardResponse>> GetBoardForUserTeams(string userId);
         Task<List<KanbanBoardResponse>> GetBoardForUser(string userId);
+        Task<List<KanbanBoardResponse>> GetBoardsForTeam(string teamId);
     }
 }

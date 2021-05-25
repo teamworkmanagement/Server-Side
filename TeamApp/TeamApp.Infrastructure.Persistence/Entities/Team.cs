@@ -10,6 +10,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             Participation = new HashSet<Participation>();
             Post = new HashSet<Post>();
             Task = new HashSet<Task>();
+            Files = new HashSet<File>();
+            Boards = new HashSet<KanbanBoard>();
         }
 
         public string TeamId { get; set; }
@@ -25,5 +27,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<Participation> Participation { get; set; }
         public virtual ICollection<Post> Post { get; set; }
         public virtual ICollection<Task> Task { get; set; }
+        public virtual ICollection<File> Files { get; set; }
+        public virtual ICollection<KanbanBoard> Boards { get; set; }
     }
 }

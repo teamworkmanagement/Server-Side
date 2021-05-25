@@ -31,8 +31,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileType = fileReq.FileType,
                 FileUrl = fileReq.FileUrl,
                 FileSize = fileReq.FileSize,
-                FileBelongedId = fileReq.FileBelongedId,
-                FileUserId = fileReq.UserId,
+                FileUserUploadId = fileReq.FileUserUploadId,
+                FileUserOwnerId = fileReq.FileUserOwnerId,
+                FileTeamOwnerId = fileReq.FileTeamOwnerId,
+                FileTaskOwnerId = fileReq.FileTaskOwnerId,
+                FilePostOwnerId = fileReq.FilePostOwnerId,
                 FileUploadTime = DateTime.UtcNow,
             };
 
@@ -47,8 +50,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     FileUrl = entity.FileUrl,
                     FileType = entity.FileType,
                     FileSize = entity.FileSize,
-                    FileBelongedId = entity.FileBelongedId,
-                    FileUserId = entity.FileUserId,
+                    FileUserUploadId = fileReq.FileUserUploadId,
+                    FileUserOwnerId = fileReq.FileUserOwnerId,
+                    FileTeamOwnerId = fileReq.FileTeamOwnerId,
+                    FileTaskOwnerId = fileReq.FileTaskOwnerId,
                     FileUploadTime = entity.FileUploadTime.FormatTime(),
                 };
             return null;
@@ -67,8 +72,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileType = fileReq.FileType,
                 FileUrl = fileReq.FileUrl,
                 FileSize = fileReq.FileSize,
-                FileBelongedId = fileReq.FileBelongedId,
-                FileUserId = fileReq.UserId,
+                FileUserUploadId = fileReq.FileUserUploadId,
+                FileUserOwnerId = fileReq.FileUserOwnerId,
+                FileTeamOwnerId = fileReq.FileTeamOwnerId,
+                FileTaskOwnerId = fileReq.FileTaskOwnerId,
                 FileUploadTime = DateTime.UtcNow,
             };
 
@@ -91,41 +98,165 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileUrl = entity.FileUrl,
                 FileType = entity.FileType,
                 FileSize = entity.FileSize,
-                FileBelongedId = entity.FileBelongedId,
-                FileUserId = entity.FileUserId,
+                FileUserUploadId = entity.FileUserUploadId,
+                FileUserOwnerId = entity.FileUserOwnerId,
+                FileTeamOwnerId = entity.FileTeamOwnerId,
+                FileTaskOwnerId = entity.FileTaskOwnerId,
+                FilePostOwnerId = entity.FilePostOwnerId,
                 FileUploadTime = entity.FileUploadTime,
             };
         }
 
-        public async Task<PagedResponse<FileResponse>> GetByBelong(FileRequestParameter par)
+
+        public async Task<PagedResponse<FileResponse>> GetByBelong(FileRequestParameter param)
         {
-            var query = from f in _dbContext.File.AsNoTracking()
-                        join u in _dbContext.User.AsNoTracking() on f.FileUserId equals u.Id
-                        orderby f.FileUploadTime descending
-                        where f.FileBelongedId == par.BelongedId
-                        select new { f, u.FullName, u.ImageUrl };
-
-            var zzz = await query.AsNoTracking().CountAsync();
-
-            var outFile = query.Skip((par.PageNumber - 1) * par.PageSize).Take(par.PageSize);
-
-            zzz = await outFile.CountAsync();
-
-            var outPut = await outFile.Select(entity => new FileResponse
+            List<FileResponse> responses = new List<FileResponse>();
+            int count = 0;
+            switch (param.OwnerType)
             {
-                FileId = entity.f.FileId,
-                FileName = entity.f.FileName,
-                FileUrl = entity.f.FileUrl,
-                FileType = entity.f.FileType,
-                FileSize = entity.f.FileSize,
-                FileBelongedId = entity.f.FileBelongedId,
-                FileUserId = entity.f.FileUserId,
-                FileUploadTime = entity.f.FileUploadTime.FormatTime(),
-                FileUserName = entity.FullName,
-                UserImage = entity.ImageUrl,
-            }).ToListAsync();
+                case "user":
+                    var query = from f in _dbContext.File.AsNoTracking()
+                                join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
+                                orderby f.FileUploadTime descending
+                                where f.FileUserOwnerId == param.OwnerId
+                                select new { f, u.FullName, u.ImageUrl };
 
-            return new PagedResponse<FileResponse>(outPut, par.PageSize, await query.CountAsync(), par.PageNumber);
+                    var results = await query
+                   .Select(p => new
+                   {
+                       p,
+                       TotalCount = query.Count()
+                   }).Skip((param.PageNumber - 1) * param.PageSize).Take(param.PageSize).ToArrayAsync();
+
+                    count = results.FirstOrDefault()?.TotalCount ?? await query.CountAsync();
+                    var files = results.Select(r => r.p).ToArray();
+
+
+                    responses = files.Select(entity => new FileResponse
+                    {
+                        FileId = entity.f.FileId,
+                        FileName = entity.f.FileName,
+                        FileUrl = entity.f.FileUrl,
+                        FileType = entity.f.FileType,
+                        FileSize = entity.f.FileSize,
+                        FileUserUploadId = entity.f.FileUserUploadId,
+                        FileUserOwnerId = entity.f.FileUserOwnerId,
+                        FileTeamOwnerId = entity.f.FileTeamOwnerId,
+                        FileTaskOwnerId = entity.f.FileTaskOwnerId,
+                        FilePostOwnerId = entity.f.FilePostOwnerId,
+                        FileUploadTime = entity.f.FileUploadTime.FormatTime(),
+                        FileUserUploadName = entity.FullName,
+                        UserImage = entity.ImageUrl,
+                    }).ToList();
+                    break;
+                case "team":
+                    query = from f in _dbContext.File.AsNoTracking()
+                            join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
+                            orderby f.FileUploadTime descending
+                            where f.FileTeamOwnerId == param.OwnerId
+                            select new { f, u.FullName, u.ImageUrl };
+                    results = await query
+                   .Select(p => new
+                   {
+                       p,
+                       TotalCount = query.Count()
+                   }).Skip((param.PageNumber - 1) * param.PageSize).Take(param.PageSize).ToArrayAsync();
+
+                    count = results.FirstOrDefault()?.TotalCount ?? await query.CountAsync();
+                    files = results.Select(r => r.p).ToArray();
+
+
+                    responses = files.Select(entity => new FileResponse
+                    {
+                        FileId = entity.f.FileId,
+                        FileName = entity.f.FileName,
+                        FileUrl = entity.f.FileUrl,
+                        FileType = entity.f.FileType,
+                        FileSize = entity.f.FileSize,
+                        FileUserUploadId = entity.f.FileUserUploadId,
+                        FileUserOwnerId = entity.f.FileUserOwnerId,
+                        FileTeamOwnerId = entity.f.FileTeamOwnerId,
+                        FileTaskOwnerId = entity.f.FileTaskOwnerId,
+                        FilePostOwnerId = entity.f.FilePostOwnerId,
+                        FileUploadTime = entity.f.FileUploadTime.FormatTime(),
+                        FileUserUploadName = entity.FullName,
+                        UserImage = entity.ImageUrl,
+                    }).ToList();
+                    break;
+                case "task":
+                    query = from f in _dbContext.File.AsNoTracking()
+                            join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
+                            orderby f.FileUploadTime descending
+                            where f.FileTaskOwnerId == param.OwnerId
+                            select new { f, u.FullName, u.ImageUrl };
+                    results = await query
+                   .Select(p => new
+                   {
+                       p,
+                       TotalCount = query.Count()
+                   }).Skip((param.PageNumber - 1) * param.PageSize).Take(param.PageSize).ToArrayAsync();
+
+                    count = results.FirstOrDefault()?.TotalCount ?? await query.CountAsync();
+                    files = results.Select(r => r.p).ToArray();
+
+
+                    responses = files.Select(entity => new FileResponse
+                    {
+                        FileId = entity.f.FileId,
+                        FileName = entity.f.FileName,
+                        FileUrl = entity.f.FileUrl,
+                        FileType = entity.f.FileType,
+                        FileSize = entity.f.FileSize,
+                        FileUserUploadId = entity.f.FileUserUploadId,
+                        FileUserOwnerId = entity.f.FileUserOwnerId,
+                        FileTeamOwnerId = entity.f.FileTeamOwnerId,
+                        FileTaskOwnerId = entity.f.FileTaskOwnerId,
+                        FilePostOwnerId = entity.f.FilePostOwnerId,
+                        FileUploadTime = entity.f.FileUploadTime.FormatTime(),
+                        FileUserUploadName = entity.FullName,
+                        UserImage = entity.ImageUrl,
+                    }).ToList();
+                    break;
+                case "post":
+                    query = from f in _dbContext.File.AsNoTracking()
+                            join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
+                            orderby f.FileUploadTime descending
+                            where f.FilePostOwnerId == param.OwnerId
+                            select new { f, u.FullName, u.ImageUrl };
+                    results = await query
+                   .Select(p => new
+                   {
+                       p,
+                       TotalCount = query.Count()
+                   }).Skip((param.PageNumber - 1) * param.PageSize).Take(param.PageSize).ToArrayAsync();
+
+                    count = results.FirstOrDefault()?.TotalCount ?? await query.CountAsync();
+                    files = results.Select(r => r.p).ToArray();
+
+
+                    responses = files.Select(entity => new FileResponse
+                    {
+                        FileId = entity.f.FileId,
+                        FileName = entity.f.FileName,
+                        FileUrl = entity.f.FileUrl,
+                        FileType = entity.f.FileType,
+                        FileSize = entity.f.FileSize,
+                        FileUserUploadId = entity.f.FileUserUploadId,
+                        FileUserOwnerId = entity.f.FileUserOwnerId,
+                        FileTeamOwnerId = entity.f.FileTeamOwnerId,
+                        FileTaskOwnerId = entity.f.FileTaskOwnerId,
+                        FilePostOwnerId = entity.f.FilePostOwnerId,
+                        FileUploadTime = entity.f.FileUploadTime.FormatTime(),
+                        FileUserUploadName = entity.FullName,
+                        UserImage = entity.ImageUrl,
+                    }).ToList();
+                    break;
+                default:
+                    break;
+            }
+
+
+            return new PagedResponse<FileResponse>(responses, param.PageSize, count, param.PageNumber);
         }
 
         public Task<bool> UpdateFile(string fileId)
@@ -136,7 +267,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<List<FileResponse>> GetAllByTask(string taskId)
         {
             var query = from t in _dbContext.Task.AsNoTracking()
-                        join f in _dbContext.File.AsNoTracking() on t.TaskId equals f.FileBelongedId
+                        join f in _dbContext.File.AsNoTracking() on t.TaskId equals f.FileTaskOwnerId
                         where t.TaskId == taskId
                         orderby f.FileUploadTime descending
                         select f;
@@ -148,8 +279,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FileUrl = entity.FileUrl,
                 FileType = entity.FileType,
                 FileSize = entity.FileSize,
-                FileBelongedId = entity.FileBelongedId,
-                FileUserId = entity.FileUserId,
+                FileUserUploadId = entity.FileUserUploadId,
+                FileTaskOwnerId = entity.FileTaskOwnerId,
                 FileUploadTime = entity.FileUploadTime.FormatTime(),
             }).ToListAsync();
 
@@ -165,7 +296,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     FileId = Guid.NewGuid().ToString(),
                     FileUrl = obj.Link,
-                    FileBelongedId = postFileUploadRequest.PostId,
+                    FilePostOwnerId = postFileUploadRequest.PostId,
                     FileUploadTime = DateTime.UtcNow,
                 });
             }
