@@ -44,6 +44,11 @@ namespace TeamApp.WebApi.Middlewares
                     case KeyNotFoundException e:
                         // not found error
                         response.StatusCode = (int)HttpStatusCode.NotFound;
+                        responseModel.ErrorCode = "404";
+                        break;
+                    case AlreadyExistsException e:
+                        response.StatusCode = (int)HttpStatusCode.Conflict;
+                        responseModel.ErrorCode = "409";
                         break;
                     default:
                         // unhandled error

@@ -80,10 +80,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return userRes;
         }
 
-        public async Task<List<UserResponse>> SearchUser(string userId, string keyWord)
+        public async Task<List<UserResponse>> SearchUser(string userId, string keyWord,bool email)
         {
-            var query = "SELECT * FROM user " +
+            var query = "";
+            if (!email)
+            {
+                query = "SELECT * FROM user " +
                 $"where user.user_id <> '{userId}' and user.user_fullname like '%{keyWord}%'";
+            }
+            else
+            {
+                query = "SELECT * FROM user " +
+                $"where user.user_id <> '{userId}' and user.user_email = '{keyWord}'";
+            }
             Console.WriteLine(query);
 
             var outPut = await _dbContext.User.FromSqlRaw(query).ToListAsync();

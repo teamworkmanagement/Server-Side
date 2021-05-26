@@ -72,9 +72,9 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpGet("search-user/{userId}/{keyword}")]
-        public async Task<IActionResult> SearchUser(string userId, string keyword)
+        public async Task<IActionResult> SearchUser(string userId, string keyword, bool isEmail = false)
         {
-            var outPut = await _repo.SearchUser(userId, keyword);
+            var outPut = await _repo.SearchUser(userId, keyword, isEmail);
             return Ok(new ApiResponse<List<UserResponse>>
             {
                 Data = outPut,
