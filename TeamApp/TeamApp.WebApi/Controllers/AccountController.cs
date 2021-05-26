@@ -51,11 +51,13 @@ namespace TeamApp.WebApi.Controllers
                     new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
                 HttpContext.Response.Cookies.Append("backup", Guid.NewGuid().ToString(),
                     new CookieOptions { Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                //data.JWToken = null;
+                //data.RefreshToken = null;
             }
 
             return Ok(outPut);
         }
-        
+
         /// <summary>
         /// Register API
         /// </summary>
@@ -141,6 +143,8 @@ namespace TeamApp.WebApi.Controllers
                     new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
                 HttpContext.Response.Cookies.Append("backup", Guid.NewGuid().ToString(),
                     new CookieOptions { Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                //outPut.Data.RefreshToken = null;
+                //outPut.Data.AccessToken = null;
             }
             return Ok(outPut);
         }
@@ -183,6 +187,22 @@ namespace TeamApp.WebApi.Controllers
                 throw new ApiException("Đã logout");
 
             return Ok(await _accountService.IsLogin(token, refreshtoken));
+        }
+
+        [HttpPost("change-password")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), 200)]
+        public async Task<IActionResult> ChangePassword([FromBody] ChangePasswordModel model)
+        {
+            var outPut = await _accountService.ChangePassword(model);
+
+            return Ok(outPut);
+        }
+
+        [HttpPatch("update-info")]
+        public async Task<IActionResult> UpdateInfo([FromBody] UpdateInfoModel infoModel)
+        {
+            var outPut = await _accountService.UpdateUserInfo(infoModel);
+            return Ok(outPut);
         }
     }
 }

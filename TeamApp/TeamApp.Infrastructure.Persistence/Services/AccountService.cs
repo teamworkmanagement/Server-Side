@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -70,9 +71,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
             response.JWToken = StringHelper.EncryptString(new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken));
             response.Email = user.Email;
             response.UserName = user.UserName;
-            var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
-            //response.Roles = rolesList.ToList();
-            response.IsVerified = user.EmailConfirmed;
+            response.UserDob = user.Dob;
+            response.UserPhoneNumber = user.PhoneNumber;
+
+            //response.IsVerified = user.EmailConfirmed;
             response.UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
             response.FullName = user.FullName;
 
@@ -137,9 +139,9 @@ namespace TeamApp.Infrastructure.Persistence.Services
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                //new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                //new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("uid", user.Id),
                 new Claim("ip", ipAddress)
             }
@@ -392,6 +394,66 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 Data = outPut,
                 Message = null,
             };
+        }
+
+        public async Task<ApiResponse<bool>> ChangePassword(ChangePasswordModel changePasswordModel)
+        {
+            var user = await _dbContext.User.FindAsync(changePasswordModel.UserId);
+            if (user == null)
+                throw new KeyNotFoundException("No user found");
+
+            var results = await _userManager.ChangePasswordAsync(user, changePasswordModel.CurrentPassword, changePasswordModel.NewPassword);
+
+            if (results.Succeeded)
+            {
+                return new ApiResponse<bool>
+                {
+                    Data = true,
+                    Succeeded = true,
+                    Message = "Change password done",
+                };
+            }
+
+            throw new ApiException("Errors while change");
+        }
+
+        public async Task<ApiResponse<bool>> UpdateUserInfo(UpdateInfoModel updateInfoModel)
+        {
+            var user = await _dbContext.User.FindAsync(updateInfoModel.Id);
+            if (user == null)
+                throw new KeyNotFoundException("No user found");
+            if (user.Email != updateInfoModel.Email)
+            {
+                var userSameEmail = await _userManager.FindByEmailAsync(updateInfoModel.Email);
+                if (userSameEmail != null)
+                    throw new AlreadyExistsException("Mail Exists");
+            }
+
+
+            var token = await _userManager.GenerateChangeEmailTokenAsync(user, updateInfoModel.Email);
+            var results = await _userManager.ChangeEmailAsync(user, updateInfoModel.Email, token);
+
+
+
+
+            if (results.Succeeded)
+            {
+                user = await _userManager.FindByEmailAsync(updateInfoModel.Email);
+                user.FullName = updateInfoModel.FullName;
+                user.Dob = updateInfoModel.UserDob;
+                user.PhoneNumber = updateInfoModel.UserPhoneNumber;
+                user.UserName = updateInfoModel.Email;
+
+                await _userManager.UpdateAsync(user);
+                return new ApiResponse<bool>
+                {
+                    Data = true,
+                    Succeeded = true,
+                    Message = "Update user done",
+                };
+            }
+
+            throw new ApiException("Errors while change");
         }
     }
 }
