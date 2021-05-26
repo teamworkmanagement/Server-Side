@@ -45,7 +45,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskTeamId = taskReq.TaskTeamId,
                 TaskIsDeleted = false,
                 TaskBelongedId = taskReq.TaskBelongedId,
-                TaskOrderInList = taskReq.TaskOrderInList,
+                TaskRankInList = taskReq.TaskRankInList,
                 TaskThemeColor = taskReq.TaskThemeColor,
             };
 
@@ -54,7 +54,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var taskUIKanban = new TaskUIKanban
             {
-                OrderInList = entity.TaskOrderInList,
+                RankInList = entity.TaskRankInList,
                 KanbanListId = entity.TaskBelongedId,
                 TaskId = entity.TaskId,
                 TaskImageUrl = null,
@@ -128,7 +128,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 try
                 {
-                    entity.TaskOrderInList = dragTaskModel.Position;
+                    entity.TaskRankInList = dragTaskModel.Position;
                     if (dragTaskModel.OldList != dragTaskModel.NewList)
                         entity.TaskBelongedId = dragTaskModel.NewList;
                     Console.WriteLine("Begin Transaction");
@@ -276,7 +276,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserId = task.Id,
                 UserName = task.FullName,
                 UserAvatar = task.ImageUrl,
-                OrderInList = task.t.TaskOrderInList,
+                RankInList = task.t.TaskRankInList,
                 Comments = listComments,
                 Files = listFiles,
                 TaskImageUrl = task.t.TaskImageUrl,

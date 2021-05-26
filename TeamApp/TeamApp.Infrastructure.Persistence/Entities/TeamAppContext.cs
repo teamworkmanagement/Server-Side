@@ -655,8 +655,9 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.TaskOrderInList)
-                    .HasColumnName("task_order_inlist");
+                entity.Property(e => e.TaskRankInList)
+                    .HasColumnName("task_rank_inlist")
+                    .HasColumnType("varchar(50)");
 
                 entity.HasOne(d => d.TaskTeam)
                     .WithMany(p => p.Task)
@@ -889,8 +890,9 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.KanbanListOrderInBoard)
-                    .HasColumnName("kanban_list_order_in_board");
+                entity.Property(e => e.KanbanListRankInBoard)
+                    .HasColumnName("kanban_list_rank_in_board")
+                    .HasColumnType("varchar(50)");
 
                 entity.Property(e => e.KanbanListIsDeleted)
                     .HasColumnName("kanban_list_is_deleted").HasDefaultValue(false);

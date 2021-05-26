@@ -29,7 +29,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 KanbanListId = string.IsNullOrEmpty(kanbanListRequest.KanbanListId) ? Guid.NewGuid().ToString() : kanbanListRequest.KanbanListId,
                 KanbanListTitle = kanbanListRequest.KanbanListTitle,
                 KanbanListBoardBelongedId = kanbanListRequest.KanbanListBoardBelongedId,
-                KanbanListOrderInBoard = kanbanListRequest.KanbanListOrderInBoard,
+                KanbanListRankInBoard = kanbanListRequest.KanbanListRankInBoard,
             };
 
             await _dbContext.AddAsync(entity);
@@ -47,7 +47,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 KanbanListId = entity.KanbanListId,
                 KanbanListTitle = entity.KanbanListTitle,
                 KanbanListBoardBelongedId = entity.KanbanListBoardBelongedId,
-                KanbanListOrderInBoard = entity.KanbanListOrderInBoard,
+                KanbanListRankInBoard = entity.KanbanListRankInBoard,
                 TaskUIKanbans = new List<Application.DTOs.Task.TaskUIKanban>(),
             };
 

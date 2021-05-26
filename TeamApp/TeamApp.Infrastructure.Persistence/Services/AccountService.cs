@@ -250,7 +250,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var accesToken = StringHelper.DecryptString(accessTokenEncry);
             var principal = GetPrincipalFromExpiredToken(accesToken);
 
-            var userId = principal.Claims.ToList()[3].Value;
+            var userId = principal.Claims.ToList()[1].Value;
             var user = await _dbContext.User.FindAsync(userId);
 
             var tokenObj = await _dbContext.RefreshToken.Where(x => x.UserId == userId

@@ -150,7 +150,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             //danh sach kanbanlist cua 1 board
             var listKanbanQuery = from kl in _dbContext.KanbanList.AsNoTracking()
                                   where kl.KanbanListBoardBelongedId == boardId && !kl.KanbanListIsDeleted.Value
-                                  orderby kl.KanbanListOrderInBoard
+                                  orderby kl.KanbanListRankInBoard
                                   select kl;
 
             var listKanban = await listKanbanQuery.AsNoTracking().ToListAsync();
@@ -172,12 +172,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             foreach (var kl in listKanban)
             {
-                var kanbanListTasks = listTasks.Where(x => x.t.TaskBelongedId == kl.KanbanListId).OrderBy(x => x.t.TaskOrderInList);
+                var kanbanListTasks = listTasks.Where(x => x.t.TaskBelongedId == kl.KanbanListId).OrderBy(x => x.t.TaskRankInList);
 
                 var listUITasks = kanbanListTasks.Select(x =>
                          new TaskUIKanban
                          {
-                             OrderInList = x.t.TaskOrderInList,
+                             RankInList = x.t.TaskRankInList,
                              KanbanListId = x.t.TaskBelongedId,
                              TaskId = x.t.TaskId,
 
@@ -206,7 +206,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     KanbanListId = kl.KanbanListId,
                     KanbanListTitle = kl.KanbanListTitle,
                     KanbanListBoardBelongedId = kl.KanbanListBoardBelongedId,
-                    KanbanListOrderInBoard = kl.KanbanListOrderInBoard,
+                    KanbanListRankInBoard = kl.KanbanListRankInBoard,
                     TaskUIKanbans = listUITasks,
                 };
 
@@ -289,7 +289,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 try
                 {
-                    kblEntity.KanbanListOrderInBoard = swapListModel.Position;
+                    kblEntity.KanbanListRankInBoard = swapListModel.Position;
                     Console.WriteLine("Begin Transaction");
                     _dbContext.KanbanList.Update(kblEntity);
                     await _dbContext.SaveChangesAsync();

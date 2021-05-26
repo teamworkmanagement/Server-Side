@@ -7,7 +7,7 @@ namespace TeamApp.Application.DTOs.Task
     public class DragTaskModel
     {
         public string TaskId { get; set; }
-        public float Position { get; set; }
+        public string Position { get; set; }
         public string OldList { get; set; }
         public string NewList { get; set; }
     }

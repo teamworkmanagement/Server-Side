@@ -24,7 +24,7 @@ namespace TeamApp.Application.DTOs.Task
         public string UserId { get; set; }
         public string UserName { get; set; }
         public string UserAvatar { get; set; }
-        public float? OrderInList { get; set; }
+        public string RankInList { get; set; }
         public DateTime? TaskDeadline { get; set; }
         public List<CommentResponse> Comments { get; set; }
         public List<FileResponse> Files { get; set; }

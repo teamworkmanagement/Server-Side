@@ -6,7 +6,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
-            migrationBuilder.DropForeignKey(
+            /*migrationBuilder.DropForeignKey(
                 name: "FK_file_user_file_user_id",
                 table: "file");
 
@@ -159,7 +159,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 column: "kanban_board_userid",
                 principalTable: "user",
                 principalColumn: "user_id",
-                onDelete: ReferentialAction.Restrict);
+                onDelete: ReferentialAction.Restrict);*/
         }
 
         protected override void Down(MigrationBuilder migrationBuilder)

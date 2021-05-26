@@ -16,7 +16,7 @@ namespace TeamApp.Application.DTOs.Task
         public string TaskTeamId { get; set; }
         public bool? TaskIsDeleted { get; set; }
         public string TaskBelongedId { get; set; }
-        public float? TaskOrderInList { get; set; }
+        public string TaskRankInList { get; set; }
         public string TaskThemeColor { get; set; }
         public string TaskImageUrl { get; set; }
         public DateTime? TaskDeadline { get; set; }
