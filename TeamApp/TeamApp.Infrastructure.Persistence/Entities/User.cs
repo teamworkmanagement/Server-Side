@@ -19,8 +19,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             Post = new HashSet<Post>();
             Team = new HashSet<Team>();
             RefreshTokens = new List<RefreshToken>();
-            Files = new HashSet<File>();
+            FilesUpload = new HashSet<File>();
+            FilesOwner = new HashSet<File>();
             PostReacts = new HashSet<PostReact>();
+            Boards = new HashSet<KanbanBoard>();
         }
 
 
@@ -42,8 +44,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<Team> Team { get; set; }
         public List<RefreshToken> RefreshTokens { get; set; }
         public List<UserConnection> UserConnections { get; set; }
-        public virtual ICollection<File> Files { get; set; }
+        public virtual ICollection<File> FilesUpload { get; set; }
+        public virtual ICollection<File> FilesOwner { get; set; }
         public virtual ICollection<PostReact> PostReacts { get; set; }
+        public virtual ICollection<KanbanBoard> Boards { get; set; }
 
 
         public bool OwnsToken(string token)

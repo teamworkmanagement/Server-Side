@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.User;
@@ -8,6 +9,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/user")]
     public class UserController : ControllerBase
     {
@@ -17,16 +19,11 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("getall")]
-        public async Task<IActionResult> GetAll()
-        {
-            return Ok(new
-            {
-                Name = "Nguyen Tien Dung",
-            });
-        }
-
-
+        /// <summary>
+        /// Get user by their id
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpGet("getbyuserid/{userId}")]
         public async Task<IActionResult> GetByUserId(string userId)
         {
@@ -71,6 +68,17 @@ namespace TeamApp.WebApi.Controllers
             {
                 Succeeded = true,
                 Data = outPut,
+            });
+        }
+
+        [HttpGet("search-user/{userId}/{keyword}")]
+        public async Task<IActionResult> SearchUser(string userId, string keyword, bool isEmail = false)
+        {
+            var outPut = await _repo.SearchUser(userId, keyword, isEmail);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = outPut,
+                Succeeded = outPut != null
             });
         }
     }

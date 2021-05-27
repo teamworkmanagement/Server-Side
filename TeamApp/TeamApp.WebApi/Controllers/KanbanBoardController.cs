@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/kanbanboard")]
     public class KanbanBoardController : ControllerBase
     {
@@ -55,10 +57,32 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
-        [HttpGet("team-boards")]
-        public async Task<IActionResult> GetKanbanBoardForTeam(string teamId)
+        [HttpGet("team-boards/{userId}")]
+        public async Task<IActionResult> GetKanbanBoardForUserTeams(string userId)
         {
-            var outPut = await _repo.GetBoardForTeam(teamId);
+            var outPut = await _repo.GetBoardForUserTeams(userId);
+            return Ok(new ApiResponse<List<KanbanBoardResponse>>
+            {
+                Data = outPut,
+                Succeeded = outPut != null
+            });
+        }
+
+        [HttpGet("user-boards/{userId}")]
+        public async Task<IActionResult> GetKanbanBoardForUser(string userId)
+        {
+            var outPut = await _repo.GetBoardForUser(userId);
+            return Ok(new ApiResponse<List<KanbanBoardResponse>>
+            {
+                Data = outPut,
+                Succeeded = outPut != null
+            });
+        }
+
+        [HttpGet("teamboards/{teamId}")]
+        public async Task<IActionResult> GetBoardsForTeam(string teamId)
+        {
+            var outPut = await _repo.GetBoardsForTeam(teamId);
             return Ok(new ApiResponse<List<KanbanBoardResponse>>
             {
                 Data = outPut,

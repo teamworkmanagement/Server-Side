@@ -1,4 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -15,21 +16,20 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Chat
     public class HubChatClient : Hub<IHubChatClient>
     {
         private readonly TeamAppContext _dbContext;
-        public HubChatClient(TeamAppContext dbContext)
+        private readonly UserManager<User> _userManager;
+        public HubChatClient(TeamAppContext dbContext, UserManager<User> userManager)
         {
             _dbContext = dbContext;
+            _userManager = userManager;
         }
         public override async Task OnConnectedAsync()
         {
-            var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine($"Chat: Connected {Context.ConnectionId}, Usename {userName}");
-            var user = await _dbContext.User.AsNoTracking().Where(x => x.UserName == userName).FirstOrDefaultAsync();
-
+            var userId = Context.User.Identities.ToList()[0].Claims.ToList()[1].Value.ToString();
+            Console.WriteLine("Chat connected: " + userId);
             var uc = new UserConnection
             {
                 ConnectionId = Context.ConnectionId,
-                UserName = userName,
-                UserId = user.Id,
+                UserId = userId,
                 Type = "chat"
             };
 
@@ -41,10 +41,9 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Chat
 
         public override async System.Threading.Tasks.Task OnDisconnectedAsync(Exception exception)
         {
-            var userName = Context.User.FindFirstValue(ClaimTypes.NameIdentifier);
-            Console.WriteLine($"Chat: Disconnected {Context.ConnectionId}, Username {userName}");
-
-            var userCon = await _dbContext.UserConnection.Where(x => x.UserName == userName && x.ConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
+            var userId = Context.User.Identities.ToList()[0].Claims.ToList()[1].Value.ToString();
+            Console.WriteLine("Chat disconnected: " + userId);
+            var userCon = await _dbContext.UserConnection.Where(x => x.UserId == userId && x.ConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
 
             _dbContext.UserConnection.Remove(userCon);
 

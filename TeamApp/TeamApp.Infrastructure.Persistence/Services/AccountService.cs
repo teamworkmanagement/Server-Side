@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using Microsoft.IdentityModel.Tokens;
 using System;
+using System.Collections.Generic;
 using System.IdentityModel.Tokens.Jwt;
 using System.Linq;
 using System.Security.Claims;
@@ -43,7 +44,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
             _signInManager = signInManager;
-            this._emailService = emailService;
+            _emailService = emailService;
             _dbContext = dbContext;
             _httpContextAccessor = httpContextAccessor;
         }
@@ -70,9 +71,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
             response.JWToken = StringHelper.EncryptString(new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken));
             response.Email = user.Email;
             response.UserName = user.UserName;
-            var rolesList = await _userManager.GetRolesAsync(user).ConfigureAwait(false);
-            //response.Roles = rolesList.ToList();
-            response.IsVerified = user.EmailConfirmed;
+            response.UserDob = user.Dob;
+            response.UserPhoneNumber = user.PhoneNumber;
+
+            //response.IsVerified = user.EmailConfirmed;
             response.UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
             response.FullName = user.FullName;
 
@@ -110,7 +112,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     //await _userManager.AddToRoleAsync(user, Roles.Basic.ToString());
                     var verificationUri = await SendVerificationEmail(user, origin);
                     //TODO: Attach Email Service here and configure it via appsettings
-                    await _emailService.SendAsync(new Application.DTOs.Email.EmailRequest() { From = "KD", To = user.Email, Body = $"Please confirm your account by visiting this URL {verificationUri}", Subject = "Confirm Registration" });
+                    await _emailService.SendAsyncAWS(new Application.DTOs.Email.EmailRequest() { From = "KD", To = user.Email, Body = $"Hãy xác thực tài khoản của bạn bằng việc nhấn vào link dưới <br> <a href=\'{verificationUri}\'>Xác thực</a>", Subject = "Confirm Registration" });
                     return new ApiResponse<string>(user.Id, message: $"User Registered. Please confirm your account by visiting this URL {verificationUri}");
                 }
                 else
@@ -137,9 +139,9 @@ namespace TeamApp.Infrastructure.Persistence.Services
 
             var claims = new[]
             {
-                new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
+                //new Claim(JwtRegisteredClaimNames.Sub, user.UserName),
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
-                new Claim(JwtRegisteredClaimNames.Email, user.Email),
+                //new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("uid", user.Id),
                 new Claim("ip", ipAddress)
             }
@@ -221,7 +223,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 To = model.Email,
                 Subject = "Reset Password",
             };
-            await _emailService.SendAsync(emailRequest);
+            await _emailService.SendAsyncAWS(emailRequest);
         }
 
         public async Task<ApiResponse<string>> ResetPassword(ResetPasswordRequest model)
@@ -229,6 +231,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var account = await _userManager.FindByEmailAsync(model.Email);
             if (account == null) throw new ApiException($"No Accounts Registered with {model.Email}.");
             var result = await _userManager.ResetPasswordAsync(account, model.Token, model.Password);
+
             if (result.Succeeded)
             {
                 return new ApiResponse<string>(model.Email, message: $"Password Resetted.");
@@ -247,7 +250,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var accesToken = StringHelper.DecryptString(accessTokenEncry);
             var principal = GetPrincipalFromExpiredToken(accesToken);
 
-            var userId = principal.Claims.ToList()[3].Value;
+            var userId = principal.Claims.ToList()[1].Value;
             var user = await _dbContext.User.FindAsync(userId);
 
             var tokenObj = await _dbContext.RefreshToken.Where(x => x.UserId == userId
@@ -261,8 +264,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
             refreshObj.UserId = userId;
 
             await _dbContext.RefreshToken.AddAsync(refreshObj);
-            _dbContext.RefreshToken.Remove(tokenObj);
             await _dbContext.SaveChangesAsync();
+
+            //_dbContext.RefreshToken.Remove(tokenObj);
+            //await _dbContext.SaveChangesAsync();
 
             var outPut = new ApiResponse<TokenModel>
             {
@@ -389,6 +394,66 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 Data = outPut,
                 Message = null,
             };
+        }
+
+        public async Task<ApiResponse<bool>> ChangePassword(ChangePasswordModel changePasswordModel)
+        {
+            var user = await _dbContext.User.FindAsync(changePasswordModel.UserId);
+            if (user == null)
+                throw new KeyNotFoundException("No user found");
+
+            var results = await _userManager.ChangePasswordAsync(user, changePasswordModel.CurrentPassword, changePasswordModel.NewPassword);
+
+            if (results.Succeeded)
+            {
+                return new ApiResponse<bool>
+                {
+                    Data = true,
+                    Succeeded = true,
+                    Message = "Change password done",
+                };
+            }
+
+            throw new ApiException("Errors while change");
+        }
+
+        public async Task<ApiResponse<bool>> UpdateUserInfo(UpdateInfoModel updateInfoModel)
+        {
+            var user = await _dbContext.User.FindAsync(updateInfoModel.Id);
+            if (user == null)
+                throw new KeyNotFoundException("No user found");
+            if (user.Email != updateInfoModel.Email)
+            {
+                var userSameEmail = await _userManager.FindByEmailAsync(updateInfoModel.Email);
+                if (userSameEmail != null)
+                    throw new AlreadyExistsException("Mail Exists");
+            }
+
+
+            var token = await _userManager.GenerateChangeEmailTokenAsync(user, updateInfoModel.Email);
+            var results = await _userManager.ChangeEmailAsync(user, updateInfoModel.Email, token);
+
+
+
+
+            if (results.Succeeded)
+            {
+                user = await _userManager.FindByEmailAsync(updateInfoModel.Email);
+                user.FullName = updateInfoModel.FullName;
+                user.Dob = updateInfoModel.UserDob;
+                user.PhoneNumber = updateInfoModel.UserPhoneNumber;
+                user.UserName = updateInfoModel.Email;
+
+                await _userManager.UpdateAsync(user);
+                return new ApiResponse<bool>
+                {
+                    Data = true,
+                    Succeeded = true,
+                    Message = "Update user done",
+                };
+            }
+
+            throw new ApiException("Errors while change");
         }
     }
 }

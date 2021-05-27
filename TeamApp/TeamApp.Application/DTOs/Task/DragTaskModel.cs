@@ -6,12 +6,9 @@ namespace TeamApp.Application.DTOs.Task
 {
     public class DragTaskModel
     {
-        //list source id
-        public string SourceDroppableId { get; set; }
-        public int SourceIndex { get; set; }
-
-        //list destination id
-        public string DestinationDroppableId { get; set; }
-        public int DestinationIndex { get; set; }
+        public string TaskId { get; set; }
+        public string Position { get; set; }
+        public string OldList { get; set; }
+        public string NewList { get; set; }
     }
 }

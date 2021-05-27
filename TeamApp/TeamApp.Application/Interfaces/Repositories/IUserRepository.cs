@@ -23,5 +23,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// <param name="teamId"></param>
         /// <returns></returns>
         Task<List<UserResponse>> GetAllUserInTeam(string userId, string teamId = null);
+        Task<List<UserResponse>> SearchUser(string userId, string keyWord,bool isEmail);
     }
 }

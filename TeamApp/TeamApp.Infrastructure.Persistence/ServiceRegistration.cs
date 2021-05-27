@@ -1,6 +1,4 @@
-﻿
-
-using Microsoft.AspNetCore.Authentication.JwtBearer;
+﻿using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
@@ -60,7 +58,18 @@ namespace TeamApp.Infrastructure.Persistence
         public static void ConfigAuthService(IServiceCollection services, IConfiguration configuration)
         {
             services.AddSingleton<IAuthorizationHandler, IpCheckHandler>();
-            services.AddIdentity<User, IdentityRole>().AddEntityFrameworkStores<TeamAppContext>().AddDefaultTokenProviders();
+            services.AddSingleton<IAuthorizationHandler, TeamCheckHandler>();
+            services.AddIdentity<User, IdentityRole>(options =>
+            {
+                options.Password.RequiredLength = 6;
+                options.Password.RequireLowercase = false;
+                options.Password.RequireNonAlphanumeric = false;
+                options.Password.RequireUppercase = false;
+                options.Password.RequireDigit = false;
+
+                options.Tokens.PasswordResetTokenProvider = nameof(SixDigitTokenProvider<User>);
+            }).AddEntityFrameworkStores<TeamAppContext>().AddDefaultTokenProviders()
+            .AddTokenProvider<SixDigitTokenProvider<User>>(nameof(SixDigitTokenProvider<User>));
             #region Services
             services.AddTransient<IAccountService, AccountService>();
             #endregion
@@ -69,6 +78,9 @@ namespace TeamApp.Infrastructure.Persistence
             {
                 options.AddPolicy("SameIpPolicy",
                     policy => policy.Requirements.Add(new IpCheckRequirement { IpClaimRequired = true }));
+
+                options.AddPolicy("TeamPolicy",
+                    policy => policy.Requirements.Add(new TeamCheckRequirement { }));
             });
             services.AddAuthentication(options =>
             {

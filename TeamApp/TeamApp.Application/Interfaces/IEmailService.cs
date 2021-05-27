@@ -9,5 +9,6 @@ namespace TeamApp.Application.Interfaces
     public interface IEmailService
     {
         Task SendAsync(EmailRequest request);
+        Task SendAsyncAWS(EmailRequest request);
     }
 }

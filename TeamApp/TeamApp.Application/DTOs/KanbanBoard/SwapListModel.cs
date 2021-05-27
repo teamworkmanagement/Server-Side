@@ -7,7 +7,7 @@ namespace TeamApp.Application.DTOs.KanbanBoard
     public class SwapListModel
     {
         public string KanbanBoardId { get; set; }
-        public int SourceIndex { get; set; }
-        public int DestinationIndex { get; set; }
+        public string Position { get; set; }
+        public string KanbanListId { get; set; }
     }
 }

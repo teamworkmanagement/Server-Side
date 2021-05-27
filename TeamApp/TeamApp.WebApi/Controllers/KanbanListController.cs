@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -10,6 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/kanbanlist")]
     public class KanbanListController : ControllerBase
     {
@@ -24,10 +26,26 @@ namespace TeamApp.WebApi.Controllers
         {
             var outPut = await _repo.AddKanbanList(kanbanListRequest);
 
-            return Ok(new ApiResponse<KanbanListResponse>
+            return Ok(new ApiResponse<KanbanListUIResponse>
             {
                 Succeeded = outPut == null ? false : true,
                 Data = outPut,
+            });
+        }
+
+        /// <summary>
+        /// Remove kanbanlist
+        /// </summary>
+        /// <param name="kanbanListRequest"></param>
+        /// <returns></returns>
+        [HttpDelete]
+        public async Task<IActionResult> RemoveKanbanList([FromQuery]KanbanListRequest kanbanListRequest)
+        {
+            var result = await _repo.RemoveList(kanbanListRequest);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = result,
+                Succeeded = result,
             });
         }
     }

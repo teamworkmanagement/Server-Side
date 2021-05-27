@@ -10,6 +10,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             HandleTask = new HashSet<HandleTask>();
             TaskVersion = new HashSet<TaskVersion>();
             Comments = new HashSet<Comment>();
+            Files = new HashSet<File>();
         }
 
         public string TaskId { get; set; }
@@ -23,7 +24,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string TaskTeamId { get; set; }
         public bool? TaskIsDeleted { get; set; }
         public string TaskBelongedId { get; set; }
-        public int? TaskOrderInList { get; set; }
+        public string TaskRankInList { get; set; }
         public string TaskThemeColor { get; set; }
         public string TaskImageUrl { get; set; }
         public DateTime? TaskDeadline { get; set; }
@@ -33,5 +34,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<TaskVersion> TaskVersion { get; set; }
         public virtual KanbanList KanbanList { get; set; }
         public virtual ICollection<Comment> Comments { get; set; }
+        public virtual ICollection<File> Files { get; set; }
     }
 }

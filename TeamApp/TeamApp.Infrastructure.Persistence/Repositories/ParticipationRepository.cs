@@ -8,6 +8,8 @@ using TeamApp.Application.DTOs.Paricipation;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Application.Utils;
+using TeamApp.Application.Exceptions;
+using Newtonsoft.Json;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -21,14 +23,70 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<ParticipationResponse> AddParticipation(ParticipationRequest participationRequest)
         {
-            var entity = new Participation
+            var entity = new Participation();
+            User user = null;
+            if (participationRequest.IsByEmail)
             {
-                ParticipationId = Guid.NewGuid().ToString(),
-                ParticipationUserId = participationRequest.ParticipationUserId,
-                ParticipationTeamId = participationRequest.ParticipationTeamId,
-                ParticipationCreatedAt = DateTime.UtcNow,
-                ParticipationIsDeleted = false,
-            };
+                user = await (from u in _dbContext.User.AsNoTracking()
+                              where u.Email == participationRequest.Email
+                              select u).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    throw new KeyNotFoundException("No user found");
+                }
+
+                var backupUser = JsonConvert.DeserializeObject<User>(JsonConvert.SerializeObject(user));
+
+                user = await (from p in _dbContext.Participation.AsNoTracking()
+                              join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                              where u.Email == participationRequest.Email && p.ParticipationTeamId == participationRequest.ParticipationTeamId
+                              select u).FirstOrDefaultAsync();
+
+                if (user != null)
+                    throw new AlreadyExistsException("Already in group");
+
+                user = backupUser;
+
+                entity = new Participation
+                {
+                    ParticipationId = Guid.NewGuid().ToString(),
+                    ParticipationUserId = user.Id,
+                    ParticipationTeamId = participationRequest.ParticipationTeamId,
+                    ParticipationCreatedAt = DateTime.UtcNow,
+                    ParticipationIsDeleted = false,
+                };
+            }
+            else
+            {
+                user = await (from u in _dbContext.User.AsNoTracking()
+                              where u.Id == participationRequest.ParticipationUserId
+                              select u).FirstOrDefaultAsync();
+                if (user == null)
+                {
+                    throw new KeyNotFoundException("No user found");
+                }
+
+                var backupUser = JsonConvert.DeserializeObject<User>(JsonConvert.SerializeObject(user));
+
+                user = await (from p in _dbContext.Participation.AsNoTracking()
+                              join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                              where u.Id == participationRequest.ParticipationUserId && p.ParticipationTeamId == participationRequest.ParticipationTeamId
+                              select u).FirstOrDefaultAsync();
+
+                if (user != null)
+                    throw new AlreadyExistsException("Already in group");
+
+                user = backupUser;
+                entity = new Participation
+                {
+                    ParticipationId = Guid.NewGuid().ToString(),
+                    ParticipationUserId = participationRequest.ParticipationUserId,
+                    ParticipationTeamId = participationRequest.ParticipationTeamId,
+                    ParticipationCreatedAt = DateTime.UtcNow,
+                    ParticipationIsDeleted = false,
+                };
+            }
+
 
             await _dbContext.Participation.AddAsync(entity);
 
@@ -36,13 +94,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var grChatUser = new GroupChatUser
             {
                 GroupChatUserId = Guid.NewGuid().ToString(),
-                GroupChatUserUserId = participationRequest.ParticipationUserId,
+                GroupChatUserUserId = user.Id,
                 GroupChatUserGroupChatId = participationRequest.ParticipationTeamId,
                 GroupChatUserIsDeleted = false,
             };
 
             await _dbContext.GroupChatUser.AddAsync(grChatUser);
-            await _dbContext.SaveChangesAsync();
 
             if (await _dbContext.SaveChangesAsync() > 0)
             {

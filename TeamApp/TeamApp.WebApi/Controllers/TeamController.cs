@@ -12,7 +12,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    //[Authorize]
+    [Authorize]
     [Route("api/team")]
     public class TeamController : ControllerBase
     {
@@ -96,13 +96,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpGet("getalluser/{teamId}")]
-        public async Task<IActionResult> GetByTeamId(string teamId)
+        [HttpGet("getusers-paging")]
+        public async Task<IActionResult> GetUsersByTeamIdPaging([FromQuery] TeamUserParameter userParameter)
         {
-            var outPut = await _repo.GetAllByTeamId(teamId);
-            return Ok(new ApiResponse<List<UserResponse>>
+            var outPut = await _repo.GetUsersByTeamIdPaging(userParameter);
+            return Ok(new ApiResponse<PagedResponse<UserResponse>>
             {
-                Succeeded = outPut == null ? false : true,
+                Succeeded = outPut != null,
                 Data = outPut
             });
         }
@@ -116,6 +116,17 @@ namespace TeamApp.WebApi.Controllers
             {
                 Succeeded = outPut == null ? false : true,
                 Data = outPut,
+            });
+        }
+
+        [HttpGet("get-admin/{teamId}")]
+        public async Task<IActionResult> GetAdmin(string teamId)
+        {
+            var outPut = await _repo.GetAdmin(teamId);
+            return Ok(new ApiResponse<UserResponse>
+            {
+                Data = outPut,
+                Succeeded = outPut != null,
             });
         }
     }

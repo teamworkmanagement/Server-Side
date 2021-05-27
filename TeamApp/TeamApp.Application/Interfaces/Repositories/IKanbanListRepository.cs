@@ -14,6 +14,8 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// </summary>
         /// <param name="kanbanListRequest"></param>
         /// <returns></returns>
-        Task<KanbanListResponse> AddKanbanList(KanbanListRequest kanbanListRequest);
+        Task<KanbanListUIResponse> AddKanbanList(KanbanListRequest kanbanListRequest);
+
+        Task<bool> RemoveList(KanbanListRequest kanbanListRequest);
     }
 }

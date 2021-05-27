@@ -8,6 +8,8 @@ using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
 using System.Web;
+using TeamApp.Application.DTOs.Email;
+using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.Exceptions;
 using TeamApp.Application.Interfaces;
 using TeamApp.Application.Wrappers;
@@ -25,12 +27,14 @@ namespace TeamApp.WebApi.Controllers.Test
         private readonly IAuthenticatedUserService authenticatedUserService;
         private readonly TeamAppContext _dbContext;
         private readonly IWebHostEnvironment _environment;
+        private readonly IEmailService _emailService;
 
-        public TestController(IAuthenticatedUserService _authenticatedUserService, TeamAppContext dbContext, IWebHostEnvironment environment)
+        public TestController(IAuthenticatedUserService _authenticatedUserService, TeamAppContext dbContext, IWebHostEnvironment environment, IEmailService emailService)
         {
             authenticatedUserService = _authenticatedUserService;
             _dbContext = dbContext;
             _environment = environment;
+            _emailService = emailService;
         }
         [Authorize]
         [HttpGet]
@@ -152,6 +156,34 @@ namespace TeamApp.WebApi.Controllers.Test
                 }
             }
             return Ok(file.FileName);
+        }
+
+        [HttpGet("send-mail")]
+        public async Task<IActionResult> SendMailAsync()
+        {
+            var obj = new EmailRequest
+            {
+                To = "dunghkuit@gmail.com",
+                Subject = "test mail",
+                Body = "lorem lorem lorem"
+            };
+            await _emailService.SendAsyncAWS(obj);
+
+            return Ok("zzzzzzzzzz");
+        }
+
+        [Authorize(Policy = "TeamPolicy")]
+        [HttpGet("test-policy")]
+        public IActionResult TestPolicy([FromQuery]TeamResponse teamResponse)
+        {
+            return Ok("zzzzzzzz");
+        }
+
+        [Authorize(Policy = "TeamPolicy")]
+        [HttpPost("test-policy2")]
+        public IActionResult TestPolicy2([FromBody] TeamResponse teamResponse)
+        {
+            return Ok("zzzzzzzz");
         }
     }
 }

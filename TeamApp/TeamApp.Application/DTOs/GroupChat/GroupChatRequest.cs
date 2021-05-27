@@ -8,6 +8,7 @@ namespace TeamApp.Application.DTOs.GroupChat
     {
         public string GroupChatId { get; set; }
         public string GroupChatName { get; set; }
+        public string GroupChatType { get; set; }
         public DateTime? GroupChatUpdatedAt { get; set; }
     }
 }

@@ -10,6 +10,7 @@ using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.Utils;
 using TeamApp.Application.DTOs.User;
 using static TeamApp.Application.Utils.Extensions;
+using TeamApp.Application.Wrappers;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -208,27 +209,36 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
-        public async Task<List<UserResponse>> GetAllByTeamId(string teamId)
+        public async Task<PagedResponse<UserResponse>> GetUsersByTeamIdPaging(TeamUserParameter userParameter)
         {
+            var team = await _dbContext.Team.FindAsync(userParameter.TeamId);
+
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
                         join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
-                        where t.TeamId == teamId
-                        select u;
+                        where t.TeamId == userParameter.TeamId && u.Id != team.TeamLeaderId
+                        orderby p.ParticipationCreatedAt
+                        select new { u, t };
 
-            var outPut = await query.Select(u => new UserResponse
+            var count = await query.CountAsync();
+
+            query = query.Skip((userParameter.PageNumber - 1) * userParameter.PageSize).Take(userParameter.PageSize);
+
+            var outPut = await query.Select(ur => new UserResponse
             {
-                UserId = u.Id,
-                UserEmail = u.Email,
-                UserFullname = u.FullName,
-                UserDateOfBirth = u.Dob,
-                UsePhoneNumber = u.PhoneNumber,
-                UserImageUrl = u.ImageUrl,
-                UserCreatedAt = u.CreatedAt
+                UserId = ur.u.Id,
+                UserEmail = ur.u.Email,
+                UserFullname = ur.u.FullName,
+                UserImageUrl = string.IsNullOrEmpty(ur.u.ImageUrl) ? $"https://ui-avatars.com/api/?name={ur.u.FullName}" : ur.u.ImageUrl,
+                UserCreatedAt = ur.u.CreatedAt,
             }).ToListAsync();
 
 
-            return outPut;
+
+
+            var pagedResponse = new PagedResponse<UserResponse>(outPut, userParameter.PageSize, count);
+
+            return pagedResponse;
         }
 
         public async Task<TeamResponse> JoinTeam(JoinTeamRequest request)
@@ -268,6 +278,25 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TeamCreatedAt = team.TeamCreatedAt,
                 TeamCode = team.TeamCode,
             };
+        }
+
+
+        public async Task<UserResponse> GetAdmin(string teamId)
+        {
+            var team = await _dbContext.Team.FindAsync(teamId);
+            var admin = await _dbContext.User.FindAsync(team.TeamLeaderId);
+            if (admin == null)
+                return null;
+
+            var adminRes = new UserResponse
+            {
+                UserId = admin.Id,
+                UserEmail = admin.Email,
+                UserFullname = admin.FullName,
+                UserImageUrl = string.IsNullOrEmpty(admin.ImageUrl) ? $"https://ui-avatars.com/api/?name={admin.FullName}" : admin.ImageUrl,
+                UserCreatedAt = admin.CreatedAt,
+            };
+            return adminRes;
         }
     }
 }

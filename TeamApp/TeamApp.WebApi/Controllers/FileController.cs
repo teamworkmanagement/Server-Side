@@ -11,7 +11,7 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    //[Authorize]
+    [Authorize]
     [Route("api/file")]
     public class FileController : ControllerBase
     {
