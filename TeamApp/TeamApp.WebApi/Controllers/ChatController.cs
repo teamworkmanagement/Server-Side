@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Message;
@@ -40,29 +41,25 @@ namespace TeamApp.WebApi.Controllers.Test
             var connections = from gru in _dbContext.GroupChatUser.AsNoTracking()
                               join d in _dbContext.UserConnection.AsNoTracking() on gru.GroupChatUserUserId equals d.UserId
                               where d.Type == "chat" && gru.GroupChatUserGroupChatId == message.GroupId
-                              select d;
+                              select d.ConnectionId;
 
             var query = await connections.AsNoTracking().ToListAsync();
+            var clients = new ReadOnlyCollection<string>(query);
 
-              foreach (var f in query)
-              {
-                  if (f.UserId != message.UserId)
-                  {
-                      //await _chatHub.Groups.AddToGroupAsync(f.d.ConnectionId, groupId);
-                      await _chatHub.Clients.Client(f.ConnectionId).NhanMessage(message);
-                  }
-              }
 
-              var date = Application.Utils.Extensions.UnixTimeStampToDateTime(message.TimeSend);
+            await _chatHub.Clients.Clients(clients).NhanMessage(message);
 
-              await _messageRepository.AddMessage(new MessageRequest
-              {
-                  MessageUserId = message.UserId,
-                  MessageGroupChatId = message.GroupId,
-                  MessageContent = message.Message,
-                  MessageCreatedAt = date,
-                  MessageType = message.MessageType,
-              });
+
+            var date = Application.Utils.Extensions.UnixTimeStampToDateTime(message.TimeSend);
+
+            await _messageRepository.AddMessage(new MessageRequest
+            {
+                MessageUserId = message.UserId,
+                MessageGroupChatId = message.GroupId,
+                MessageContent = message.Message,
+                MessageCreatedAt = date,
+                MessageType = message.MessageType,
+            });
 
             //await _chatHub.Clients.Groups(groupId).NhanMessage(message);
         }

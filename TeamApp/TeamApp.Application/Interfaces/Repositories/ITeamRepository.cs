@@ -23,5 +23,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<PagedResponse<UserResponse>> GetUsersByTeamIdPaging(TeamUserParameter userParameter);
         Task<UserResponse> GetAdmin(string teamId);
         Task<TeamResponse> JoinTeam(JoinTeamRequest request);
+        Task<List<UserResponse>> GetUsersForTag(string teamId);
     }
 }

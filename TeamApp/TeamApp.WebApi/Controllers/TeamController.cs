@@ -129,5 +129,16 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = outPut != null,
             });
         }
+
+        [HttpGet("users-for-tag/{teamId}")]
+        public async Task<IActionResult> GetUsersForTag(string teamId)
+        {
+            var outPut = await _repo.GetUsersForTag(teamId);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
     }
 }

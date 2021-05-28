@@ -9,6 +9,9 @@ using System.Linq;
 using Microsoft.EntityFrameworkCore;
 using TeamApp.Application.DTOs.GroupChat;
 using TeamApp.Application.Utils;
+using TeamApp.Application.DTOs.User;
+using System.Data;
+using TeamApp.Infrastructure.Persistence.Helpers;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -35,17 +38,93 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return entity.GroupChatId;
         }
 
+        public async Task<string> AddGroupChatWithMembers(GroupChatRequestMembers requestMembers)
+        {
+            var entity = new GroupChat
+            {
+                GroupChatId = string.IsNullOrEmpty(requestMembers.GroupChatId) ? Guid.NewGuid().ToString() : requestMembers.GroupChatId,
+                GroupChatName = requestMembers.GroupChatName,
+                GroupChatUpdatedAt = DateTime.UtcNow,
+                GroupChatType = requestMembers.GroupChatType,
+            };
+
+            await _dbContext.GroupChat.AddAsync(entity);
+            await _dbContext.SaveChangesAsync();
+
+            var listGrChatUsers = new List<GroupChatUser>();
+            foreach (var user in requestMembers.Members)
+            {
+                listGrChatUsers.Add(new GroupChatUser
+                {
+                    GroupChatUserId = Guid.NewGuid().ToString(),
+                    GroupChatUserUserId = user,
+                    GroupChatUserGroupChatId = entity.GroupChatId,
+                    GroupChatUserIsDeleted = false,
+                });
+            }
+
+            await _dbContext.BulkInsertAsync(listGrChatUsers);
+
+            return entity.GroupChatId;
+        }
+
+        public async Task<object> CheckDoubleGroupChatExists(CheckDoubleGroupChatExists chatExists)
+        {
+            /*var lists = new List<string> { chatExists.UserOneId, chatExists.UserTwoId };
+            var find = await (from gc in _dbContext.GroupChat.AsNoTracking()
+                              join gru in _dbContext.GroupChatUser.AsNoTracking() on gc.GroupChatId equals gru.GroupChatUserGroupChatId
+                              where gc.GroupChatType == "double" && lists.Contains(gru.GroupChatUserGroupChatId)
+                              select gc).ToListAsync();*/
+
+            var query = "SELECT g.group_chat_id " +
+"FROM group_chat g " +
+"JOIN group_chat_user gu ON (gu.group_chat_user_group_chat_id = g.group_chat_id) " +
+"where g.group_chat_type='double' " +
+"GROUP BY g.group_chat_id " +
+$"HAVING (SUM(gu.group_chat_user_user_id IN ('{chatExists.UserOneId}','{chatExists.UserTwoId}')) = 2) " +
+$"AND (SUM(gu.group_chat_user_user_id NOT IN ('{chatExists.UserOneId}','{chatExists.UserTwoId}')) = 0) ";
+            var results = RawQuery.RawSqlQuery(_dbContext, query
+                , x => (string)x[0]);
+
+
+            var user2 = await _dbContext.User.FindAsync(chatExists.UserTwoId);
+            var user2Res = new UserResponse
+            {
+                UserId = user2.Id,
+                UserFullname = user2.FullName,
+                UserImageUrl = user2.ImageUrl,
+            };
+            if (results.Count() == 1)
+            {
+                return new
+                {
+                    Exists = true,
+                    GroupChatId = results[0],
+                    UserTwo = user2Res,
+                };
+            }
+
+            return new
+            {
+                Exists = false,
+                GroupChatId = string.Empty,
+                UserTwo = user2Res,
+            };
+        }
+
         public async Task<bool> DeleteGroupChat(string grChatId)
         {
             return await Task.FromResult(false);
         }
 
-        public async Task<List<GroupChatResponse>> GetAllByUserId(GroupChatSearch search)
+        public async Task<CustomListGroupChatResponse> GetAllByUserId(GroupChatSearch search)
         {
+            var responseCustom = new CustomListGroupChatResponse();
+
             var query = from gc in _dbContext.GroupChat.AsNoTracking()
                         join grc in _dbContext.GroupChatUser.AsNoTracking() on gc.GroupChatId equals grc.GroupChatUserGroupChatId
-                        join t in _dbContext.Team.AsNoTracking() on gc.GroupChatId equals t.TeamId
-                        select new { gc, grc, t.TeamImageUrl };
+
+                        select new { gc, grc };
 
             var outputQuery = query.Where(x => x.grc.GroupChatUserUserId == search.UserId).OrderByDescending(x => x.gc.GroupChatUpdatedAt);
 
@@ -65,9 +144,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     GroupChatType = gr.gc.GroupChatType,
                     GroupChatId = gr.gc.GroupChatId,
                     GroupChatName = gr.gc.GroupChatName,
-                    GroupChatUpdatedAt = lastest == null ? null : lastest.MessageCreatedAt.FormatTime(),
+                    GroupChatUpdatedAt = lastest == null ? gr.gc.GroupChatUpdatedAt : lastest.MessageCreatedAt.FormatTime(),
                     NewMessage = gr.grc.GroupChatUserSeen,
-                    GroupAvatar = string.IsNullOrEmpty(gr.TeamImageUrl) ? $"https://ui-avatars.com/api/?name={gr.gc.GroupChatName}" : gr.TeamImageUrl,
+                    GroupAvatar = $"https://ui-avatars.com/api/?name={gr.gc.GroupChatName}",
                     LastestMes = lastest == null ? null : lastest.MessageType == "file" ? "[Tệp tin]" : lastest.MessageType == "image" ? "[Hình ảnh]" : lastest.MessageContent,
                 });
             }
@@ -94,7 +173,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     l.GroupChatName = user.FullName;
                     l.GroupAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
                 }
-
             }
 
 
@@ -106,7 +184,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     lists = lists.Where(x => x.GroupChatName.UnsignUnicode().Contains(xoadau)).Select(x => x).ToList();
                 }
             }
-            return lists;
+
+            responseCustom.GroupChats = lists;
+
+            if (lists.Where(x => x.GroupChatId == search.CurrentGroup).Count() > 0)
+                responseCustom.CurrentGroup = search.CurrentGroup;
+            else
+            {
+                if(lists.Count>0)
+                    responseCustom.CurrentGroup = lists[0].GroupChatId;
+            }
+                
+            return responseCustom;
         }
 
         public async Task<bool> UpdateGroupChat(string grchatId, GroupChatRequest grChatReq)

@@ -27,7 +27,7 @@ namespace TeamApp.WebApi.Controllers
         {
             var res = await _repo.GetAllByUserId(search);
 
-            var outPut = new ApiResponse<List<GroupChatResponse>>
+            var outPut = new ApiResponse<CustomListGroupChatResponse>
             {
                 Data = res,
                 Succeeded = true,
@@ -79,6 +79,31 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpPost("check-double-exists")]
+        public async Task<IActionResult> CheckDoubleExists([FromBody] CheckDoubleGroupChatExists chatExists)
+        {
+            var res = await _repo.CheckDoubleGroupChatExists(chatExists);
+
+            var outPut = new ApiResponse<object>
+            {
+                Data = res,
+                Succeeded = true,
+            };
+
+            return Ok(outPut);
+        }
+
+        [HttpPost("add-with-members")]
+        public async Task<IActionResult> AddGroupChatWithMembers(GroupChatRequestMembers requestMembers)
+        {
+            var outPut = await _repo.AddGroupChatWithMembers(requestMembers);
+            return Ok(new ApiResponse<string>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
         }
     }
 }

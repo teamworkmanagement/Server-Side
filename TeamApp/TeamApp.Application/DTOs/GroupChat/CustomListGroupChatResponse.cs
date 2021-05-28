@@ -4,11 +4,9 @@ using System.Text;
 
 namespace TeamApp.Application.DTOs.GroupChat
 {
-    public class GroupChatSearch
+    public class CustomListGroupChatResponse
     {
-        public string UserId { get; set; }
-        public string KeyWord { get; set; }
+        public List<GroupChatResponse> GroupChats { get; set; }
         public string CurrentGroup { get; set; }
-        public bool IsSearch { get; set; } = false;
     }
 }

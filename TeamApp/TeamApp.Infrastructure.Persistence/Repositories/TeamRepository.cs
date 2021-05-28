@@ -298,5 +298,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
             return adminRes;
         }
+
+        public async Task<List<UserResponse>> GetUsersForTag(string teamId)
+        {
+            var query = from p in _dbContext.Participation.AsNoTracking()
+                        join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
+                        join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                        where t.TeamId == teamId
+                        select u;
+
+            return await query.Select(u => new UserResponse
+            {
+                UserId = u.Id,
+                UserFullname = u.FullName,
+                UserImageUrl = string.IsNullOrEmpty(u.ImageUrl) ? $"https://ui-avatars.com/api/?name={u.FullName}" : u.ImageUrl,
+            }).ToListAsync();
+        }
     }
 }
