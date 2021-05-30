@@ -12,15 +12,20 @@ using TeamApp.Application.Utils;
 using TeamApp.Application.DTOs.User;
 using System.Data;
 using TeamApp.Infrastructure.Persistence.Helpers;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Chat;
+using System.Collections.ObjectModel;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class GroupChatRepository : IGroupChatRepository
     {
         private readonly TeamAppContext _dbContext;
-        public GroupChatRepository(TeamAppContext dbContext)
+        private readonly IHubContext<HubChatClient, IHubChatClient> _chatHub;
+        public GroupChatRepository(TeamAppContext dbContext, IHubContext<HubChatClient, IHubChatClient> chatHub)
         {
             _dbContext = dbContext;
+            _chatHub = chatHub;
         }
         public async Task<string> AddGroupChat(GroupChatRequest grChatReq)
         {
@@ -38,14 +43,77 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return entity.GroupChatId;
         }
 
+        public async Task<string> AddGroupChatMembers(AddMembersRequest request)
+        {
+            var grc = await _dbContext.GroupChat.FindAsync(request.GroupChatId);
+
+            if (grc == null)
+                throw new KeyNotFoundException("Not found groupchat");
+
+            if (grc.GroupChatType == "double")
+            {
+                var listUser = await (from gru in _dbContext.GroupChatUser.AsNoTracking()
+                                      join gr in _dbContext.GroupChat.AsNoTracking() on gru.GroupChatUserGroupChatId equals gr.GroupChatId
+                                      where gr.GroupChatId == grc.GroupChatId
+                                      select gru.GroupChatUserUserId).ToListAsync();
+                request.UserIds.AddRange(listUser);
+                var grChatId = await AddGroupChatWithMembers(new GroupChatRequestMembers
+                {
+                    Members = request.UserIds,
+                    GroupChatName = Extensions.RadomString.RandomString(8),
+                });
+
+                return grChatId;
+
+            }
+
+            var listGrChatUsers = new List<GroupChatUser>();
+            foreach (var user in request.UserIds)
+            {
+                listGrChatUsers.Add(new GroupChatUser
+                {
+                    GroupChatUserId = Guid.NewGuid().ToString(),
+                    GroupChatUserUserId = user,
+                    GroupChatUserGroupChatId = grc.GroupChatId,
+                    GroupChatUserIsDeleted = false,
+                });
+            }
+
+            await _dbContext.BulkInsertAsync(listGrChatUsers);
+
+            return grc.GroupChatId;
+        }
+
         public async Task<string> AddGroupChatWithMembers(GroupChatRequestMembers requestMembers)
         {
+            if (requestMembers.Members.Count() == 2)
+            {
+                var userOne = requestMembers.Members[0];
+                var userTwo = requestMembers.Members[1];
+
+                var query = "SELECT g.group_chat_id " +
+                        "FROM group_chat g " +
+                        "JOIN group_chat_user gu ON (gu.group_chat_user_group_chat_id = g.group_chat_id) " +
+                        "where g.group_chat_type='double' " +
+                        "GROUP BY g.group_chat_id " +
+                        $"HAVING (SUM(gu.group_chat_user_user_id IN ('{userOne}','{userTwo}')) = 2) " +
+                        $"AND (SUM(gu.group_chat_user_user_id NOT IN ('{userOne}','{userTwo}')) = 0) ";
+
+                var results = await RawQuery.RawSqlQuery(_dbContext, query
+                    , x => (string)x[0]);
+
+                if (results.Count() == 1)
+                {
+                    return results[0];
+                }
+            }
+
             var entity = new GroupChat
             {
                 GroupChatId = string.IsNullOrEmpty(requestMembers.GroupChatId) ? Guid.NewGuid().ToString() : requestMembers.GroupChatId,
                 GroupChatName = requestMembers.GroupChatName,
                 GroupChatUpdatedAt = DateTime.UtcNow,
-                GroupChatType = requestMembers.GroupChatType,
+                GroupChatType = requestMembers.Members.Count() == 2 ? "double" : "multi",
             };
 
             await _dbContext.GroupChat.AddAsync(entity);
@@ -65,6 +133,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             await _dbContext.BulkInsertAsync(listGrChatUsers);
 
+            var connections = await (from c in _dbContext.UserConnection.AsNoTracking()
+                                     where requestMembers.Members.Contains(c.UserId)
+                                     select c.ConnectionId).ToListAsync();
+            var clients = new ReadOnlyCollection<string>(connections);
+
+            await _chatHub.Clients.Clients(clients).NewGroupChat(new GroupChatResponse
+            {
+                GroupChatId = entity.GroupChatId,
+                GroupChatName = entity.GroupChatName,
+                GroupChatUpdatedAt = DateTime.UtcNow,
+                GroupAvatar = $"https://ui-avatars.com/api/?name={entity.GroupChatName}",
+                LastestMes = null,
+                GroupChatType = entity.GroupChatType
+            });
+
             return entity.GroupChatId;
         }
 
@@ -77,13 +160,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                               select gc).ToListAsync();*/
 
             var query = "SELECT g.group_chat_id " +
-"FROM group_chat g " +
-"JOIN group_chat_user gu ON (gu.group_chat_user_group_chat_id = g.group_chat_id) " +
-"where g.group_chat_type='double' " +
-"GROUP BY g.group_chat_id " +
-$"HAVING (SUM(gu.group_chat_user_user_id IN ('{chatExists.UserOneId}','{chatExists.UserTwoId}')) = 2) " +
-$"AND (SUM(gu.group_chat_user_user_id NOT IN ('{chatExists.UserOneId}','{chatExists.UserTwoId}')) = 0) ";
-            var results = RawQuery.RawSqlQuery(_dbContext, query
+                        "FROM group_chat g " +
+                        "JOIN group_chat_user gu ON (gu.group_chat_user_group_chat_id = g.group_chat_id) " +
+                        "where g.group_chat_type='double' " +
+                        "GROUP BY g.group_chat_id " +
+                        $"HAVING (SUM(gu.group_chat_user_user_id IN ('{chatExists.UserOneId}','{chatExists.UserTwoId}')) = 2) " +
+                        $"AND (SUM(gu.group_chat_user_user_id NOT IN ('{chatExists.UserOneId}','{chatExists.UserTwoId}')) = 0) ";
+            var results = await RawQuery.RawSqlQuery(_dbContext, query
                 , x => (string)x[0]);
 
 
@@ -144,7 +227,7 @@ $"AND (SUM(gu.group_chat_user_user_id NOT IN ('{chatExists.UserOneId}','{chatExi
                     GroupChatType = gr.gc.GroupChatType,
                     GroupChatId = gr.gc.GroupChatId,
                     GroupChatName = gr.gc.GroupChatName,
-                    GroupChatUpdatedAt = lastest == null ? gr.gc.GroupChatUpdatedAt : lastest.MessageCreatedAt.FormatTime(),
+                    GroupChatUpdatedAt = lastest == null ? gr.gc.GroupChatUpdatedAt.FormatTime() : lastest.MessageCreatedAt.FormatTime(),
                     NewMessage = gr.grc.GroupChatUserSeen,
                     GroupAvatar = $"https://ui-avatars.com/api/?name={gr.gc.GroupChatName}",
                     LastestMes = lastest == null ? null : lastest.MessageType == "file" ? "[Tệp tin]" : lastest.MessageType == "image" ? "[Hình ảnh]" : lastest.MessageContent,
@@ -170,7 +253,7 @@ $"AND (SUM(gu.group_chat_user_user_id NOT IN ('{chatExists.UserOneId}','{chatExi
                                       where grc.GroupChatUserUserId != search.UserId && grc.GroupChatUserGroupChatId == l.GroupChatId
                                       select new { u.FullName, u.ImageUrl }).FirstOrDefaultAsync();
 
-                    l.GroupChatName = user.FullName;
+                    l.GroupChatName = !string.IsNullOrEmpty(l.GroupChatName) ? l.GroupChatName : user.FullName;
                     l.GroupAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
                 }
             }
@@ -191,10 +274,10 @@ $"AND (SUM(gu.group_chat_user_user_id NOT IN ('{chatExists.UserOneId}','{chatExi
                 responseCustom.CurrentGroup = search.CurrentGroup;
             else
             {
-                if(lists.Count>0)
+                if (lists.Count > 0)
                     responseCustom.CurrentGroup = lists[0].GroupChatId;
             }
-                
+
             return responseCustom;
         }
 

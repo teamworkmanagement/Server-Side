@@ -14,5 +14,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<bool> DeleteGroupChat(string grChatId);
         Task<object> CheckDoubleGroupChatExists(CheckDoubleGroupChatExists chatExists);
         Task<string> AddGroupChatWithMembers(GroupChatRequestMembers requestMembers);
+        Task<string> AddGroupChatMembers(AddMembersRequest request);
     }
 }

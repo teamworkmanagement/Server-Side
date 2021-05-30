@@ -389,13 +389,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))
                 advanced = true;
 
-            var teamList = from t in _dbContext.Team
-                           join par in _dbContext.Participation on t.TeamId equals par.ParticipationTeamId
-                           join u in _dbContext.User on par.ParticipationUserId equals u.Id
-                           select new { u.Id, t.TeamId, t.TeamName };
-
-            //danh sách team mà user join
-            teamList = teamList.Where(x => x.Id == parameter.UserId);
+            var teamList = from t in _dbContext.Team.AsNoTracking()
+                           join par in _dbContext.Participation.AsNoTracking() on t.TeamId equals par.ParticipationTeamId
+                           where par.ParticipationUserId == parameter.UserId
+                           select new { par.ParticipationUserId, t.TeamId, t.TeamName };
+            var test = await teamList.ToListAsync();
+            /*    //danh sách team mà user join
+                teamList = teamList.Where(x => x.Id == parameter.UserId);*/
 
             //bảng chứa toàn bộ thông tin các post của các team mà user tham gia
             var query = from p in _dbContext.Post

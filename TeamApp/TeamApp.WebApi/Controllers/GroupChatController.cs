@@ -105,5 +105,16 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             });
         }
+
+        [HttpPost("add-members")]
+        public async Task<IActionResult> AddGroupChatMembers(AddMembersRequest request)
+        {
+            var outPut = await _repo.AddGroupChatMembers(request);
+            return Ok(new ApiResponse<string>
+            {
+                Data = outPut,
+                Succeeded = outPut != null
+            });
+        }
     }
 }

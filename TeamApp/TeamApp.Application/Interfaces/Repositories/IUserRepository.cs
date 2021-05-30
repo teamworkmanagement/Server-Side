@@ -23,6 +23,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// <param name="teamId"></param>
         /// <returns></returns>
         Task<List<UserResponse>> GetAllUserInTeam(string userId, string teamId = null);
-        Task<List<UserResponse>> SearchUser(string userId, string keyWord,bool isEmail);
+        Task<List<UserResponse>> SearchUser(string userId, string keyWord, bool isEmail);
+        Task<List<UserResponse>> SearchUserAddToExistsChat(string userId, string teamId, string keyWord, bool isEmail);
     }
 }

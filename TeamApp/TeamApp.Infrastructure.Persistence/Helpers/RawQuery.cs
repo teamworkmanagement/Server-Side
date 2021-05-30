@@ -4,13 +4,14 @@ using System.Collections.Generic;
 using System.Data;
 using System.Data.Common;
 using System.Text;
+using System.Threading.Tasks;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Helpers
 {
     public class RawQuery
     {
-        public static List<T> RawSqlQuery<T>(TeamAppContext context, string query, Func<DbDataReader, T> map)
+        public static async Task<List<T>> RawSqlQuery<T>(TeamAppContext context, string query, Func<DbDataReader, T> map)
         {
             using (var command = context.Database.GetDbConnection().CreateCommand())
             {
@@ -23,7 +24,7 @@ namespace TeamApp.Infrastructure.Persistence.Helpers
                 {
                     var entities = new List<T>();
 
-                    while (result.Read())
+                    while (await result.ReadAsync())
                     {
                         entities.Add(map(result));
                     }

@@ -71,10 +71,21 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
-        [HttpGet("search-user/{userId}/{keyword}")]
-        public async Task<IActionResult> SearchUser(string userId, string keyword, bool isEmail = false)
+        [HttpGet("search-user")]
+        public async Task<IActionResult> SearchUser([FromQuery] UserSearchModel searchModel)
         {
-            var outPut = await _repo.SearchUser(userId, keyword, isEmail);
+            var outPut = await _repo.SearchUser(searchModel.UserId, searchModel.Keyword, searchModel.IsEmail);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = outPut,
+                Succeeded = outPut != null
+            });
+        }
+
+        [HttpGet("search-user-add-chat")]
+        public async Task<IActionResult> SearchUserExistsAddChat([FromQuery] UserExistsChatAddModel searchModel)
+        {
+            var outPut = await _repo.SearchUserAddToExistsChat(searchModel.UserId, searchModel.GroupChatId, searchModel.Keyword, searchModel.IsEmail);
             return Ok(new ApiResponse<List<UserResponse>>
             {
                 Data = outPut,

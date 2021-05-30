@@ -80,27 +80,135 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return userRes;
         }
 
-        public async Task<List<UserResponse>> SearchUser(string userId, string keyWord,bool email)
+        public async Task<List<UserResponse>> SearchUser(string userId, string keyWord, bool email)
         {
             var query = "";
             if (!email)
             {
                 query = "SELECT * FROM user " +
                 $"where user.user_id <> '{userId}' and user.user_fullname like '%{keyWord}%'";
+
+                var newQuery = "select u.user_id, u.user_fullname, u.user_image_url " +
+                              "from user u " +
+                              "join " +
+                              "(select distinct p.participation_user_id " +
+                              "from participation p " +
+                              "join " +
+                              "(select t.team_id, p.participation_user_id " +
+                              "from team t join participation p on t.team_id = p.participation_team_id " +
+                              $"where p.participation_user_id = '{userId}') teamIDs " +
+                              "on p.participation_team_id = teamIDs.team_id) userIDs " +
+                              "on u.user_id = userIDs.participation_user_id " +
+                              $"where u.user_fullname like '%{keyWord}%'";
+
+                query = newQuery;
             }
             else
             {
                 query = "SELECT * FROM user " +
                 $"where user.user_id <> '{userId}' and user.user_email = '{keyWord}'";
+
+                var newQuery = "select u.user_id, u.user_fullname, u.user_image_url " +
+                              "from user u " +
+                              "join " +
+                              "(select distinct p.participation_user_id " +
+                              "from participation p " +
+                              "join " +
+                              "(select t.team_id, p.participation_user_id " +
+                              "from team t join participation p on t.team_id = p.participation_team_id " +
+                              $"where p.participation_user_id = '{userId}') teamIDs " +
+                              "on p.participation_team_id = teamIDs.team_id) userIDs " +
+                              "on u.user_id = userIDs.participation_user_id " +
+                              $"where u.user_email = '{keyWord}'";
+
+                query = newQuery;
+
             }
+
+            var listUsers = await Helpers.RawQuery.RawSqlQuery(_dbContext, query, (x) => new User
+            {
+                Id = (string)x[0],
+                FullName = (string)x[1],
+                ImageUrl = (string)x[2],
+            });
             Console.WriteLine(query);
 
-            var outPut = await _dbContext.User.FromSqlRaw(query).ToListAsync();
+            //var outPut = await _dbContext.User.FromSqlRaw(query).ToListAsync();
 
-            return outPut.Select(x => new UserResponse
+            return listUsers.Select(x => new UserResponse
             {
                 UserId = x.Id,
-                UserEmail = x.Email,
+                UserFullname = x.FullName,
+                UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
+            }).ToList();
+        }
+
+        public async Task<List<UserResponse>> SearchUserAddToExistsChat(string userId, string grChatId, string keyWord, bool isEmail)
+        {
+            var query = "";
+            if (!isEmail)
+            {
+                query = "SELECT * FROM user " +
+                $"where user.user_id <> '{userId}' and user.user_fullname like '%{keyWord}%'";
+
+                var newQuery = "select u.user_id, u.user_fullname, u.user_image_url " +
+                              "from user u " +
+                              "join " +
+                              "(select distinct p.participation_user_id " +
+                              "from participation p " +
+                              "join " +
+                              "(select t.team_id, p.participation_user_id " +
+                              "from team t join participation p on t.team_id = p.participation_team_id " +
+                              $"where p.participation_user_id = '{userId}') teamIDs " +
+                              "on p.participation_team_id = teamIDs.team_id) userIDs " +
+                              "on u.user_id = userIDs.participation_user_id " +
+                              $"where u.user_fullname like '%{keyWord}%' and " +
+                              $" u.user_id not in " +
+                               "(select grc.group_chat_user_user_id " +
+                                "from group_chat_user grc " +
+                                $"where grc.group_chat_user_group_chat_id = '{grChatId}')";
+
+                query = newQuery;
+            }
+            else
+            {
+                query = "SELECT * FROM user " +
+                $"where user.user_id <> '{userId}' and user.user_email = '{keyWord}'";
+
+                var newQuery = "select u.user_id, u.user_fullname, u.user_image_url " +
+                              "from user u " +
+                              "join " +
+                              "(select distinct p.participation_user_id " +
+                              "from participation p " +
+                              "join " +
+                              "(select t.team_id, p.participation_user_id " +
+                              "from team t join participation p on t.team_id = p.participation_team_id " +
+                              $"where p.participation_user_id = '{userId}') teamIDs " +
+                              "on p.participation_team_id = teamIDs.team_id) userIDs " +
+                              "on u.user_id = userIDs.participation_user_id " +
+                              $"where u.user_email = '{keyWord}' and " +
+                              $" u.user_id not in " +
+                               "(select grc.group_chat_user_user_id " +
+                                "from group_chat_user grc " +
+                                $"where grc.group_chat_user_group_chat_id = '{grChatId}')";
+
+                query = newQuery;
+
+            }
+
+            var listUsers = await Helpers.RawQuery.RawSqlQuery(_dbContext, query, (x) => new User
+            {
+                Id = (string)x[0],
+                FullName = (string)x[1],
+                ImageUrl = (string)x[2],
+            });
+            Console.WriteLine(query);
+
+            //var outPut = await _dbContext.User.FromSqlRaw(query).ToListAsync();
+
+            return listUsers.Select(x => new UserResponse
+            {
+                UserId = x.Id,
                 UserFullname = x.FullName,
                 UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
             }).ToList();
