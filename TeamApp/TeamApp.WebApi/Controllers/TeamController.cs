@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.KanbanBoard;
 using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Interfaces.Repositories;
@@ -138,6 +139,17 @@ namespace TeamApp.WebApi.Controllers
             {
                 Data = outPut,
                 Succeeded = true,
+            });
+        }
+
+        [HttpGet("boards-by-team/{teamId}")]
+        public async Task<IActionResult> GetBoardsByTeamId(string teamId)
+        {
+            var outPut = await _repo.GetBoardsByTeam(teamId);
+            return Ok(new ApiResponse<List<KanbanBoardResponse>>
+            {
+                Succeeded = outPut != null,
+                Data = outPut,
             });
         }
     }

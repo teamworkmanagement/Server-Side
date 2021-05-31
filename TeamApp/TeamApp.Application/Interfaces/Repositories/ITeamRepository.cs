@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Text;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.KanbanBoard;
 using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Wrappers;
@@ -24,5 +25,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<UserResponse> GetAdmin(string teamId);
         Task<TeamResponse> JoinTeam(JoinTeamRequest request);
         Task<List<UserResponse>> GetUsersForTag(string teamId);
+        Task<List<KanbanBoardResponse>> GetBoardsByTeam(string teamId);
     }
 }

@@ -11,6 +11,7 @@ using TeamApp.Application.Utils;
 using TeamApp.Application.DTOs.User;
 using static TeamApp.Application.Utils.Extensions;
 using TeamApp.Application.Wrappers;
+using TeamApp.Application.DTOs.KanbanBoard;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -313,6 +314,39 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserFullname = u.FullName,
                 UserImageUrl = string.IsNullOrEmpty(u.ImageUrl) ? $"https://ui-avatars.com/api/?name={u.FullName}" : u.ImageUrl,
             }).ToListAsync();
+        }
+
+        public async Task<List<KanbanBoardResponse>> GetBoardsByTeam(string teamId)
+        {
+            //get all team for user
+            var team = await _dbContext.Team.FindAsync(teamId);
+            if (team == null)
+                throw new KeyNotFoundException("Team not found");
+
+            List<KanbanBoardResponse> responses = new List<KanbanBoardResponse>();
+
+
+            var boards = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                                where b.KanbanBoardTeamId == teamId
+                                select b).ToListAsync();
+
+            foreach (var board in boards)
+            {
+                var taskCount = await (from t in _dbContext.Task.AsNoTracking()
+                                       join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                       where kl.KanbanListBoardBelongedId == board.KanbanBoardId && t.TaskIsDeleted == false
+                                       select t.TaskId).CountAsync();
+
+                responses.Add(new KanbanBoardResponse
+                {
+                    KanbanBoardId = board.KanbanBoardId,
+                    KanbanBoardUserId = board.KanbanBoardUserId,
+                    KanbanBoardTeamId = board.KanbanBoardTeamId,
+                    KanbanBoardName = board.KanbanBoardName,
+                    TasksCount = taskCount,
+                });
+            }
+            return responses;
         }
     }
 }

@@ -50,7 +50,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     KanbanBoardUserId = kanbanBoardRequest.KanbanBoardUserId,
                     KanbanBoardTeamId = kanbanBoardRequest.KanbanBoardTeamId,
                     KanbanBoardName = entity.KanbanBoardName,
-                    TaskCount = 0,
+                    TasksCount = 0,
                 };
             }
             return null;
@@ -86,7 +86,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         KanbanBoardUserId = board.KanbanBoardUserId,
                         KanbanBoardTeamId = board.KanbanBoardTeamId,
                         KanbanBoardName = board.KanbanBoardName,
-                        TaskCount = taskCount,
+                        TasksCount = taskCount,
                         KanbanBoardGroupName = team.TeamName,
                         GroupImageUrl = string.IsNullOrEmpty(team.TeamImageUrl) ? $"https://ui-avatars.com/api/?name={team.TeamName}" : team.TeamImageUrl,
                     });
@@ -125,7 +125,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 KanbanBoardUserId = x.KanbanBoardUserId,
                 KanbanBoardTeamId = x.KanbanBoardTeamId,
                 KanbanBoardName = x.KanbanBoardName,
-                TaskCount = TaskCounts[x.KanbanBoardId]
+                TasksCount = TaskCounts[x.KanbanBoardId]
             }).ToListAsync();
         }
 
@@ -337,7 +337,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     KanbanBoardUserId = board.KanbanBoardUserId,
                     KanbanBoardTeamId = board.KanbanBoardTeamId,
                     KanbanBoardName = board.KanbanBoardName,
-                    TaskCount = taskCount,
+                    TasksCount = taskCount,
                 });
             }
 

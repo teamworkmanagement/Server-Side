@@ -12,7 +12,7 @@ namespace TeamApp.Application.DTOs.KanbanBoard
         public string KanbanBoardUserId { get; set; }
         public string KanbanBoardName { get; set; }
         public string KanbanBoardGroupName { get; set; }
-        public int? TaskCount { get; set; }
+        public int? TasksCount { get; set; }
         public string GroupImageUrl { get; set; }
     }
 }

@@ -60,7 +60,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 var grChatId = await AddGroupChatWithMembers(new GroupChatRequestMembers
                 {
                     Members = request.UserIds,
-                    GroupChatName = Extensions.RadomString.RandomString(8),
+                    //GroupChatName = Extensions.RadomString.RandomString(8),
                 });
 
                 return grChatId;
@@ -138,12 +138,23 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                      select c.ConnectionId).ToListAsync();
             var clients = new ReadOnlyCollection<string>(connections);
 
+
+            var groupChatName = string.Empty;
+            var partis = await (from p in _dbContext.GroupChatUser.AsNoTracking()
+                                join u in _dbContext.User.AsNoTracking() on p.GroupChatUserUserId equals u.Id
+                                where p.GroupChatUserGroupChatId == entity.GroupChatId
+                                select u.FullName).Take(3).ToListAsync();
+            if (partis.Count > 2)
+            {
+                groupChatName = $"{partis[0]} + {partis[2]} và ...";
+            }
+
             await _chatHub.Clients.Clients(clients).NewGroupChat(new GroupChatResponse
             {
                 GroupChatId = entity.GroupChatId,
-                GroupChatName = entity.GroupChatName,
+                GroupChatName = groupChatName,
                 GroupChatUpdatedAt = DateTime.UtcNow,
-                GroupAvatar = $"https://ui-avatars.com/api/?name={entity.GroupChatName}",
+                GroupAvatar = $"https://ui-avatars.com/api/?name={groupChatName}",
                 LastestMes = null,
                 GroupChatType = entity.GroupChatType
             });
@@ -255,6 +266,25 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                     l.GroupChatName = !string.IsNullOrEmpty(l.GroupChatName) ? l.GroupChatName : user.FullName;
                     l.GroupAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
+                }
+                else
+                {
+                    if (string.IsNullOrEmpty(l.GroupChatName))
+                    {
+                        var partis = await (from p in _dbContext.GroupChatUser.AsNoTracking()
+                                            join u in _dbContext.User.AsNoTracking() on p.GroupChatUserUserId equals u.Id
+                                            where p.GroupChatUserGroupChatId == l.GroupChatId
+                                            select u.FullName).Take(3).ToListAsync();
+                        if (partis.Count == 2)
+                        {
+                            l.GroupChatName = $"{partis[0]} và {partis[2]}";
+                        }
+
+                        else
+                        {
+                            l.GroupChatName = $"{partis[0]} + {partis[2]} và ...";
+                        }
+                    }
                 }
             }
 
