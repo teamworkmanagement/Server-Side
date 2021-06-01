@@ -212,7 +212,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var account = await _userManager.FindByEmailAsync(model.Email);
 
             // always return ok response to prevent email enumeration
-            if (account == null) return;
+            if (account == null) throw new KeyNotFoundException("Not found account");
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(account);
             var route = "api/account/reset-password/";
@@ -341,7 +341,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     UserName = request.Email,
                 };
 
-                var result = await _userManager.CreateAsync(user, "@Social11");
+                var result = await _userManager.CreateAsync(user);
 
                 var entity = await _userManager.FindByIdAsync(request.Id);
 
@@ -401,8 +401,8 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var user = await _dbContext.User.FindAsync(changePasswordModel.UserId);
             if (user == null)
                 throw new KeyNotFoundException("No user found");
-
-            var results = await _userManager.ChangePasswordAsync(user, changePasswordModel.CurrentPassword, changePasswordModel.NewPassword);
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var results = await _userManager.ResetPasswordAsync(user, token, changePasswordModel.NewPassword);
 
             if (results.Succeeded)
             {

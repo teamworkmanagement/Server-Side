@@ -10,8 +10,6 @@ namespace TeamApp.Application.DTOs.Account
         [Required]
         public string UserId { get; set; }
 
-
-        [Required]
         public string CurrentPassword { get; set; }
 
         [Required]
