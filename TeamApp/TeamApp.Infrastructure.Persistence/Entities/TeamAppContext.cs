@@ -805,6 +805,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnName("user_date_of_birth")
                     .HasColumnType("timestamp");
 
+                entity.Property(e => e.FirstTimeSocial)
+                    .HasColumnName("user_firstime_social")
+                    .HasDefaultValue(false);
+
                 entity.Property(e => e.Email)
                     .HasColumnName("user_email")
                     .HasColumnType("varchar(50)")

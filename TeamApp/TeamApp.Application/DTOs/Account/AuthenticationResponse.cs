@@ -17,6 +17,6 @@ namespace TeamApp.Application.DTOs.Account
         public string UserAvatar { get; set; }
         public DateTime? UserDob { get; set; }
         public string UserPhoneNumber { get; set; }
-        public long ExprireToken { get; set; }
+        public bool FirstTimeSocial { get; set; } = false;
     }
 }

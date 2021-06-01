@@ -81,7 +81,6 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
             refreshToken.UserId = user.Id;
             response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
-            response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes)).ToUnixTimeMilliseconds();
 
             await _dbContext.RefreshToken.AddAsync(refreshToken);
             await _dbContext.SaveChangesAsync();
@@ -234,6 +233,9 @@ namespace TeamApp.Infrastructure.Persistence.Services
 
             if (result.Succeeded)
             {
+                account = await _dbContext.User.FindAsync(model.Email);
+                account.FirstTimeSocial = false;
+                await _userManager.UpdateAsync(account);
                 return new ApiResponse<string>(model.Email, message: $"Password Resetted.");
             }
             else
@@ -323,7 +325,6 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
                 refreshToken.UserId = userWithSameEmail.Id;
                 response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
-                response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds();
 
                 await _dbContext.RefreshToken.AddAsync(refreshToken);
                 await _dbContext.SaveChangesAsync();
@@ -339,6 +340,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     CreatedAt = DateTime.UtcNow,
                     EmailConfirmed = true,
                     UserName = request.Email,
+                    FirstTimeSocial = true,
                 };
 
                 var result = await _userManager.CreateAsync(user);
@@ -352,11 +354,11 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 response.IsVerified = entity.EmailConfirmed;
                 response.UserAvatar = entity.ImageUrl;
                 response.FullName = entity.FullName;
+                response.FirstTimeSocial = true;
 
                 var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
                 refreshToken.UserId = entity.Id;
                 response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
-                response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds();
 
                 await _dbContext.RefreshToken.AddAsync(refreshToken);
                 await _dbContext.SaveChangesAsync();
@@ -406,6 +408,9 @@ namespace TeamApp.Infrastructure.Persistence.Services
 
             if (results.Succeeded)
             {
+                user = await _dbContext.User.FindAsync(changePasswordModel.UserId);
+                user.FirstTimeSocial = false;
+                await _userManager.UpdateAsync(user);
                 return new ApiResponse<bool>
                 {
                     Data = true,
