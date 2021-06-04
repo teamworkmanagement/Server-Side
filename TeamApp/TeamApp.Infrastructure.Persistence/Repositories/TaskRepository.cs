@@ -256,8 +256,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var task = await query.AsNoTracking().FirstOrDefaultAsync();
 
-            if (task == null)
-                return null;
+            if (task == null || task.t.TaskIsDeleted.Value)
+                throw new KeyNotFoundException("Not found task");
             var outPut = new TaskResponse
             {
                 KanbanListId = task.t.TaskBelongedId,

@@ -38,9 +38,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var board = await _dbContext.KanbanBoard.FindAsync(kanbanListRequest.KanbanListBoardBelongedId);
 
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
-                             join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                             where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
-                             select u.ConnectionId).ToListAsync();
+                                 join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                 where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
+                                 select u.ConnectionId).ToListAsync();
 
             var response = new KanbanListUIResponse
             {
@@ -75,10 +75,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.KanbanList.SingleUpdateAsync(kbListEntity);
 
             var board = await _dbContext.KanbanBoard.FindAsync(kanbanListRequest.KanbanListBoardBelongedId);
-            
+
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                 where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
+                                 where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
                                  select u.ConnectionId).ToListAsync();
 
             var response = new KanbanListUIResponse

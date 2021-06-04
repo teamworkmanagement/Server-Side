@@ -471,6 +471,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                              from r in _dbContext.PostReact.Where(r => r.PostReactPostId == q.p.PostId && r.PostReactUserId == parameter.UserId).DefaultIfEmpty()
                              select new { q, isReacted = r.PostReactUserId };
 
+            if (parameter.PostId != null)
+                reactQuery = reactQuery.Where(x => x.q.p.PostId == parameter.PostId);
+
             var entityList = await reactQuery.Select(x => new PostResponse
             {
                 PostId = x.q.p.PostId,
