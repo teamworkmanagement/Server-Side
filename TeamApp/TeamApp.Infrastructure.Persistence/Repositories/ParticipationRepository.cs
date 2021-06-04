@@ -10,15 +10,19 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Application.Utils;
 using TeamApp.Application.Exceptions;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Notification;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class ParticipationRepository : IParticipationRepository
     {
         private readonly TeamAppContext _dbContext;
-        public ParticipationRepository(TeamAppContext dbContext)
+        private readonly INotificationRepository _notiRepo;
+        public ParticipationRepository(TeamAppContext dbContext, INotificationRepository notiRepo)
         {
             _dbContext = dbContext;
+            _notiRepo = notiRepo;
         }
 
         public async Task<ParticipationResponse> AddParticipation(ParticipationRequest participationRequest)
@@ -80,7 +84,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 entity = new Participation
                 {
                     ParticipationId = Guid.NewGuid().ToString(),
-                    ParticipationUserId = participationRequest.ParticipationUserId,
+                    ParticipationUserId = user.Id,
                     ParticipationTeamId = participationRequest.ParticipationTeamId,
                     ParticipationCreatedAt = DateTime.UtcNow,
                     ParticipationIsDeleted = false,
@@ -103,6 +107,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             if (await _dbContext.SaveChangesAsync() > 0)
             {
+                await _notiRepo.PushNotiJoinTeam(new Application.DTOs.Team.JoinTeamNotification
+                {
+                    UserId = user.Id,
+                    TeamId = participationRequest.ParticipationTeamId,
+                });
+
                 return new ParticipationResponse
                 {
                     ParticipationId = entity.ParticipationId,

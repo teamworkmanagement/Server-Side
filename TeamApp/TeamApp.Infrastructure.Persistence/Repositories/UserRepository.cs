@@ -129,7 +129,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 Id = (string)x[0],
                 FullName = (string)x[1],
-                ImageUrl = (string)x[2],
+                ImageUrl = (x[2] == DBNull.Value) ? string.Empty : (string)x[2],
             });
             Console.WriteLine(query);
 
@@ -200,7 +200,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 Id = (string)x[0],
                 FullName = (string)x[1],
-                ImageUrl = (string)x[2],
+                ImageUrl = (x[2] == DBNull.Value) ? string.Empty : (string)x[2],
             });
             Console.WriteLine(query);
 

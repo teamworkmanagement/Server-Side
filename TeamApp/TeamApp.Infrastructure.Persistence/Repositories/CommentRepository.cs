@@ -47,7 +47,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var check = await _dbContext.SaveChangesAsync();
 
             if (cmtReq.CommentUserTagIds.Count != 0)
-                await _notificationRepository.PushNoti(cmtReq.CommentUserTagIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bình luận");
+                await _notificationRepository.PushNotiCommentTag(new CommentMentionRequest
+                {
+                    UserIds = cmtReq.CommentUserTagIds,
+                    PostId = cmtReq.CommentPostId,
+                    TaskId = cmtReq.CommentTaskId,
+                });
 
 
             var query = from p in _dbContext.Participation.AsNoTracking()
@@ -92,9 +97,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return null;
         }
 
-        public async Task AddMentions(List<string> userIds)
+        public async Task AddMentions(CommentMentionRequest mentionRequest)
         {
-            await _notificationRepository.PushNoti(userIds, "Tag", "Bạn đã được đề cập đến trong một bình luận");
+            await _notificationRepository.PushNotiCommentTag(mentionRequest);
         }
 
         public async Task<bool> DeleteComment(string cmtId)

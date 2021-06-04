@@ -50,7 +50,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var check = await _dbContext.SaveChangesAsync();
 
             if (postReq.UserIds.Count != 0)
-                await _notificationRepository.PushNoti(postReq.UserIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bài viết");
+                await _notificationRepository.PushNotiAddPostTag(new AddPostMentionRequest
+                {
+                    UserIds = postReq.UserIds,
+                    PostId = entity.PostId,
+                });
 
 
             if (postReq.PostImages != null && postReq.PostImages.Count != 0)

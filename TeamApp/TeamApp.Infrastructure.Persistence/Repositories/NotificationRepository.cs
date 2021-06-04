@@ -15,6 +15,9 @@ using Microsoft.AspNetCore.SignalR;
 using TeamApp.Infrastructure.Persistence.Hubs.Notification;
 using System.Collections.ObjectModel;
 using Task = System.Threading.Tasks.Task;
+using TeamApp.Application.DTOs.Comment;
+using TeamApp.Application.DTOs.Post;
+using TeamApp.Application.DTOs.Team;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -57,41 +60,141 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
-        public async Task PushNoti(List<string> userIds, string title, string body)
+        public async Task PushNotiAddPostTag(AddPostMentionRequest mentionRequest)
         {
-            userIds = userIds.Distinct().ToList();
+            mentionRequest.UserIds = mentionRequest.UserIds.Distinct().ToList();
             var notiGroup = Guid.NewGuid().ToString();
             List<Notification> notifications = new List<Notification>();
 
             var clientLists = await (from uc in _dbContext.UserConnection.AsNoTracking()
-                                     where uc.Type == "notification" && userIds.Contains(uc.UserId)
+                                     where uc.Type == "notification" && mentionRequest.UserIds.Contains(uc.UserId)
                                      select uc.ConnectionId).AsNoTracking().ToListAsync();
 
             Console.WriteLine("count = " + clientLists.Count());
             var readOnlyList = new ReadOnlyCollection<string>(clientLists);
 
+            var link = string.Empty;
+
+            var post = await _dbContext.Post.FindAsync(mentionRequest.PostId);
+            link = $"newsfeed?p={post.PostId}";
+
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {
                 NotificationGroup = notiGroup,
-                NotificationContent = body,
-                NotificationStatus = false
+                NotificationContent = "Bạn vừa được nhắc đến trong 1 bài viết",
+                NotificationStatus = false,
+                NotificationLink = link,
             });
 
-            foreach (var u in userIds)
+
+            foreach (var u in mentionRequest.UserIds)
             {
                 notifications.Add(new Notification
                 {
                     NotificationId = Guid.NewGuid().ToString(),
                     NotificationUserId = u,
                     NotificationGroup = notiGroup,
-                    NotificationContent = body,
+                    NotificationContent = "Bạn vừa được nhắc đến trong 1 bài viết",
                     NotificationCreatedAt = DateTime.UtcNow,
                     NotificationStatus = false,
                     NotificationIsDeleted = false,
+                    NotificationLink = link,
                 });
             }
 
             await _dbContext.BulkInsertAsync(notifications);
+        }
+
+        public async Task PushNotiCommentTag(CommentMentionRequest mentionRequest)
+        {
+            mentionRequest.UserIds = mentionRequest.UserIds.Distinct().ToList();
+            var notiGroup = Guid.NewGuid().ToString();
+            List<Notification> notifications = new List<Notification>();
+
+            var clientLists = await (from uc in _dbContext.UserConnection.AsNoTracking()
+                                     where uc.Type == "notification" && mentionRequest.UserIds.Contains(uc.UserId)
+                                     select uc.ConnectionId).AsNoTracking().ToListAsync();
+
+            Console.WriteLine("count = " + clientLists.Count());
+            var readOnlyList = new ReadOnlyCollection<string>(clientLists);
+
+
+            var link = string.Empty;
+            if (!string.IsNullOrEmpty(mentionRequest.PostId))
+            {
+                var post = await _dbContext.Post.FindAsync(mentionRequest.PostId);
+                link = $"newsfeed?p={post.PostId}";
+            }
+            else
+            {
+                var task = await _dbContext.Task.FindAsync(mentionRequest.TaskId);
+                var kl = await _dbContext.KanbanList.FindAsync(task.TaskBelongedId);
+                link = $"managetask/teamtasks?b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
+            }
+
+            await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
+            {
+                NotificationGroup = notiGroup,
+                NotificationContent = "Bạn vừa được nhắc đến trong 1 bình luận",
+                NotificationStatus = false,
+                NotificationLink = link,
+            });
+
+
+
+            foreach (var u in mentionRequest.UserIds)
+            {
+                notifications.Add(new Notification
+                {
+                    NotificationId = Guid.NewGuid().ToString(),
+                    NotificationUserId = u,
+                    NotificationGroup = notiGroup,
+                    NotificationContent = "Bạn vừa được nhắc đến trong 1 bình luận",
+                    NotificationCreatedAt = DateTime.UtcNow,
+                    NotificationStatus = false,
+                    NotificationIsDeleted = false,
+                    NotificationLink = link,
+                });
+            }
+
+            await _dbContext.BulkInsertAsync(notifications);
+        }
+
+        public async Task PushNotiJoinTeam(JoinTeamNotification joinTeamNotification)
+        {
+            var notiGroup = Guid.NewGuid().ToString();
+
+            var clientLists = await (from uc in _dbContext.UserConnection.AsNoTracking()
+                                     where uc.Type == "notification" && uc.UserId == joinTeamNotification.UserId
+                                     select uc.ConnectionId).AsNoTracking().ToListAsync();
+
+            Console.WriteLine("count = " + clientLists.Count());
+            var readOnlyList = new ReadOnlyCollection<string>(clientLists);
+
+            var link = $"team/{joinTeamNotification.TeamId}";
+
+            await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
+            {
+                NotificationGroup = notiGroup,
+                NotificationContent = "Bạn vừa được thêm vào một nhóm",
+                NotificationStatus = false,
+                NotificationLink = link,
+            });
+
+
+            var noti = new Notification
+            {
+                NotificationId = Guid.NewGuid().ToString(),
+                NotificationUserId = joinTeamNotification.UserId,
+                NotificationGroup = notiGroup,
+                NotificationContent = "Bạn vừa được thêm vào một nhóm",
+                NotificationCreatedAt = DateTime.UtcNow,
+                NotificationStatus = false,
+                NotificationIsDeleted = false,
+                NotificationLink = link,
+            };
+
+            await _dbContext.SingleInsertAsync(noti);
         }
 
         public async Task<bool> ReadNotificationSet(ReadNotiModel readNotiModel)
