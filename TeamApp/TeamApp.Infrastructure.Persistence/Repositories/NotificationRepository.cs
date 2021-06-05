@@ -18,6 +18,7 @@ using Task = System.Threading.Tasks.Task;
 using TeamApp.Application.DTOs.Comment;
 using TeamApp.Application.DTOs.Post;
 using TeamApp.Application.DTOs.Team;
+using TeamApp.Application.DTOs.Task;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -76,7 +77,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var link = string.Empty;
 
             var post = await _dbContext.Post.FindAsync(mentionRequest.PostId);
-            link = $"newsfeed?p={post.PostId}";
+            link = $"/newsfeed?p={post.PostId}";
 
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {
@@ -105,6 +106,45 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.BulkInsertAsync(notifications);
         }
 
+        public async Task PushNotiAssignTask(AssignNotiModel assignNotiModel)
+        {
+            var notiGroup = Guid.NewGuid().ToString();
+
+            var clientLists = await (from uc in _dbContext.UserConnection.AsNoTracking()
+                                     where uc.Type == "notification" && uc.UserId == assignNotiModel.UserId
+                                     select uc.ConnectionId).AsNoTracking().ToListAsync();
+
+            Console.WriteLine("count = " + clientLists.Count());
+            var readOnlyList = new ReadOnlyCollection<string>(clientLists);
+
+            var task = await _dbContext.Task.FindAsync(assignNotiModel.TaskId);
+            var kl = await _dbContext.KanbanList.FindAsync(task.TaskBelongedId);
+            var link = $"/managetask/teamtasks?b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
+
+            await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
+            {
+                NotificationGroup = notiGroup,
+                NotificationContent = "Bạn vừa được giao một công việc",
+                NotificationStatus = false,
+                NotificationLink = link,
+            });
+
+
+            var noti = new Notification
+            {
+                NotificationId = Guid.NewGuid().ToString(),
+                NotificationUserId = assignNotiModel.UserId,
+                NotificationGroup = notiGroup,
+                NotificationContent = "Bạn vừa được giao một công việc",
+                NotificationCreatedAt = DateTime.UtcNow,
+                NotificationStatus = false,
+                NotificationIsDeleted = false,
+                NotificationLink = link,
+            };
+
+            await _dbContext.SingleInsertAsync(noti);
+        }
+
         public async Task PushNotiCommentTag(CommentMentionRequest mentionRequest)
         {
             mentionRequest.UserIds = mentionRequest.UserIds.Distinct().ToList();
@@ -123,13 +163,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (!string.IsNullOrEmpty(mentionRequest.PostId))
             {
                 var post = await _dbContext.Post.FindAsync(mentionRequest.PostId);
-                link = $"newsfeed?p={post.PostId}";
+                link = $"/newsfeed?p={post.PostId}";
             }
             else
             {
                 var task = await _dbContext.Task.FindAsync(mentionRequest.TaskId);
                 var kl = await _dbContext.KanbanList.FindAsync(task.TaskBelongedId);
-                link = $"managetask/teamtasks?b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
+                link = $"/managetask/teamtasks?b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
             }
 
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
@@ -171,7 +211,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             Console.WriteLine("count = " + clientLists.Count());
             var readOnlyList = new ReadOnlyCollection<string>(clientLists);
 
-            var link = $"team/{joinTeamNotification.TeamId}";
+            var link = $"/team/{joinTeamNotification.TeamId}";
 
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {

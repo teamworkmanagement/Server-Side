@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Comment;
 using TeamApp.Application.DTOs.Notification;
 using TeamApp.Application.DTOs.Post;
+using TeamApp.Application.DTOs.Task;
 using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.Filters;
 using TeamApp.Application.Wrappers;
@@ -18,5 +19,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task PushNotiCommentTag(CommentMentionRequest mentionRequest);
         Task PushNotiAddPostTag(AddPostMentionRequest mentionRequest);
         Task PushNotiJoinTeam(JoinTeamNotification joinTeamNotification);
+        Task PushNotiAssignTask(AssignNotiModel assignNotiModel);
     }
 }
