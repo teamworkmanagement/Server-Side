@@ -129,13 +129,25 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }).ToListAsync();
         }
 
-        public async Task<KanbanBoardUIResponse> GetKanbanBoardUI(string boardId)
+        public async Task<KanbanBoardUIResponse> GetKanbanBoardUI(KanbanBoardUIRequest boardUIRequest)
         {
             var board = await (from b in _dbContext.KanbanBoard.AsNoTracking()
-                               where b.KanbanBoardId == boardId
+                               where b.KanbanBoardId == boardUIRequest.BoardId
                                select b).AsNoTracking().FirstOrDefaultAsync();
+
             if (board == null)
                 throw new KeyNotFoundException("Board not found");
+
+            if (boardUIRequest.IsOfTeam)
+            {
+                if (board.KanbanBoardTeamId != boardUIRequest.OwnerId)
+                    throw new KeyNotFoundException("Board not found");
+            }
+            else
+            {
+                if (board.KanbanBoardUserId != boardUIRequest.OwnerId)
+                    throw new KeyNotFoundException("Board not found");
+            }
 
             var taskListUIs = new List<TaskUIKanban>();
             var outPut = new KanbanBoardUIResponse
@@ -149,7 +161,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             //danh sach kanbanlist cua 1 board
             var listKanbanQuery = from kl in _dbContext.KanbanList.AsNoTracking()
-                                  where kl.KanbanListBoardBelongedId == boardId && !kl.KanbanListIsDeleted.Value
+                                  where kl.KanbanListBoardBelongedId == boardUIRequest.BoardId && !kl.KanbanListIsDeleted.Value
                                   orderby kl.KanbanListRankInBoard
                                   select kl;
 

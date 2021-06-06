@@ -146,5 +146,17 @@ namespace TeamApp.WebApi.Controllers
                     Data = outPut,
                 });
         }
+
+        [HttpGet("boardtask")]
+        public async Task<IActionResult> GetTaskByBoard([FromQuery] TaskGetRequest taskGetRequest)
+        {
+            var outPut = await _repo.GetTaskByBoard(taskGetRequest);
+
+            return Ok(new ApiResponse<TaskResponse>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut,
+            });
+        }
     }
 }

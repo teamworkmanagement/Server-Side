@@ -33,11 +33,11 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
-        [HttpGet("ui/{boardId}")]
+        [HttpGet("ui")]
         [ProducesDefaultResponseType(typeof(KanbanBoardUIResponse))]
-        public async Task<IActionResult> GetKanbanBoardUI(string boardId)
+        public async Task<IActionResult> GetKanbanBoardUI([FromQuery] KanbanBoardUIRequest boardUIRequest)
         {
-            var outPut = await _repo.GetKanbanBoardUI(boardId);
+            var outPut = await _repo.GetKanbanBoardUI(boardUIRequest);
 
             return Ok(new ApiResponse<KanbanBoardUIResponse>
             {

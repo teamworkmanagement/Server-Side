@@ -309,6 +309,80 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
+        public async Task<TaskResponse> GetTaskByBoard(TaskGetRequest taskGetRequest)
+        {
+            var query = from t in _dbContext.Task.AsNoTracking()
+                        join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
+
+                        from th in tHandle.DefaultIfEmpty()
+                        join u in _dbContext.User.AsNoTracking() on th.HandleTaskUserId equals u.Id into tUser
+
+                        from tu in tUser.DefaultIfEmpty()
+                        where t.TaskId == taskGetRequest.TaskId
+                        select new { t, tu.FullName, tu.Id, tu.ImageUrl };
+
+            var task = await query.AsNoTracking().FirstOrDefaultAsync();
+
+            if (task == null || task.t.TaskIsDeleted.Value)
+                throw new KeyNotFoundException("Not found task");
+
+            var kl = await _dbContext.KanbanList.FindAsync(task.t.TaskBelongedId);
+
+            var kb = await _dbContext.KanbanBoard.FindAsync(kl.KanbanListBoardBelongedId);
+
+            if (kb == null)
+                throw new KeyNotFoundException("Not found");
+
+            else
+            {
+                if (kb.KanbanBoardId != taskGetRequest.BoardId)
+                    throw new KeyNotFoundException("Not found");
+            }
+
+
+            if (taskGetRequest.IsOfTeam)
+            {
+                if (kb.KanbanBoardTeamId != taskGetRequest.OwnerId)
+                    throw new KeyNotFoundException("Board not found");
+            }
+            else
+            {
+                if (kb.KanbanBoardUserId != taskGetRequest.OwnerId)
+                    throw new KeyNotFoundException("Board not found");
+            }
+
+            var listComments = await _comment.GetListByTask(taskGetRequest.TaskId);
+            var listFiles = await _file.GetAllByTask(taskGetRequest.TaskId);
+
+
+            
+            var outPut = new TaskResponse
+            {
+                KanbanListId = task.t.TaskBelongedId,
+                TaskId = task.t.TaskId,
+                TaskName = task.t.TaskName,
+                TaskDescription = task.t.TaskDescription,
+                TaskPoint = task.t.TaskPoint,
+                TaskCreatedAt = task.t.TaskCreatedAt.FormatTime(),
+                TaskStartDate = task.t.TaskStartDate.FormatTime(),
+                TaskDeadline = task.t.TaskDeadline.FormatTime(),
+                TaskStatus = task.t.TaskStatus,
+                TaskCompletedPercent = task.t.TaskCompletedPercent,
+                TaskTeamId = task.t.TaskTeamId,
+                TaskIsDeleted = task.t.TaskIsDeleted,
+                TaskThemeColor = task.t.TaskThemeColor,
+                UserId = task.Id,
+                UserName = task.FullName,
+                UserAvatar = task.ImageUrl,
+                RankInList = task.t.TaskRankInList,
+                Comments = listComments,
+                Files = listFiles,
+                TaskImageUrl = task.t.TaskImageUrl,
+            };
+
+            return outPut;
+        }
+
         public async Task<bool> UpdateTask(TaskUpdateRequest taskReq)
         {
             var entity = await _dbContext.Task.FindAsync(taskReq.TaskId);
