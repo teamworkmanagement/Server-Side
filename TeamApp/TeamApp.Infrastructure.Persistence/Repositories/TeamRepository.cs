@@ -133,7 +133,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = await _dbContext.Team.FindAsync(teamId);
             if (entity == null)
-                return null;
+                throw new KeyNotFoundException("Team not found");
 
             return new TeamResponse
             {
@@ -214,6 +214,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var team = await _dbContext.Team.FindAsync(userParameter.TeamId);
 
+            if (team == null)
+                throw new KeyNotFoundException("Team not found");
+
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
                         join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
@@ -285,6 +288,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<UserResponse> GetAdmin(string teamId)
         {
             var team = await _dbContext.Team.FindAsync(teamId);
+
+            if (team == null)
+                throw new KeyNotFoundException("Team not found");
+
             var admin = await _dbContext.User.FindAsync(team.TeamLeaderId);
             if (admin == null)
                 return null;

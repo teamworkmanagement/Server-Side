@@ -135,7 +135,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                where b.KanbanBoardId == boardId
                                select b).AsNoTracking().FirstOrDefaultAsync();
             if (board == null)
-                return null;
+                throw new KeyNotFoundException("Board not found");
 
             var taskListUIs = new List<TaskUIKanban>();
             var outPut = new KanbanBoardUIResponse
@@ -319,6 +319,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<List<KanbanBoardResponse>> GetBoardsForTeam(string teamId)
         {
+            var team = await _dbContext.Team.FindAsync(teamId);
+
+            if (team == null)
+                throw new KeyNotFoundException("Team not found");
             List<KanbanBoardResponse> responses = new List<KanbanBoardResponse>();
             var boards = await (from b in _dbContext.KanbanBoard.AsNoTracking()
                                 where b.KanbanBoardTeamId == teamId

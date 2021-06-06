@@ -271,6 +271,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<PagedResponse<PostResponse>> GetPostPagingTeam(PostRequestParameter parameter)
         {
+            var team = await _dbContext.Team.FindAsync(parameter.TeamId);
+            if (team == null)
+                throw new KeyNotFoundException("Team not found");
             bool advanced = false;
             if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))
                 advanced = true;

@@ -150,6 +150,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     }).ToList();
                     break;
                 case "team":
+
+                    var team = await _dbContext.Team.FindAsync(param.OwnerId);
+                    if (team == null)
+                        throw new KeyNotFoundException("Team not found");
+
                     query = from f in _dbContext.File.AsNoTracking()
                             join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
                             orderby f.FileUploadTime descending
