@@ -43,18 +43,29 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var totalRecords = await query.CountAsync();
             query = query.AsNoTracking().Skip(parameter.SkipItems).Take(parameter.PageSize);
 
-            var entityList = await query.Select(x => new NotificationResponse
+            var notis = await query.ToListAsync();
+            var entityList = new List<NotificationResponse>();
+
+            foreach (var noti in notis)
             {
-                NotificationId = x.NotificationId,
-                NotificationUserId = x.NotificationUserId,
-                NotificationContent = x.NotificationContent,
-                NotificationCreatedAt = x.NotificationCreatedAt.FormatTime(),
-                NotificationLink = x.NotificationLink,
-                NotificationStatus = x.NotificationStatus,
-                NotificationIsDeleted = x.NotificationIsDeleted,
-                NotificationGroup = x.NotificationGroup,
-                NotificationImage = "https://firebasestorage.googleapis.com/v0/b/fir-fcm-5eb6f.appspot.com/o/notification_500px.png?alt=media&token=e68bc511-fdd4-4f76-90d9-11e86a143f21"
-            }).ToListAsync();
+                var user = await _dbContext.User.FindAsync(noti.NotificationActionUserId);
+                var notiResObj = new NotificationResponse
+                {
+                    NotificationId = noti.NotificationId,
+                    NotificationUserId = noti.NotificationUserId,
+                    NotificationContent = noti.NotificationContent,
+                    NotificationCreatedAt = noti.NotificationCreatedAt.FormatTime(),
+                    NotificationLink = noti.NotificationLink,
+                    NotificationStatus = noti.NotificationStatus,
+                    NotificationIsDeleted = noti.NotificationIsDeleted,
+                    NotificationGroup = noti.NotificationGroup,
+                    NotificationImage = "https://firebasestorage.googleapis.com/v0/b/fir-fcm-5eb6f.appspot.com/o/notification_500px.png?alt=media&token=e68bc511-fdd4-4f76-90d9-11e86a143f21",
+                    NotificationActionFullName = user.FullName,
+                    NotificationActionAvatar = user.ImageUrl,
+                };
+
+                entityList.Add(notiResObj);
+            }
 
             var outPut = new PagedResponse<NotificationResponse>(entityList, parameter.PageSize, totalRecords, skipRows: parameter.SkipItems);
 
@@ -79,10 +90,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var post = await _dbContext.Post.FindAsync(mentionRequest.PostId);
             link = $"/newsfeed?p={post.PostId}";
 
-            await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
+            var actionUser = await _dbContext.User.FindAsync(mentionRequest.ActionUserId);
+
+            await _notiHub.Clients.Clients(readOnlyList).SendNoti(new NotificationResponse
             {
+                NotificationActionFullName = actionUser.FullName,
+                NotificationActionAvatar = actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
-                NotificationContent = "Bạn vừa được nhắc đến trong 1 bài viết",
+                NotificationContent = "đã nhắc đến bạn trong 1 bài viết",
                 NotificationStatus = false,
                 NotificationLink = link,
             });
@@ -100,6 +115,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     NotificationStatus = false,
                     NotificationIsDeleted = false,
                     NotificationLink = link,
+                    NotificationActionUserId = mentionRequest.ActionUserId,
                 });
             }
 
@@ -121,10 +137,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var kl = await _dbContext.KanbanList.FindAsync(task.TaskBelongedId);
             var link = $"/managetask/teamtasks?b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
 
+            var actionUser = await _dbContext.User.FindAsync(assignNotiModel.ActionUserId);
+
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {
+                NotificationActionFullName = actionUser.FullName,
+                NotificationActionAvatar = actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
-                NotificationContent = "Bạn vừa được giao một công việc",
+                NotificationContent = "đã nhắc đến bạn trong 1 bài viết",
                 NotificationStatus = false,
                 NotificationLink = link,
             });
@@ -172,10 +192,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 link = $"/managetask/teamtasks?b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
             }
 
+            var actionUser = await _dbContext.User.FindAsync(mentionRequest.ActionUserId);
+
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {
+                NotificationActionFullName = actionUser.FullName,
+                NotificationActionAvatar = actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
-                NotificationContent = "Bạn vừa được nhắc đến trong 1 bình luận",
+                NotificationContent = "đã nhắc đến bạn trong 1 bình luận",
                 NotificationStatus = false,
                 NotificationLink = link,
             });
@@ -189,7 +213,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     NotificationId = Guid.NewGuid().ToString(),
                     NotificationUserId = u,
                     NotificationGroup = notiGroup,
-                    NotificationContent = "Bạn vừa được nhắc đến trong 1 bình luận",
+                    NotificationContent = "đã nhắc đến bạn trong 1 bình luận",
                     NotificationCreatedAt = DateTime.UtcNow,
                     NotificationStatus = false,
                     NotificationIsDeleted = false,
@@ -213,10 +237,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var link = $"/team/{joinTeamNotification.TeamId}";
 
+            var actionUser = await _dbContext.User.FindAsync(joinTeamNotification.ActionUserId);
+
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {
+                NotificationActionFullName = actionUser.FullName,
+                NotificationActionAvatar = actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
-                NotificationContent = "Bạn vừa được thêm vào một nhóm",
+                NotificationContent = "đã thêm vào một nhóm",
                 NotificationStatus = false,
                 NotificationLink = link,
             });
@@ -227,7 +255,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationId = Guid.NewGuid().ToString(),
                 NotificationUserId = joinTeamNotification.UserId,
                 NotificationGroup = notiGroup,
-                NotificationContent = "Bạn vừa được thêm vào một nhóm",
+                NotificationContent = "đã thêm vào một nhóm",
                 NotificationCreatedAt = DateTime.UtcNow,
                 NotificationStatus = false,
                 NotificationIsDeleted = false,

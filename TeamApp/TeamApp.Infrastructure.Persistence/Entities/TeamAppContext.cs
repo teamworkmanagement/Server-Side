@@ -421,6 +421,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.NotificationActionUserId)
+                    .HasColumnName("notification_actionuser_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
                 entity.Property(e => e.NotificationGroup)
                     .HasColumnName("notification_group")
                     .HasColumnType("varchar(50)")
@@ -457,6 +463,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .WithMany(p => p.Notification)
                     .HasForeignKey(d => d.NotificationUserId)
                     .HasConstraintName("notification_ibfk_1");
+
+                entity.HasOne(d => d.NotificationActionUser)
+                .WithMany(p => p.NotificationActionUsers)
+                .HasForeignKey(d => d.NotificationActionUserId);
             });
 
             modelBuilder.Entity<Participation>(entity =>

@@ -23,6 +23,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             FilesOwner = new HashSet<File>();
             PostReacts = new HashSet<PostReact>();
             Boards = new HashSet<KanbanBoard>();
+            NotificationActionUsers = new HashSet<Notification>();
         }
 
 
@@ -40,6 +41,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<HandleTask> HandleTask { get; set; }
         public virtual ICollection<Message> Message { get; set; }
         public virtual ICollection<Notification> Notification { get; set; }
+        public virtual ICollection<Notification> NotificationActionUsers { get; set; }
         public virtual ICollection<Participation> Participation { get; set; }
         public virtual ICollection<Post> Post { get; set; }
         public virtual ICollection<Team> Team { get; set; }

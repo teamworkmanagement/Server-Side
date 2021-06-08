@@ -546,6 +546,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("NotificationActionUserId")
+                        .HasColumnName("notification_actionuser_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
                     b.Property<string>("NotificationContent")
                         .HasColumnName("notification_content")
                         .HasColumnType("text")
@@ -583,6 +589,8 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
                     b.HasKey("NotificationId");
+
+                    b.HasIndex("NotificationActionUserId");
 
                     b.HasIndex("NotificationUserId")
                         .HasName("notification_user_id");
@@ -1254,6 +1262,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Notification", b =>
                 {
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "NotificationActionUser")
+                        .WithMany("NotificationActionUsers")
+                        .HasForeignKey("NotificationActionUserId");
+
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "NotificationUser")
                         .WithMany("Notification")
                         .HasForeignKey("NotificationUserId")
