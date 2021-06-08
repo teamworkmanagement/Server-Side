@@ -52,6 +52,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (postReq.UserIds.Count != 0)
                 await _notificationRepository.PushNotiAddPostTag(new AddPostMentionRequest
                 {
+                    ActionUserId = postReq.PostUserId,
                     UserIds = postReq.UserIds,
                     PostId = entity.PostId,
                 });

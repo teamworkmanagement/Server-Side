@@ -218,6 +218,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     NotificationStatus = false,
                     NotificationIsDeleted = false,
                     NotificationLink = link,
+                    NotificationActionUserId = mentionRequest.ActionUserId,
                 });
             }
 

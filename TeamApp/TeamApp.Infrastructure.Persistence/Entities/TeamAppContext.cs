@@ -244,6 +244,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.GroupChatImageUrl)
+                    .HasColumnName("group_chat_imageurl")
+                    .HasColumnType("varchar(500)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
                 entity.Property(e => e.GroupChatName)
                     .HasColumnName("group_chat_name")
                     .HasColumnType("varchar(50)")
@@ -801,11 +807,36 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.PhoneNumber)
-                    .HasColumnName("use_phone_number")
-                    .HasColumnType("varchar(20)")
+                entity.Property(e => e.UserDescription)
+                    .HasColumnName("user_description")
+                    .HasColumnType("text")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.UserAddress)
+                    .HasColumnName("user_address")
+                    .HasColumnType("varchar(350)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.UserGithubLink)
+                    .HasColumnName("user_github_link")
+                    .HasColumnType("varchar(350)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.UserFacebookLink)
+                .HasColumnName("user_facebook_link")
+                .HasColumnType("varchar(350)")
+                .HasCollation("utf8mb4_0900_ai_ci")
+                .HasCharSet("utf8mb4");
+
+
+                entity.Property(e => e.PhoneNumber)
+                            .HasColumnName("use_phone_number")
+                            .HasColumnType("varchar(20)")
+                            .HasCollation("utf8mb4_0900_ai_ci")
+                            .HasCharSet("utf8mb4");
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("user_created_at")

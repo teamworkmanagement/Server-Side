@@ -68,9 +68,9 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateTeam(string teamId, TeamRequest teamReq)
+        public async Task<IActionResult> UpdateTeam(TeamUpdateRequest teamUpdateRequest)
         {
-            var res = await _repo.UpdateTeam(teamId, teamReq);
+            var res = await _repo.UpdateTeam(teamUpdateRequest);
 
             var outPut = new ApiResponse<bool>
             {

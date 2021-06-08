@@ -144,6 +144,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TeamCreatedAt = entity.TeamCreatedAt.FormatTime(),
                 TeamCode = entity.TeamCode,
                 TeamIsDeleted = entity.TeamIsDeleted,
+                TeamImageUrl = string.IsNullOrEmpty(entity.TeamImageUrl) ? $"https://ui-avatars.com/api/?name={entity.TeamName}" : entity.TeamImageUrl,
             };
         }
 
@@ -188,22 +189,16 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
-        public async Task<bool> UpdateTeam(string teamId, TeamRequest teamReq)
+        public async Task<bool> UpdateTeam(TeamUpdateRequest teamUpdateRequest)
         {
-            var entity = await _dbContext.Team.FindAsync(teamId);
+            var entity = await _dbContext.Team.FindAsync(teamUpdateRequest.TeamId);
             if (entity == null)
-                return false;
+                throw new KeyNotFoundException("Team not found");
 
-            entity = new Team
-            {
-                TeamId = teamId,
-                TeamLeaderId = teamReq.TeamLeaderId,
-                TeamName = teamReq.TeamName,
-                TeamDescription = teamReq.TeamDescription,
-                TeamCreatedAt = teamReq.TeamCreatedAt,
-                TeamCode = teamReq.TeamCode,
-                TeamIsDeleted = teamReq.TeamIsDeleted
-            };
+            entity.TeamLeaderId = teamUpdateRequest.TeamLeaderId;
+            entity.TeamName = teamUpdateRequest.TeamName;
+            entity.TeamDescription = teamUpdateRequest.TeamDescription;
+            entity.TeamImageUrl = teamUpdateRequest.TeamImageUrl;
 
             _dbContext.Team.Update(entity);
             await _dbContext.SaveChangesAsync();

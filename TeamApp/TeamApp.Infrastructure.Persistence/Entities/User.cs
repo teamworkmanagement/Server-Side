@@ -33,6 +33,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public DateTime? CreatedAt { get; set; }
         public DateTime? LastTimeOnline { get; set; }
         public bool? FirstTimeSocial { get; set; }
+        public string UserDescription { get; set; }
+        public string UserAddress { get; set; }
+        public string UserGithubLink { get; set; }
+        public string UserFacebookLink { get; set; }
 
 
 

@@ -24,10 +24,15 @@ namespace TeamApp.WebApi.Controllers
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
-        [HttpGet("getbyuserid/{userId}")]
+        [HttpGet("{userId}")]
         public async Task<IActionResult> GetByUserId(string userId)
         {
-            return Ok(await _repo.GetById(userId));
+            var outPut = await _repo.GetById(userId);
+            return Ok(new ApiResponse<UserResponse>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
         }
 
 

@@ -49,6 +49,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (cmtReq.CommentUserTagIds.Count != 0)
                 await _notificationRepository.PushNotiCommentTag(new CommentMentionRequest
                 {
+                    ActionUserId = cmtReq.CommentUserId,
                     UserIds = cmtReq.CommentUserTagIds,
                     PostId = cmtReq.CommentPostId,
                     TaskId = cmtReq.CommentTaskId,

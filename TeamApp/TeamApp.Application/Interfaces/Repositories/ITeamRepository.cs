@@ -14,7 +14,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<List<TeamResponse>> GetByUserId(string userId);
         Task<TeamResponse> GetById(string teamId);
         Task<TeamResponse> AddTeam(TeamRequest teamReq);
-        Task<bool> UpdateTeam(string teamId, TeamRequest teamReq);
+        Task<bool> UpdateTeam(TeamUpdateRequest teamUpdateRequest);
         Task<bool> DeleteTeam(string teamId);
         /// <summary>
         /// GetAll User of team

@@ -15,6 +15,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string GroupChatName { get; set; }
         public string GroupChatType { get; set; }
         public DateTime? GroupChatUpdatedAt { get; set; }
+        public string GroupChatImageUrl { get; set; }
 
         public virtual ICollection<GroupChatUser> GroupChatUser { get; set; }
         public virtual ICollection<Message> Message { get; set; }

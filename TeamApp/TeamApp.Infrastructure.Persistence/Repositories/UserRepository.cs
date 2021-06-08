@@ -72,10 +72,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var entity = await _dbContext.User.FindAsync(userId);
             if (entity == null)
-                return null;
+                throw new KeyNotFoundException("User not found");
+
             var userRes = new UserResponse
             {
-
+                UserId = entity.Id,
+                UserEmail = entity.Email,
+                UserFullname = entity.FullName,
+                UserDateOfBirth = entity.Dob,
+                UsePhoneNumber = entity.PhoneNumber,
+                UserImageUrl = entity.ImageUrl,
+                UserCreatedAt = entity.CreatedAt,
+                UserDescription = entity.UserDescription,
+                UserAddress = entity.UserAddress,
+                UserGithubLink = entity.UserGithubLink,
+                UserFacebookLink = entity.UserFacebookLink,
             };
             return userRes;
         }
