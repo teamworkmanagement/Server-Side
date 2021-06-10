@@ -54,7 +54,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var taskUIKanban = new TaskUIKanban
             {
-                RankInList = entity.TaskRankInList,
+                TaskRankInList = entity.TaskRankInList,
                 KanbanListId = entity.TaskBelongedId,
                 TaskId = entity.TaskId,
                 TaskImageUrl = null,
@@ -152,7 +152,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                     where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
+                                     where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId && u.ConnectionId != dragTaskModel.ConnectionId
                                      select u.ConnectionId).ToListAsync();
 
                 await _hubKanban.Clients.Clients(clients).MoveTask(dragTaskModel);
@@ -275,7 +275,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskThemeColor = task.t.TaskThemeColor,
                 UserId = task.Id,
                 UserName = task.FullName,
-                UserAvatar = task.ImageUrl,
+                UserAvatar = string.IsNullOrEmpty(task.ImageUrl) ? $"https://ui-avatars.com/api/?name={task.FullName}" : task.ImageUrl,
                 RankInList = task.t.TaskRankInList,
                 Comments = listComments,
                 Files = listFiles,
@@ -355,7 +355,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var listFiles = await _file.GetAllByTask(taskGetRequest.TaskId);
 
 
-            
+
             var outPut = new TaskResponse
             {
                 KanbanListId = task.t.TaskBelongedId,
@@ -383,14 +383,36 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
+        public object GetTaskUIKanban(Entities.Task entity) => new
+        {
+            entity.TaskRankInList,
+            KanbanListId = entity.TaskBelongedId,
+            entity.TaskId,
+
+            entity.TaskName,
+            TaskStartDate = entity.TaskStartDate.FormatTime(),
+            TaskDeadline = entity.TaskDeadline.FormatTime(),
+            entity.TaskStatus,
+            entity.TaskDescription,
+
+            entity.TaskImageUrl,
+
+            CommentsCount = entity.Comments.Count,
+            FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileTaskOwnerId == entity.TaskId).Count(),
+
+            entity.TaskCompletedPercent,
+
+            entity.TaskThemeColor,
+        };
+
         public async Task<bool> UpdateTask(TaskUpdateRequest taskReq)
         {
             var entity = await _dbContext.Task.FindAsync(taskReq.TaskId);
             if (entity == null)
-                return false;
+                throw new KeyNotFoundException("Task not found");
 
-            entity.TaskDescription = taskReq.TaskDescription == null ? entity.TaskDescription : taskReq.TaskDescription;
-            entity.TaskName = taskReq.TaskName == null ? entity.TaskName : taskReq.TaskName;
+            entity.TaskDescription = taskReq.TaskDescription ?? entity.TaskDescription;
+            entity.TaskName = taskReq.TaskName ?? entity.TaskName;
 
             entity.TaskThemeColor = taskReq.TaskThemeColor;
             entity.TaskStartDate = taskReq.TaskStartDate;
@@ -399,8 +421,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             entity.TaskImageUrl = taskReq.TaskImageUrl;
             entity.TaskDeadline = taskReq.TaskDeadline;
 
-            entity.TaskPoint = taskReq.TaskPoint == null ? entity.TaskPoint : taskReq.TaskPoint;
-            entity.TaskCreatedAt = taskReq.TaskCreatedAt == null ? entity.TaskCreatedAt : taskReq.TaskCreatedAt;
+            entity.TaskPoint = taskReq.TaskPoint ?? entity.TaskPoint;
+            entity.TaskCreatedAt = taskReq.TaskCreatedAt ?? entity.TaskCreatedAt;
 
 
             //entity.TaskTeamId = taskReq.TaskTeamId == null ? entity.TaskTeamId : taskReq.TaskTeamId;
@@ -408,6 +430,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             _dbContext.Task.Update(entity);
             var check = await _dbContext.SaveChangesAsync() > 0;
+
+            if (check)
+            {
+                var board = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                                   join kl in _dbContext.KanbanList.AsNoTracking() on b.KanbanBoardId equals kl.KanbanListBoardBelongedId
+                                   where kl.KanbanListId == entity.TaskBelongedId
+                                   select b).FirstOrDefaultAsync();
+
+                var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                     join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                     where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
+                                     select u.ConnectionId).ToListAsync();
+
+                await _hubKanban.Clients.Clients(clients).UpdateTask(GetTaskUIKanban(entity));
+            }
 
             return check;
         }

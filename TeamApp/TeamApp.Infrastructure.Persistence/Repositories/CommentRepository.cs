@@ -46,7 +46,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.Comment.AddAsync(entity);
             var check = await _dbContext.SaveChangesAsync();
 
-            if (cmtReq.CommentUserTagIds.Count != 0)
+            if (cmtReq.CommentUserTagIds != null && cmtReq.CommentUserTagIds.Count != 0)
                 await _notificationRepository.PushNotiCommentTag(new CommentMentionRequest
                 {
                     ActionUserId = cmtReq.CommentUserId,
@@ -55,14 +55,47 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     TaskId = cmtReq.CommentTaskId,
                 });
 
+            List<string> clients = new List<string>();
 
-            var query = from p in _dbContext.Participation.AsNoTracking()
-                        join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
-                        where p.ParticipationTeamId == cmtReq.CommentTeamId && uc.Type == "post" && uc.UserId != cmtReq.CommentUserId
-                        select uc.ConnectionId;
+            if (!string.IsNullOrEmpty(cmtReq.CommentPostId))
+            {
+                var query = from p in _dbContext.Participation.AsNoTracking()
+                            join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                            where p.ParticipationTeamId == cmtReq.CommentTeamId && uc.Type == "post"
+                            select uc.ConnectionId;
 
-            query = query.Distinct();
-            var clients = await query.ToListAsync();
+                query = query.Distinct();
+                clients = await query.ToListAsync();
+            }
+            else
+            {
+                var task = await _dbContext.Task.FindAsync(cmtReq.CommentTaskId);
+                var kblist = await _dbContext.KanbanList.FindAsync(task.TaskBelongedId);
+                var board = await _dbContext.KanbanBoard.FindAsync(kblist.KanbanListBoardBelongedId);
+
+                if (!string.IsNullOrEmpty(board.KanbanBoardTeamId))
+                {
+                    var query = from p in _dbContext.Participation.AsNoTracking()
+                                join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                                where p.ParticipationTeamId == board.KanbanBoardTeamId && uc.Type == "post"
+                                select uc.ConnectionId;
+
+                    query = query.Distinct();
+                    clients = await query.ToListAsync();
+                }
+                else
+                {
+                    var query =
+                                from uc in _dbContext.UserConnection
+                                where uc.UserId == board.KanbanBoardUserId && uc.Type == "post"
+                                select uc.ConnectionId;
+
+                    query = query.Distinct();
+                    clients = await query.ToListAsync();
+                }
+
+            }
+
 
             var readOnlyStr = new ReadOnlyCollection<string>(clients);
 

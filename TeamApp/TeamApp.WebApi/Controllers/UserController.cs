@@ -97,5 +97,16 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = outPut != null
             });
         }
+
+        [HttpGet("search-users-kanban")]
+        public async Task<IActionResult> SearchUsersKanban([FromQuery] UserKanbanSearchModel userKanbanSearch)
+        {
+            var outPut = await _repo.SearchUsersForKanban(userKanbanSearch);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = outPut,
+                Succeeded = outPut != null
+            });
+        }
     }
 }

@@ -6,7 +6,7 @@ namespace TeamApp.Application.DTOs.Task
 {
     public class TaskUIKanban
     {
-        public string RankInList { get; set; }
+        public string TaskRankInList { get; set; }
         public string KanbanListId { get; set; }
         public string TaskId { get; set; }
 

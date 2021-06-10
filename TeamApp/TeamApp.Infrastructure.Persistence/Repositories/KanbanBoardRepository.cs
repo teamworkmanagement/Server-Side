@@ -178,7 +178,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                  from tu in tUser.DefaultIfEmpty()
                                  where listKanbanArray.Contains(t.TaskBelongedId) && t.TaskIsDeleted == false
 
-                                 select new { t, tu.ImageUrl, tu.Id, t.Comments };
+                                 select new { t, tu.ImageUrl, tu.FullName, tu.Id, t.Comments };
 
             var listTasks = await listTasksQuery.AsNoTracking().Where(x => x.t.TaskIsDeleted == false).ToListAsync();
 
@@ -189,7 +189,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 var listUITasks = kanbanListTasks.Select(x =>
                          new TaskUIKanban
                          {
-                             RankInList = x.t.TaskRankInList,
+                             TaskRankInList = x.t.TaskRankInList,
                              KanbanListId = x.t.TaskBelongedId,
                              TaskId = x.t.TaskId,
 
@@ -205,7 +205,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                              FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileTaskOwnerId == x.t.TaskId).Count(),
 
                              UserId = x.Id,
-                             UserAvatar = x.ImageUrl,
+                             UserAvatar = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
 
                              TaskCompletedPercent = x.t.TaskCompletedPercent,
 
@@ -294,7 +294,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var kblEntity = await _dbContext.KanbanList.Where(x => x.KanbanListId == swapListModel.KanbanListId && x.KanbanListIsDeleted == false).FirstOrDefaultAsync();
 
             if (kblEntity == null)
-                return false;
+                throw new KeyNotFoundException("Not found kanban list");
 
             var done = false;
             using (var transaction = _dbContext.Database.BeginTransaction())
@@ -320,7 +320,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                     where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
+                                     where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId && u.ConnectionId != swapListModel.ConnectionId
                                      select u.ConnectionId).ToListAsync();
 
                 await _hubKanban.Clients.Clients(clients).MoveList(swapListModel);

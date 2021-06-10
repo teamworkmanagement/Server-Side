@@ -10,5 +10,7 @@ namespace TeamApp.Application.DTOs.Task
         public string Position { get; set; }
         public string OldList { get; set; }
         public string NewList { get; set; }
+        public string BoardId { get; set; }
+        public string ConnectionId { get; set; }
     }
 }

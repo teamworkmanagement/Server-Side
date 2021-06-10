@@ -9,5 +9,6 @@ namespace TeamApp.Application.DTOs.KanbanBoard
         public string KanbanBoardId { get; set; }
         public string Position { get; set; }
         public string KanbanListId { get; set; }
+        public string ConnectionId { get; set; }
     }
 }

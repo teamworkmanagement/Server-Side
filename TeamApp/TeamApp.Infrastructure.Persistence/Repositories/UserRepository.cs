@@ -225,6 +225,36 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }).ToList();
         }
 
+        public async Task<List<UserResponse>> SearchUsersForKanban(UserKanbanSearchModel userKanbanSearch)
+        {
+            var kanbanBoard = await _dbContext.KanbanBoard.FindAsync(userKanbanSearch.BoardId);
+            if (kanbanBoard == null)
+                return null;
+
+            var query = "select user.user_id, user.user_fullname, user.user_image_url " +
+                        "from participation " +
+                        "join user on participation.participation_user_id = user.user_id " +
+                        "where participation_team_id in " +
+                        "(select kanban_board.kanban_board_teamid " +
+                        "from kanban_board " +
+                        $"where kanban_board.kanban_board_id = '{userKanbanSearch.BoardId}') " +
+                        $"and user.user_fullname like '%{userKanbanSearch.KeyWord}%' ";
+
+            var listUsers = await Helpers.RawQuery.RawSqlQuery(_dbContext, query, (x) => new User
+            {
+                Id = (string)x[0],
+                FullName = (string)x[1],
+                ImageUrl = (x[2] == DBNull.Value) ? string.Empty : (string)x[2],
+            });
+
+            return listUsers.Select(x => new UserResponse
+            {
+                UserId = x.Id,
+                UserFullname = x.FullName,
+                UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
+            }).ToList();
+        }
+
         public async Task<List<UserResponse>> SearchUserNoJoinTeam(string teamId, string keyWord)
         {
             var query = await (from p in _dbContext.Participation.AsNoTracking()
