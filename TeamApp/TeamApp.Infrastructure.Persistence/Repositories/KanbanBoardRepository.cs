@@ -320,7 +320,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                     where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId && u.ConnectionId != swapListModel.ConnectionId
+                                     where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId) && u.ConnectionId != swapListModel.ConnectionId
                                      select u.ConnectionId).ToListAsync();
 
                 await _hubKanban.Clients.Clients(clients).MoveList(swapListModel);
