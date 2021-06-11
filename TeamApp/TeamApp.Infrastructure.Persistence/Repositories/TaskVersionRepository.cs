@@ -53,19 +53,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from tv in _dbContext.TaskVersion.AsNoTracking()
                         join u in _dbContext.User.AsNoTracking() on tv.TaskVersionActionUserId equals u.Id
                         where tv.TaskVersionTaskId == taskId
+                        orderby tv.TaskVersionUpdatedAt descending
                         select new { tv, u };
 
             return await query.Select(x => new TaskVersionResponse
             {
                 TaskVersionId = x.tv.TaskVersionId,
                 TaskVersionTaskId = x.tv.TaskVersionTaskId,
-                TaskVersionUpdatedAt = x.tv.TaskVersionUpdatedAt,
+                TaskVersionUpdatedAt = x.tv.TaskVersionUpdatedAt.FormatTime(),
                 TaskVersionTaskName = x.tv.TaskVersionTaskName,
                 TaskVersionTaskDescription = x.tv.TaskVersionTaskDescription,
                 TaskVersionTaskPoint = x.tv.TaskVersionTaskPoint,
                 TaskVersionTaskDeadline = x.tv.TaskVersionTaskDeadline,
-                TaskVersionStartDate = x.tv.TaskVersionStartDate,
-                TaskVersionDoneDate = x.tv.TaskVersionDoneDate,
+                TaskVersionStartDate = x.tv.TaskVersionStartDate.FormatTime(),
+                TaskVersionDoneDate = x.tv.TaskVersionDoneDate.FormatTime(),
                 TaskVersionTaskStatus = x.tv.TaskVersionTaskStatus,
                 TaskVersionTaskCompletedPercent = x.tv.TaskVersionTaskCompletedPercent,
                 TaskVersionActionUserId = x.u.Id,
