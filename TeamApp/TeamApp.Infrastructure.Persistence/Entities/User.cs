@@ -24,6 +24,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             PostReacts = new HashSet<PostReact>();
             Boards = new HashSet<KanbanBoard>();
             NotificationActionUsers = new HashSet<Notification>();
+            TaskVersions = new HashSet<TaskVersion>();
         }
 
 
@@ -55,6 +56,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<File> FilesOwner { get; set; }
         public virtual ICollection<PostReact> PostReacts { get; set; }
         public virtual ICollection<KanbanBoard> Boards { get; set; }
+        public virtual ICollection<TaskVersion> TaskVersions { get; set; }
 
 
         public bool OwnsToken(string token)

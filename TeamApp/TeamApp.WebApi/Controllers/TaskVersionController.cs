@@ -47,20 +47,5 @@ namespace TeamApp.WebApi.Controllers
 
             return Ok(outPut);
         }
-
-        [HttpDelete("{taskVerId}")]
-        public async Task<IActionResult> DeleteById(string taskVerId)
-        {
-            var res = await _repo.DeleteById(taskVerId);
-
-            var outPut = new ApiResponse<bool>
-            {
-                Data = res,
-                Succeeded = res,
-                Message = !res ? "Xóa lỗi" : null,
-            };
-
-            return Ok(outPut);
-        }
     }
 }

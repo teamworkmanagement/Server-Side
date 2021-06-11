@@ -2,15 +2,17 @@
 using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    partial class TeamAppContextModelSnapshot : ModelSnapshot
+    [Migration("20210611025904_addprops")]
+    partial class addprops
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -886,9 +888,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<string>("TaskVersionActionUserId")
-                        .HasColumnType("varchar(50)");
-
                     b.Property<DateTime?>("TaskVersionDoneDate")
                         .HasColumnType("datetime(6)");
 
@@ -915,6 +914,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<bool?>("TaskVersionTaskIsDeleted")
+                        .HasColumnName("task_version_task_is_deleted")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("TaskVersionTaskName")
                         .HasColumnName("task_version_task_name")
                         .HasColumnType("varchar(50)")
@@ -936,8 +939,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp");
 
                     b.HasKey("TaskVersionId");
-
-                    b.HasIndex("TaskVersionActionUserId");
 
                     b.HasIndex("TaskVersionTaskId")
                         .HasName("task_version_task_id");
@@ -1371,10 +1372,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.TaskVersion", b =>
                 {
-                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "TaskVersionActionUser")
-                        .WithMany("TaskVersions")
-                        .HasForeignKey("TaskVersionActionUserId");
-
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Task", "TaskVersionTask")
                         .WithMany("TaskVersion")
                         .HasForeignKey("TaskVersionTaskId")

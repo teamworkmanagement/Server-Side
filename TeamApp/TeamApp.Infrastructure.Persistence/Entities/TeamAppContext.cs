@@ -629,6 +629,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnName("task_created_at")
                     .HasColumnType("timestamp");
 
+                entity.Property(e => e.TaskDoneDate)
+                    .HasColumnName("task_done_date")
+                    .HasColumnType("timestamp");
+
                 entity.Property(e => e.TaskStartDate)
                     .HasColumnName("task_start_date")
                     .HasColumnType("timestamp");
@@ -716,7 +720,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.TaskVersionTaskIsDeleted).HasColumnName("task_version_task_is_deleted");
 
                 entity.Property(e => e.TaskVersionTaskName)
                     .HasColumnName("task_version_task_name")
@@ -740,6 +743,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .WithMany(p => p.TaskVersion)
                     .HasForeignKey(d => d.TaskVersionTaskId)
                     .HasConstraintName("task_version_ibfk_1");
+
+                entity.HasOne(d => d.TaskVersionActionUser)
+                    .WithMany(p => p.TaskVersions)
+                    .HasForeignKey(d => d.TaskVersionActionUserId);
             });
 
             modelBuilder.Entity<Team>(entity =>

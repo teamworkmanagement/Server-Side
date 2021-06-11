@@ -12,6 +12,7 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Application.Utils;
 using Microsoft.AspNetCore.SignalR;
 using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
+using TeamApp.Application.DTOs.TaskVersion;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -21,14 +22,35 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         private readonly IFileRepository _file;
         private readonly ICommentRepository _comment;
         private readonly IHubContext<HubKanbanClient, IHubKanbanClient> _hubKanban;
+        private readonly ITaskVersionRepository _taskVersionRepository;
 
-        public TaskRepository(TeamAppContext dbContext, IFileRepository file, ICommentRepository comment, IHubContext<HubKanbanClient, IHubKanbanClient> hubKanban)
+        public TaskRepository(TeamAppContext dbContext, IFileRepository file, ICommentRepository comment, IHubContext<HubKanbanClient, IHubKanbanClient> hubKanban, ITaskVersionRepository taskVersionRepository)
         {
             _dbContext = dbContext;
             _file = file;
             _comment = comment;
             _hubKanban = hubKanban;
+            _taskVersionRepository = taskVersionRepository;
         }
+
+        TaskVersionRequest MapTaskToTaskVersionRequest(Entities.Task task, string actionUserId)
+        {
+            return new TaskVersionRequest
+            {
+                TaskVersionTaskId = task.TaskId,
+                TaskVersionUpdatedAt = DateTime.UtcNow,
+                TaskVersionTaskName = task.TaskName,
+                TaskVersionTaskDescription = task.TaskDescription,
+                TaskVersionTaskPoint = task.TaskPoint,
+                TaskVersionTaskDeadline = task.TaskDeadline,
+                TaskVersionStartDate = task.TaskStartDate,
+                TaskVersionDoneDate = task.TaskDoneDate,
+                TaskVersionTaskStatus = task.TaskStatus,
+                TaskVersionTaskCompletedPercent = task.TaskCompletedPercent,
+                TaskVersionActionUserId = actionUserId,
+            };
+        }
+
         public async Task<string> AddTask(TaskRequest taskReq)
         {
             var entity = new Entities.Task
@@ -82,6 +104,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                  select u.ConnectionId).ToListAsync();
 
             await _hubKanban.Clients.Clients(clients).AddNewTask(taskUIKanban);
+
+            var taskVersion = MapTaskToTaskVersionRequest(entity, taskReq.UserActionId);
+            await _taskVersionRepository.AddTaskVersion(taskVersion);
 
             return entity.TaskId;
         }
@@ -445,6 +470,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 await _hubKanban.Clients.Clients(clients).UpdateTask(GetTaskUIKanban(entity));
             }
+
+            var taskVersion = MapTaskToTaskVersionRequest(entity, taskReq.UserActionId);
+            await _taskVersionRepository.AddTaskVersion(taskVersion);
 
             return check;
         }

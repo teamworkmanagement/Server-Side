@@ -20,5 +20,6 @@ namespace TeamApp.Application.DTOs.Task
         public string TaskThemeColor { get; set; }
         public string TaskImageUrl { get; set; }
         public DateTime? TaskDeadline { get; set; }
+        public string UserActionId { get; set; }
     }
 }
