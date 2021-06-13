@@ -51,6 +51,7 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IMessageRepository, MessageRepository>();
             services.AddTransient<IKanbanBoardRepository, KanbanBoardRepository>();
             services.AddTransient<IKanbanListRepository, KanbanListRepository>();
+            services.AddTransient<IStatisticsRepository, StatisticsRepository>();
             #endregion
             services.AddTransient<IFirebaseMessagingService, FirebaseMessagingService>();
             ConfigAuthService(services, configuration);

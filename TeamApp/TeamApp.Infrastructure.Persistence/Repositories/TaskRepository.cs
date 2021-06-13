@@ -23,14 +23,16 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         private readonly ICommentRepository _comment;
         private readonly IHubContext<HubKanbanClient, IHubKanbanClient> _hubKanban;
         private readonly ITaskVersionRepository _taskVersionRepository;
+        private readonly ITeamRepository _teamRepository;
 
-        public TaskRepository(TeamAppContext dbContext, IFileRepository file, ICommentRepository comment, IHubContext<HubKanbanClient, IHubKanbanClient> hubKanban, ITaskVersionRepository taskVersionRepository)
+        public TaskRepository(TeamAppContext dbContext, IFileRepository file, ICommentRepository comment, IHubContext<HubKanbanClient, IHubKanbanClient> hubKanban, ITaskVersionRepository taskVersionRepository, ITeamRepository teamRepository)
         {
             _dbContext = dbContext;
             _file = file;
             _comment = comment;
             _hubKanban = hubKanban;
             _taskVersionRepository = taskVersionRepository;
+            _teamRepository = teamRepository;
         }
 
         TaskVersionRequest MapTaskToTaskVersionRequest(Entities.Task task, string actionUserId)
@@ -379,6 +381,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var listComments = await _comment.GetListByTask(taskGetRequest.TaskId);
             var listFiles = await _file.GetAllByTask(taskGetRequest.TaskId);
 
+            bool showPoint = false;
+            if (!string.IsNullOrEmpty(kb.KanbanBoardTeamId))
+            {
+                var admin = await _teamRepository.GetAdmin(kb.KanbanBoardTeamId);
+                if (admin.UserId == taskGetRequest.UserRequest)
+                    showPoint = true;
+            }
+            else
+            {
+                showPoint = true;
+            }
 
 
             var outPut = new TaskResponse
@@ -403,6 +416,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 Comments = listComments,
                 Files = listFiles,
                 TaskImageUrl = task.t.TaskImageUrl,
+                ShowPoint = showPoint,
             };
 
             return outPut;
@@ -449,7 +463,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             entity.TaskPoint = taskReq.TaskPoint ?? entity.TaskPoint;
             entity.TaskCreatedAt = taskReq.TaskCreatedAt ?? entity.TaskCreatedAt;
 
-
+            if (entity.TaskStatus == "done")
+                entity.TaskDoneDate = DateTime.UtcNow;
+            else
+                entity.TaskDoneDate = null;
             //entity.TaskTeamId = taskReq.TaskTeamId == null ? entity.TaskTeamId : taskReq.TaskTeamId;
             //entity.TaskIsDeleted = taskReq.TaskIsDeleted == null ? entity.TaskIsDeleted : taskReq.TaskIsDeleted;
 

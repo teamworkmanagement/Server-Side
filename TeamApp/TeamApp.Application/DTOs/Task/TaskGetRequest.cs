@@ -6,6 +6,7 @@ namespace TeamApp.Application.DTOs.Task
 {
     public class TaskGetRequest
     {
+        public string UserRequest { get; set; }
         public string BoardId { get; set; }
         public string TaskId { get; set; }
         public bool IsOfTeam { get; set; }

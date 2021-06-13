@@ -26,6 +26,7 @@ namespace TeamApp.Application.DTOs.Task
         public string UserAvatar { get; set; }
         public string RankInList { get; set; }
         public DateTime? TaskDeadline { get; set; }
+        public bool ShowPoint { get; set; }
         public List<CommentResponse> Comments { get; set; }
         public List<FileResponse> Files { get; set; }
     }
