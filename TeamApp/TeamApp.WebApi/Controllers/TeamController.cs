@@ -152,5 +152,16 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             });
         }
+
+        [HttpGet("teams-recommend-user/{userId}")]
+        public async Task<IActionResult> GetTeamsRecommedUser(string userId)
+        {
+            var outPut = await _repo.GetRecommendTeamForUser(userId);
+            return Ok(new ApiResponse<List<TeamRecommendModel>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
     }
 }

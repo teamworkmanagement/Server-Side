@@ -26,5 +26,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<TeamResponse> JoinTeam(JoinTeamRequest request);
         Task<List<UserResponse>> GetUsersForTag(string teamId);
         Task<List<KanbanBoardResponse>> GetBoardsByTeam(string teamId);
+        Task<List<TeamRecommendModel>> GetRecommendTeamForUser(string userId);
     }
 }

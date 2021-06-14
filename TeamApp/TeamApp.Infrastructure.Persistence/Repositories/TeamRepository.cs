@@ -12,6 +12,9 @@ using TeamApp.Application.DTOs.User;
 using static TeamApp.Application.Utils.Extensions;
 using TeamApp.Application.Wrappers;
 using TeamApp.Application.DTOs.KanbanBoard;
+using Microsoft.Extensions.Configuration;
+using MySql.Data.MySqlClient;
+using Dapper;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -23,8 +26,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         private readonly IParticipationRepository _participationRepository;
         private readonly IKanbanBoardRepository _kanbanBoardRepository;
         private readonly IKanbanListRepository _kanbanListRepository;
+        private readonly IConfiguration _config;
         public TeamRepository(TeamAppContext dbContext, IGroupChatRepository groupChatRepository, IGroupChatUserRepository groupChatUserRepository
-            , IParticipationRepository participationRepository, IKanbanBoardRepository kanbanBoardRepository, IKanbanListRepository kanbanListRepository)
+            , IParticipationRepository participationRepository, IKanbanBoardRepository kanbanBoardRepository, IKanbanListRepository kanbanListRepository, IConfiguration config)
         {
             _dbContext = dbContext;
             _groupChatRepository = groupChatRepository;
@@ -32,6 +36,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _participationRepository = participationRepository;
             _kanbanListRepository = kanbanListRepository;
             _kanbanBoardRepository = kanbanBoardRepository;
+            _config = config;
         }
         public async Task<TeamResponse> AddTeam(TeamRequest teamReq)
         {
@@ -349,6 +354,43 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 });
             }
             return responses;
+        }
+
+        public async Task<List<TeamRecommendModel>> GetRecommendTeamForUser(string userId)
+        {
+            var connectionString = _config.GetConnectionString("DefaultConnection");
+            var user = await _dbContext.User.FindAsync(userId);
+            if (user == null)
+                throw new KeyNotFoundException("User not found");
+
+            var query = "select count(*) as GroupNewPostCount, teamOfUser.team_id as GroupId, teamOfUser.team_name as GroupName,team_image_url as GroupAvatar " +
+                        "from(select distinct team.team_id, team.team_name, team.team_image_url " +
+                        "from user " +
+                        "join participation on user.user_id = participation.participation_user_id " +
+                        "join team on team.team_id = participation.participation_team_id " +
+                        $"where user.user_id = '{userId}') teamOfUser " +
+
+                        "join post " +
+                        "on post.post_team_id = teamOfUser.team_id " +
+                        "where date(post.post_created_at)= date(now()) " +
+                        "group by post.post_team_id " +
+                        "limit 5";
+            var outPut = new List<TeamRecommendModel>();
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                var counts = await connection.QueryAsync<TeamRecommendModel>(query);
+                outPut = counts.ToList();
+            }
+
+            foreach (var ele in outPut)
+            {
+                var count = await _dbContext.Participation.AsNoTracking()
+                    .Where(x => x.ParticipationTeamId == ele.GroupId).CountAsync();
+
+                ele.GroupMemberCount = count;
+            }
+
+            return outPut;
         }
     }
 }
