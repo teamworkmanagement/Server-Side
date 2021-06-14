@@ -85,21 +85,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var startString = statisticsRequest.StartDate.Value.ToString("yyyy-MM-dd");
             var endString = statisticsRequest.EndDate.Value.ToString("yyyy-MM-dd");
 
-            var query = "select user.user_fullname as UserFullName, count(*) as TaskDoneCount, sum(taskdoneboard.task_point) as Point "+
+            var query = "select user.user_fullname as UserFullName, count(*) as TaskDoneCount, sum(taskdoneboard.task_point) as Point " +
 
-                        "from( "+
-                        "select taskdone.task_id, taskdone.task_point "+
-                        "from(select task.task_id, task.task_kanbanlist_id, task.task_point "+
-                        "from task "+
-                        "where task.task_done_date is not null ) taskdone "+
+                        "from( " +
+                        "select taskdone.task_id, taskdone.task_point " +
+                        "from(select task.task_id, task.task_kanbanlist_id, task.task_point " +
+                        "from task " +
+                        "where task.task_done_date is not null ) taskdone " +
 
-                        "where taskdone.task_kanbanlist_id in "+
-                        "(select kanban_list.kanban_list_id "+
-                        "from kanban_list "+
-                        $"where kanban_list.kanban_list_belonged_id = '{statisticsRequest.BoardId}')) taskdoneboard "+
+                        "where taskdone.task_kanbanlist_id in " +
+                        "(select kanban_list.kanban_list_id " +
+                        "from kanban_list " +
+                        $"where kanban_list.kanban_list_belonged_id = '{statisticsRequest.BoardId}')) taskdoneboard " +
 
-                        "join handle_task on handle_task.handle_task_task_id = taskdoneboard.task_id "+
-                        "join user on handle_task.handle_task_user_id = user.user_id "+
+                        "join handle_task on handle_task.handle_task_task_id = taskdoneboard.task_id " +
+                        "join user on handle_task.handle_task_user_id = user.user_id " +
                         "group by handle_task.handle_task_user_id";
 
 
@@ -107,6 +107,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 var counts = await connection.QueryAsync<UsersTaskDoneAndPointResponse>(query);
                 var outPut = counts.ToList();
+                var random = new Random();
+                foreach (var e in outPut)
+                {
+                    e.ColorCode = string.Format("#{0:X6}", random.Next(0x1000000));
+                }
                 return outPut;
             }
         }
@@ -204,7 +209,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var board = await _dbContext.KanbanBoard.FindAsync(boardTaskDoneRequest.BoardId);
             if (board == null)
-                throw new KeyNotFoundException("board not found");
+                throw new KeyNotFoundException("Board not found");
 
             DateTime startDate;
             DateTime endDate;
@@ -290,6 +295,31 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return response;
         }
 
+        async Task<int> GetUserTaskDoneInBoardsCount(StatisticsRequest statisticsRequest)
+        {
+            var connectionString = _config.GetConnectionString("DefaultConnection");
+
+            var startString = statisticsRequest.StartDate.Value.ToString("yyyy-MM-dd");
+            var endString = statisticsRequest.EndDate.Value.ToString("yyyy-MM-dd");
+
+            var query = "select count(*) as taskdones " +
+                        "from(select task.task_id " +
+
+                        "from task " +
+
+                        $"where task.task_done_date >= '{startString}' and task.task_done_date < '{endString}' ) taskdone " +
+                        "join handle_task on handle_task.handle_task_task_id = taskdone.task_id " +
+                        $"where handle_task.handle_task_user_id = '${statisticsRequest.UserId}'";
+
+
+            using (var connection = new MySqlConnection(connectionString))
+            {
+                var counts = await connection.QueryAsync<int>(query);
+                var outPut = counts.ToList();
+                return outPut[0];
+            }
+        }
+
         public async Task<List<UsersTaskDoneAndPointResponse>> GetUsersTaskDoneAndPoint(UsersTaskDoneAndPointRequest request)
         {
             var board = await _dbContext.KanbanBoard.FindAsync(request.BoardId);
@@ -309,6 +339,94 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 StartDate = startDate,
                 EndDate = endDate,
             });
+
+            return response;
+        }
+
+        public async Task<List<int>> GetUserTaskDoneInBoards(UserTaskDoneInBoardsRequest userTaskDoneInBoardsRequest)
+        {
+            var user = await _dbContext.User.FindAsync(userTaskDoneInBoardsRequest.UserId);
+            if (user == null)
+                throw new KeyNotFoundException("User not found");
+
+            DateTime startDate;
+            DateTime endDate;
+
+            List<StartEndDate> startEndDates = new List<StartEndDate>(); ;
+
+            switch (userTaskDoneInBoardsRequest.Filter)
+            {
+                case "week":
+                    startEndDates = new List<StartEndDate>();
+                    var now = DateTime.UtcNow.Date;
+                    Console.WriteLine("======================================================");
+                    for (int i = 0; i < 7; i++)
+                    {
+                        startEndDates.Add(new StartEndDate
+                        {
+                            StartDate = now.AddDays(-i),
+                            EndDate = now.AddDays(-i + 1),
+                        });
+                        //Console.WriteLine(now.AddDays(-i) + "-----------" + now.AddDays(-i + 1));
+                    }
+                    break;
+                case "month":
+                    startEndDates = new List<StartEndDate>();
+                    now = DateTime.UtcNow.Date;
+                    Console.WriteLine("=====================================================");
+                    for (int i = 0; i < 30; i++)
+                    {
+                        startEndDates.Add(new StartEndDate
+                        {
+                            StartDate = now.AddDays(-i),
+                            EndDate = now.AddDays(-i + 1),
+                        });
+                        //Console.WriteLine(now.AddDays(-i) + "-----------" + now.AddDays(-i + 1));
+                    }
+                    break;
+                case "year":
+                    startEndDates = new List<StartEndDate>();
+                    now = DateTime.UtcNow.Date;
+                    Console.WriteLine("=====================================================");
+                    for (int i = 0; i < 12; i++)
+                    {
+                        var newNow = now.AddMonths(-i);
+                        startDate = new DateTime(newNow.Year, newNow.Month, 1);
+                        endDate = startDate.AddMonths(1).AddDays(-1);
+
+                        startEndDates.Add(new StartEndDate
+                        {
+                            StartDate = startDate,
+                            EndDate = endDate,
+                        });
+                        //Console.WriteLine(startDate + "------------------" + endDate);
+                    }
+                    break;
+                default:
+                    throw new ApiException("Filter error");
+            }
+
+            Dictionary<DateTime, int> keyValuePairs = new Dictionary<DateTime, int>();
+            foreach (var e in startEndDates)
+            {
+                var count = await GetUserTaskDoneInBoardsCount(new StatisticsRequest
+                {
+                    Filter = userTaskDoneInBoardsRequest.Filter,
+                    StartDate = e.StartDate,
+                    EndDate = e.EndDate,
+                });
+
+                keyValuePairs[e.StartDate] = count;
+            }
+
+            var response = new List<int>();
+
+            foreach (var kv in keyValuePairs)
+            {
+                response.Add(kv.Value);
+            }
+
+            response.Reverse();
 
             return response;
         }

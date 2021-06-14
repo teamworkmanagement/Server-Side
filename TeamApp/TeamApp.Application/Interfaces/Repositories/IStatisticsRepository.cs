@@ -9,6 +9,7 @@ namespace TeamApp.Application.Interfaces.Repositories
     public interface IStatisticsRepository
     {
         Task<List<int>> GetUserTaskDone(UserTaskDoneRequest userTaskDoneRequest);
+        Task<List<int>> GetUserTaskDoneInBoards(UserTaskDoneInBoardsRequest userTaskDoneInBoardsRequest);
         Task<List<int>> GetBoardTaskDone(BoardTaskDoneRequest boardTaskDoneRequest);
         Task<List<UsersTaskDoneAndPointResponse>> GetUsersTaskDoneAndPoint(UsersTaskDoneAndPointRequest usersTaskDoneAndPointRequest);
     }

@@ -9,5 +9,6 @@ namespace TeamApp.Application.DTOs.Statistics
         public string UserFullName { get; set; }
         public int TaskDoneCount { get; set; }
         public int Point { get; set; }
+        public string ColorCode { get; set; }
     }
 }

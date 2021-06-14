@@ -19,8 +19,8 @@ namespace TeamApp.WebApi.Controllers
             _repo = statisticsRepository;
         }
 
-        [HttpGet("user-task-done")]
-        public async Task<IActionResult> GetUserTaskDone([FromQuery] UserTaskDoneRequest userTaskDoneRequest)
+        [HttpGet("personal-task-done")]
+        public async Task<IActionResult> GetPersonalTaskDone([FromQuery] UserTaskDoneRequest userTaskDoneRequest)
         {
             var outPut = await _repo.GetUserTaskDone(userTaskDoneRequest);
             return Ok(
@@ -49,6 +49,18 @@ namespace TeamApp.WebApi.Controllers
             var outPut = await _repo.GetUsersTaskDoneAndPoint(usersTaskDoneAndPointRequest);
 
             return Ok(new ApiResponse<List<UsersTaskDoneAndPointResponse>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
+
+        [HttpGet("user-task-done-boards")]
+        public async Task<IActionResult> GetUsersTaskDoneInBoards([FromQuery] UserTaskDoneInBoardsRequest userTaskDoneInBoardsRequest)
+        {
+            var outPut = await _repo.GetUserTaskDoneInBoards(userTaskDoneInBoardsRequest);
+
+            return Ok(new ApiResponse<List<int>>
             {
                 Data = outPut,
                 Succeeded = true,
