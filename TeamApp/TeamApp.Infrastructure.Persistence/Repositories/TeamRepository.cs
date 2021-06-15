@@ -158,13 +158,33 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
                         join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                        where p.ParticipationIsDeleted == false
                         select new { t, u, t.Participation };
+
             var teams = await query.AsNoTracking().Where(x => x.u.Id == userId).ToListAsync();
+
             var outPut = new List<TeamResponse>();
 
             foreach (var team in teams)
             {
                 var leader = await _dbContext.User.FindAsync(team.t.TeamLeaderId);
+                var membersCount = await _dbContext.Participation.AsNoTracking().Where(
+                    x => x.ParticipationTeamId == team.t.TeamId && x.ParticipationIsDeleted == false).CountAsync();
+
+                List<TeamUserResponse> members = new List<TeamUserResponse>();
+                if (membersCount != 0)
+                {
+                    var queryUsersTeam = from p in _dbContext.Participation.AsNoTracking()
+                                         join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                                         where p.ParticipationTeamId == team.t.TeamId
+                                         select new { u.FullName, u.ImageUrl };
+
+                    members = await queryUsersTeam.Select(x => new TeamUserResponse
+                    {
+                        UserFullName = x.FullName,
+                        UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
+                    }).ToListAsync();
+                }
                 outPut.Add(new TeamResponse
                 {
                     TeamId = team.t.TeamId,
@@ -178,6 +198,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     TeamLeaderImageUrl = leader.ImageUrl,
                     TeamMemberCount = team.Participation.Count,
                     TeamImageUrl = string.IsNullOrEmpty(team.t.TeamImageUrl) ? $"https://ui-avatars.com/api/?name={team.t.TeamName}" : team.t.TeamImageUrl,
+                    TeamUsers = members,
                 });
             }
             /*var outPut = await query.Where(x => x.u.Id == userId).Select(entity => new TeamResponse

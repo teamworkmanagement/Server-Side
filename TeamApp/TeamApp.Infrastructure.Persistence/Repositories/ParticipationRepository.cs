@@ -127,20 +127,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return null;
         }
 
-        public async Task<bool> DeleteParticipation(string userId, string teamId)
+        public async Task<bool> DeleteParticipation(ParticipationDeleteRequest participationDeleteRequest)
         {
-            var entity = _dbContext.Participation.Where(x => x.ParticipationUserId == userId
-            && x.ParticipationTeamId == teamId);
+            var entity = await _dbContext.Participation.AsNoTracking().Where(x => x.ParticipationUserId == participationDeleteRequest.UserId
+             && x.ParticipationTeamId == participationDeleteRequest.TeamId).FirstOrDefaultAsync();
 
-            if (entity.Count() < 0)
-                return false;
+            if (entity == null)
+                throw new KeyNotFoundException("Not found participation");
 
-            var en = entity.ToList()[0];
-            en.ParticipationIsDeleted = true;
-            _dbContext.Participation.Update(en);
-            await _dbContext.SaveChangesAsync();
-
-            return true;
+            entity.ParticipationIsDeleted = true;
+            _dbContext.Participation.Update(entity);
+            return await _dbContext.SaveChangesAsync() > 0;
         }
 
         public async Task<List<ParticipationResponse>> GetAllByTeamId(string teamId)

@@ -49,10 +49,10 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpDelete("{userId}/{teamId}")]
-        public async Task<IActionResult> DeleteParticipation(string userId, string teamId)
+        [HttpDelete]
+        public async Task<IActionResult> DeleteParticipation(ParticipationDeleteRequest participationDeleteRequest)
         {
-            var res = await _repo.DeleteParticipation(userId, teamId);
+            var res = await _repo.DeleteParticipation(participationDeleteRequest);
 
             var outPut = new ApiResponse<bool>
             {
