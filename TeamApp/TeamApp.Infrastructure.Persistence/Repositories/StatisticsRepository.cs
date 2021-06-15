@@ -133,7 +133,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 case "week":
                     startEndDates = new List<StartEndDate>();
                     var now = DateTime.UtcNow.Date;
-                    Console.WriteLine("======================================================");
+                    
                     for (int i = 0; i < 7; i++)
                     {
                         startEndDates.Add(new StartEndDate
@@ -141,14 +141,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                             StartDate = now.AddDays(-i),
                             EndDate = now.AddDays(-i + 1),
                         });
-                        //Console.WriteLine(now.AddDays(-i) + "-----------" + now.AddDays(-i + 1));
                     }
 
                     break;
                 case "month":
                     startEndDates = new List<StartEndDate>();
                     now = DateTime.UtcNow.Date;
-                    Console.WriteLine("=====================================================");
                     for (int i = 0; i < 30; i++)
                     {
                         startEndDates.Add(new StartEndDate
@@ -156,13 +154,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                             StartDate = now.AddDays(-i),
                             EndDate = now.AddDays(-i + 1),
                         });
-                        //Console.WriteLine(now.AddDays(-i) + "-----------" + now.AddDays(-i + 1));
                     }
                     break;
                 case "year":
                     startEndDates = new List<StartEndDate>();
                     now = DateTime.UtcNow.Date;
-                    Console.WriteLine("=====================================================");
                     for (int i = 0; i < 12; i++)
                     {
                         var newNow = now.AddMonths(-i);
@@ -174,7 +170,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                             StartDate = startDate,
                             EndDate = endDate,
                         });
-                        //Console.WriteLine(startDate + "------------------" + endDate);
                     }
                     break;
                 default:
@@ -193,7 +188,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 });
 
                 keyValuePairs[e.StartDate] = count;
-                Console.WriteLine(e.StartDate + "================" + e.EndDate);
             }
 
             var response = new List<int>();

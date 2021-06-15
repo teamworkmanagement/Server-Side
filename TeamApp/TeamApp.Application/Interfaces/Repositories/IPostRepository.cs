@@ -11,9 +11,6 @@ namespace TeamApp.Application.Interfaces.Repositories
 {
     public interface IPostRepository
     {
-        Task<List<PostResponse>> GetAllByUserId(string userId);
-        Task<List<PostResponse>> GetAllByTeamId(string teamId);
-        Task<List<PostResponse>> GetAllByUserTeamId(string userId, string teamId);
         Task<PagedResponse<PostResponse>> GetPaging(RequestParameter parameter);
         Task<PagedResponse<PostResponse>> GetPostPagingUser(PostRequestParameter parameter);
         Task<PagedResponse<PostResponse>> GetPostPagingTeam(PostRequestParameter parameter);

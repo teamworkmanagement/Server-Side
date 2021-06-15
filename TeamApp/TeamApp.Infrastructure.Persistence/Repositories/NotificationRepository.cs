@@ -227,6 +227,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task PushNotiJoinTeam(JoinTeamNotification joinTeamNotification)
         {
+            if (joinTeamNotification.ActionUserId == null)
+                return;
             var notiGroup = Guid.NewGuid().ToString();
 
             var clientLists = await (from uc in _dbContext.UserConnection.AsNoTracking()
@@ -261,25 +263,26 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationStatus = false,
                 NotificationIsDeleted = false,
                 NotificationLink = link,
-            };
+                NotificationActionUserId = joinTeamNotification.ActionUserId
+        };
 
-            await _dbContext.SingleInsertAsync(noti);
-        }
-
-        public async Task<bool> ReadNotificationSet(ReadNotiModel readNotiModel)
-        {
-            var entity = await (from n in _dbContext.Notification
-                                where n.NotificationGroup == readNotiModel.GroupId && n.NotificationUserId == readNotiModel.UserId
-                                select n).FirstOrDefaultAsync();
-
-            if (entity == null)
-                return false;
-
-            entity.NotificationStatus = true;
-            _dbContext.Notification.Update(entity);
-            await _dbContext.SaveChangesAsync();
-
-            return true;
-        }
+        await _dbContext.SingleInsertAsync(noti);
     }
+
+    public async Task<bool> ReadNotificationSet(ReadNotiModel readNotiModel)
+    {
+        var entity = await (from n in _dbContext.Notification
+                            where n.NotificationGroup == readNotiModel.GroupId && n.NotificationUserId == readNotiModel.UserId
+                            select n).FirstOrDefaultAsync();
+
+        if (entity == null)
+            return false;
+
+        entity.NotificationStatus = true;
+        _dbContext.Notification.Update(entity);
+        await _dbContext.SaveChangesAsync();
+
+        return true;
+    }
+}
 }

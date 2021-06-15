@@ -238,7 +238,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
 
             if (result.Succeeded)
             {
-                account = await _dbContext.User.FindAsync(model.Email);
+                account = await _userManager.FindByEmailAsync(model.Email);
                 account.FirstTimeSocial = false;
                 await _userManager.UpdateAsync(account);
                 return new ApiResponse<string>(model.Email, message: $"Password Resetted.");

@@ -10,5 +10,6 @@ namespace TeamApp.Application.DTOs.Paricipation
         public string Email { get; set; }
         public string ParticipationUserId { get; set; }
         public string ParticipationTeamId { get; set; }
+        public string ActionUserId { get; set; }
     }
 }

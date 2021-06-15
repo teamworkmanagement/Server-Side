@@ -169,77 +169,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
-        public async Task<List<PostResponse>> GetAllByTeamId(string teamId)
-        {
-            var query = from p in _dbContext.Post
-                        join t in _dbContext.Team on p.PostTeamId equals t.TeamId
-                        join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u.ImageUrl, u.FullName, p.Comments.Count };
-            query = query.Where(x => x.p.PostTeamId == teamId);
-
-            var outPut = await query.Select(x => new PostResponse
-            {
-                PostId = x.p.PostId,
-                PostUserId = x.p.PostUserId,
-                PostTeamId = x.p.PostTeamId,
-                PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
-                PostCommentCount = x.Count,
-                PostIsDeleted = x.p.PostIsDeleted,
-                PostIsPinned = x.p.PostIsPinned,
-                UserAvatar = x.ImageUrl,
-                UserName = x.FullName,
-            }).ToListAsync();
-
-            return outPut;
-        }
-
-        public async Task<List<PostResponse>> GetAllByUserId(string userId)
-        {
-            var query = from p in _dbContext.Post
-                        join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u.ImageUrl, u.Id, u.FullName, p.Comments.Count };
-
-            query = query.Where(x => x.Id == userId);
-
-            var outPut = await query.Select(x => new PostResponse
-            {
-                PostId = x.p.PostId,
-                PostUserId = x.p.PostUserId,
-                PostTeamId = x.p.PostTeamId,
-                PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
-                PostCommentCount = x.Count,
-                PostIsDeleted = x.p.PostIsDeleted,
-                PostIsPinned = x.p.PostIsPinned,
-                UserAvatar = x.ImageUrl,
-                UserName = x.FullName,
-            }).ToListAsync();
-
-            return outPut;
-        }
-
-        public async Task<List<PostResponse>> GetAllByUserTeamId(string userId, string teamId)
-        {
-            var query = from p in _dbContext.Post
-                        where p.PostTeamId == teamId && p.PostUserId == userId
-                        select p;
-
-            var outPut = await query.Select(x => new PostResponse
-            {
-                PostId = x.PostId,
-                PostUserId = x.PostUserId,
-                PostTeamId = x.PostTeamId,
-                PostContent = x.PostContent,
-                PostCreatedAt = x.PostCreatedAt.FormatTime(),
-                PostCommentCount = x.PostCommentCount,
-                PostIsDeleted = x.PostIsDeleted,
-                PostIsPinned = x.PostIsPinned,
-            }).ToListAsync();
-
-            return outPut;
-        }
-
         public async Task<PagedResponse<PostResponse>> GetPaging(RequestParameter parameter)
         {
             var queryUserPost = from p in _dbContext.Post
@@ -284,7 +213,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Post.AsNoTracking()
                         join t in _dbContext.Team.AsNoTracking() on p.PostTeamId equals t.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
-                        where t.TeamId == parameter.TeamId
+                        where t.TeamId == parameter.TeamId && p.PostIsDeleted == false
                         select new { p, u, p.Comments.Count, RCount = p.PostReacts.Count, t.TeamName };
 
             //tìm kiếm nâng cao
@@ -409,6 +338,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Post
                         join listTeam in teamList on p.PostTeamId equals listTeam.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
+                        where p.PostIsDeleted == false
                         select new { p, u, p.Comments.Count, RCount = p.PostReacts.Count, listTeam.TeamName };
 
 

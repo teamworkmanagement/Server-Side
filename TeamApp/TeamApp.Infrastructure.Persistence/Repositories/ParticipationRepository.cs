@@ -109,6 +109,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 await _notiRepo.PushNotiJoinTeam(new Application.DTOs.Team.JoinTeamNotification
                 {
+                    ActionUserId = participationRequest.ActionUserId,
                     UserId = user.Id,
                     TeamId = participationRequest.ParticipationTeamId,
                 });
