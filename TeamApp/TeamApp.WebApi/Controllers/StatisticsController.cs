@@ -66,5 +66,35 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = true,
             });
         }
+
+        [HttpPost("export-personalandteam")]
+        public async Task<IActionResult> ExportPersonalAndTeamsTask(ExportPersonalAndTeamsTaskRequest exportPersonal)
+        {
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = $"personalandteam_{Extensions.RadomString.RandomString(6)}.xlsx";
+            byte[] data = await _repo.ExportPersonalAndTeamsTask(exportPersonal);
+
+            return File(data, contentType, fileName);
+        }
+
+        [HttpPost("export-teamdoneboard")]
+        public async Task<IActionResult> ExportTeamDoneBoard(BoardDoneTaskExportRequest exportRequest)
+        {
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = $"teamdoneboard_{Extensions.RadomString.RandomString(6)}.xlsx";
+            byte[] data = await _repo.ExportBoardDoneTask(exportRequest);
+
+            return File(data, contentType, fileName);
+        }
+
+        [HttpPost("export-pointtask-groupbyuser")]
+        public async Task<IActionResult> ExportTeamUserPointTask(BoardPointAndDoneRequest pointAndDoneRequest)
+        {
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = $"pointtask_{Extensions.RadomString.RandomString(6)}.xlsx";
+            byte[] data = await _repo.ExportUserBoardDonePointAndTask(pointAndDoneRequest);
+
+            return File(data, contentType, fileName);
+        }
     }
 }

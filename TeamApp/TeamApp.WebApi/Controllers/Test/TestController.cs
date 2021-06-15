@@ -60,8 +60,8 @@ namespace TeamApp.WebApi.Controllers.Test
                     UserId = authenticatedUserService.UserId,
                 });
         }
-        [HttpPost("export-excel")]
-        public async Task<IActionResult> GetExcel()
+        [HttpGet("export-excel")]
+        public async Task<FileContentResult> GetExcel()
         {
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             string fileName = "tests.xlsx";
@@ -84,12 +84,13 @@ namespace TeamApp.WebApi.Controllers.Test
         }
 
         [HttpGet("random")]
-        public IActionResult Random()
+        public async Task<IActionResult> Random()
         {
+            var res = await _dbContext.Message.FindAsync("2dc73c78-c510-4387-91e2-3725ffb3178c");
             return Ok(
-                new ApiResponse<string>
+                new ApiResponse<DateTime?>
                 {
-                    Data = RadomString.RandomString(6),
+                    Data = res.MessageCreatedAt.FormatTime(),
                     Succeeded = true,
                 }
                 );

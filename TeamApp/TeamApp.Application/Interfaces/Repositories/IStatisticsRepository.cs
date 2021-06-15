@@ -12,5 +12,10 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<List<int>> GetUserTaskDoneInBoards(UserTaskDoneInBoardsRequest userTaskDoneInBoardsRequest);
         Task<List<int>> GetBoardTaskDone(BoardTaskDoneRequest boardTaskDoneRequest);
         Task<List<UsersTaskDoneAndPointResponse>> GetUsersTaskDoneAndPoint(UsersTaskDoneAndPointRequest usersTaskDoneAndPointRequest);
+
+
+        Task<byte[]> ExportPersonalAndTeamsTask(ExportPersonalAndTeamsTaskRequest exportPersonal);
+        Task<byte[]> ExportBoardDoneTask(BoardDoneTaskExportRequest exportPersonal);
+        Task<byte[]> ExportUserBoardDonePointAndTask(BoardPointAndDoneRequest exportPersonal);
     }
 }
