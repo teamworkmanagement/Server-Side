@@ -78,6 +78,11 @@ namespace TeamApp.Infrastructure.Persistence.Services
             response.UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
             response.FullName = user.FullName;
 
+            response.UserAddress = user.UserAddress;
+            response.UserDescription = user.UserDescription;
+            response.UserGithubLink = user.UserGithubLink;
+            response.UserFacebookLink = user.UserFacebookLink;
+
             var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
             refreshToken.UserId = user.Id;
             response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
@@ -322,6 +327,11 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 response.FullName = userWithSameEmail.FullName;
                 response.IsVerified = userWithSameEmail.EmailConfirmed;
 
+                response.UserAddress = userWithSameEmail.UserAddress;
+                response.UserDescription = userWithSameEmail.UserDescription;
+                response.UserGithubLink = userWithSameEmail.UserGithubLink;
+                response.UserFacebookLink = userWithSameEmail.UserFacebookLink;
+
                 var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
                 refreshToken.UserId = userWithSameEmail.Id;
                 response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
@@ -355,6 +365,11 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 response.UserAvatar = entity.ImageUrl;
                 response.FullName = entity.FullName;
                 response.FirstTimeSocial = true;
+
+                response.UserAddress = entity.UserAddress;
+                response.UserDescription = entity.UserDescription;
+                response.UserGithubLink = entity.UserGithubLink;
+                response.UserFacebookLink = entity.UserFacebookLink;
 
                 var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
                 refreshToken.UserId = entity.Id;
@@ -448,6 +463,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 user.Dob = updateInfoModel.UserDob;
                 user.PhoneNumber = updateInfoModel.UserPhoneNumber;
                 user.UserName = updateInfoModel.Email;
+                user.UserAddress = updateInfoModel.UserAddress;
+                user.UserDescription = updateInfoModel.UserDescription;
+                user.UserGithubLink = updateInfoModel.UserGithubLink;
+                user.UserFacebookLink = updateInfoModel.UserFacebookLink;
 
                 await _userManager.UpdateAsync(user);
                 return new ApiResponse<bool>

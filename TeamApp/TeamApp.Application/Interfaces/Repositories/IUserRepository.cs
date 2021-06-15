@@ -26,5 +26,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<List<UserResponse>> SearchUser(string userId, string keyWord, bool isEmail);
         Task<List<UserResponse>> SearchUserAddToExistsChat(string userId, string teamId, string keyWord, bool isEmail);
         Task<List<UserResponse>> SearchUsersForKanban(UserKanbanSearchModel userKanbanSearch);
+
+        Task<bool> UpdateUserImage(UpdateImageModel updateImageModel);
     }
 }

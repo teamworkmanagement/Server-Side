@@ -108,5 +108,17 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = outPut != null
             });
         }
+
+        [HttpPatch("image")]
+        public async Task<IActionResult> UpdateUserImage(UpdateImageModel updateImageModel)
+        {
+            var outPut = await _repo.UpdateUserImage(updateImageModel);
+
+            return (Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
+            }));
+        }
     }
 }

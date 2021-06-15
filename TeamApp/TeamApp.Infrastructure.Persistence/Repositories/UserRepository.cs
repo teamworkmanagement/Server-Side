@@ -291,5 +291,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.SaveChangesAsync();
             return true;
         }
+
+        public async Task<bool> UpdateUserImage(UpdateImageModel updateImageModel)
+        {
+            var user = await _dbContext.User.FindAsync(updateImageModel.UserId);
+            if (user == null)
+                throw new KeyNotFoundException("Not found user");
+
+            if (updateImageModel.Delete)
+                user.ImageUrl = null;
+            else
+                user.ImageUrl = updateImageModel.ImageUrl;
+
+            _dbContext.User.Update(user);
+            return await _dbContext.SaveChangesAsync() > 0;
+        }
     }
 }
