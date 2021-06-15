@@ -66,7 +66,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                         "from(select task.task_id, task.task_kanbanlist_id " +
                         "from task " +
-                        $"where task.task_done_date >= '{startString}' and task.task_done_date < '{endString}') taskdone " +
+                        $"where date(task.task_done_date) >= '{startString}' and date(task.task_done_date) < '{endString}') taskdone " +
 
                         "where taskdone.task_kanbanlist_id in " +
                         "(select kanban_list.kanban_list_id " +
@@ -94,7 +94,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         "select taskdone.task_id, taskdone.task_point " +
                         "from(select task.task_id, task.task_kanbanlist_id, task.task_point " +
                         "from task " +
-                        "where task.task_done_date is not null ) taskdone " +
+                        $"where date(task.task_done_date) >= '{startString}' and  date(task.task_done_date) < '{endString}') taskdone " +
 
                         "where taskdone.task_kanbanlist_id in " +
                         "(select kanban_list.kanban_list_id " +
@@ -310,7 +310,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                         "from task " +
 
-                        $"where task.task_done_date >= '{startString}' and task.task_done_date < '{endString}' ) taskdone " +
+                        $"where date(task.task_done_date) >= '{startString}' and date(task.task_done_date) < '{endString}' ) taskdone " +
                         "join handle_task on handle_task.handle_task_task_id = taskdone.task_id " +
                         $"where handle_task.handle_task_user_id = '${statisticsRequest.UserId}'";
 
