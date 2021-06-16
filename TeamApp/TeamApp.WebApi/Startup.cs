@@ -47,6 +47,8 @@ namespace TeamApp.WebApi
                         .AllowCredentials();
                 });
             });
+
+            services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
         }
 
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)

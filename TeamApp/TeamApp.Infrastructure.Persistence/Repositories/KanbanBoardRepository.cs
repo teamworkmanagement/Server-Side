@@ -62,7 +62,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var teams = await (from p in _dbContext.Participation.AsNoTracking()
                                join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
                                join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
-                               where u.Id == userId
+                               where u.Id == userId && p.ParticipationIsDeleted == false
                                select t).ToListAsync();
 
             List<KanbanBoardResponse> responses = new List<KanbanBoardResponse>();
@@ -129,7 +129,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }).ToListAsync();
         }
 
-        public async Task<KanbanBoardUIResponse> GetKanbanBoardUI(KanbanBoardUIRequest boardUIRequest)
+        public async Task<KanbanBoardUIResponse> GetKanbanBoardUI(string userId, KanbanBoardUIRequest boardUIRequest)
         {
             var board = await (from b in _dbContext.KanbanBoard.AsNoTracking()
                                where b.KanbanBoardId == boardUIRequest.BoardId
@@ -142,6 +142,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 if (board.KanbanBoardTeamId != boardUIRequest.OwnerId)
                     throw new KeyNotFoundException("Board not found");
+
+                var memberCheck = await (from p in _dbContext.Participation.AsNoTracking()
+                                         where p.ParticipationIsDeleted == false && p.ParticipationUserId == userId && p.ParticipationTeamId == board.KanbanBoardTeamId
+                                         select p).FirstOrDefaultAsync();
+
+                if (memberCheck == null)
+                    throw new KeyNotFoundException("Not found");
             }
             else
             {

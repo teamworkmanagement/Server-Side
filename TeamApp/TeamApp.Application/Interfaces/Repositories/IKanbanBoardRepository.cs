@@ -20,7 +20,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// </summary>
         /// <param name="boardId"></param>
         /// <returns></returns>
-        Task<KanbanBoardUIResponse> GetKanbanBoardUI(KanbanBoardUIRequest boardId);
+        Task<KanbanBoardUIResponse> GetKanbanBoardUI(string userId, KanbanBoardUIRequest boardId);
         /// <summary>
         /// Swap liskanban
         /// </summary>

@@ -336,7 +336,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
         }
 
-        public async Task<TaskResponse> GetTaskByBoard(TaskGetRequest taskGetRequest)
+        public async Task<TaskResponse> GetTaskByBoard(string userId, TaskGetRequest taskGetRequest)
         {
             var query = from t in _dbContext.Task.AsNoTracking()
                         join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
@@ -371,12 +371,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 if (kb.KanbanBoardTeamId != taskGetRequest.OwnerId)
                     throw new KeyNotFoundException("Board not found");
+
+                var memberCheck = await (from p in _dbContext.Participation.AsNoTracking()
+                                         where p.ParticipationIsDeleted == false && p.ParticipationUserId == userId && p.ParticipationTeamId == kb.KanbanBoardTeamId
+                                         select p).FirstOrDefaultAsync();
+                if (memberCheck == null)
+                    throw new KeyNotFoundException("Not found");
             }
             else
             {
                 if (kb.KanbanBoardUserId != taskGetRequest.OwnerId)
                     throw new KeyNotFoundException("Board not found");
             }
+
 
             var listComments = await _comment.GetListByTask(taskGetRequest.TaskId);
             var listFiles = await _file.GetAllByTask(taskGetRequest.TaskId);

@@ -19,6 +19,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<bool> DeleteTask(string taskId);
         Task<TaskResponse> GetById(string taskId);
         Task<bool> DragTask(DragTaskModel dragTaskModel);
-        Task<TaskResponse> GetTaskByBoard(TaskGetRequest taskGetRequest);
+        Task<TaskResponse> GetTaskByBoard(string userId, TaskGetRequest taskGetRequest);
     }
 }

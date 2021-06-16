@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.KanbanBoard;
+using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -16,9 +17,11 @@ namespace TeamApp.WebApi.Controllers
     public class KanbanBoardController : ControllerBase
     {
         private readonly IKanbanBoardRepository _repo;
-        public KanbanBoardController(IKanbanBoardRepository repo)
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        public KanbanBoardController(IKanbanBoardRepository repo, IAuthenticatedUserService authenticatedUserService)
         {
             _repo = repo;
+            _authenticatedUserService = authenticatedUserService;
         }
 
 
@@ -37,7 +40,8 @@ namespace TeamApp.WebApi.Controllers
         [ProducesDefaultResponseType(typeof(KanbanBoardUIResponse))]
         public async Task<IActionResult> GetKanbanBoardUI([FromQuery] KanbanBoardUIRequest boardUIRequest)
         {
-            var outPut = await _repo.GetKanbanBoardUI(boardUIRequest);
+            var userId = _authenticatedUserService.UserId;
+            var outPut = await _repo.GetKanbanBoardUI(userId, boardUIRequest);
 
             return Ok(new ApiResponse<KanbanBoardUIResponse>
             {
