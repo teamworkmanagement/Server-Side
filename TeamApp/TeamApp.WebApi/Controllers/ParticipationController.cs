@@ -50,7 +50,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpDelete]
-        public async Task<IActionResult> DeleteParticipation(ParticipationDeleteRequest participationDeleteRequest)
+        public async Task<IActionResult> DeleteParticipation([FromQuery]ParticipationDeleteRequest participationDeleteRequest)
         {
             var res = await _repo.DeleteParticipation(participationDeleteRequest);
 

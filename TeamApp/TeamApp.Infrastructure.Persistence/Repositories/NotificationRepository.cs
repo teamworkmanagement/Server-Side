@@ -189,7 +189,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 var task = await _dbContext.Task.FindAsync(mentionRequest.TaskId);
                 var kl = await _dbContext.KanbanList.FindAsync(task.TaskBelongedId);
-                link = $"/managetask/teamtasks?b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
+                var kb = await _dbContext.KanbanBoard.FindAsync(kl.KanbanListBoardBelongedId);
+                link = $"/managetask/teamtasks?gr={kb.KanbanBoardTeamId}&b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
             }
 
             var actionUser = await _dbContext.User.FindAsync(mentionRequest.ActionUserId);
@@ -202,6 +203,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationContent = "đã nhắc đến bạn trong 1 bình luận",
                 NotificationStatus = false,
                 NotificationLink = link,
+                NotificationCreatedAt = DateTime.UtcNow,
             });
 
 
@@ -264,25 +266,25 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationIsDeleted = false,
                 NotificationLink = link,
                 NotificationActionUserId = joinTeamNotification.ActionUserId
-        };
+            };
 
-        await _dbContext.SingleInsertAsync(noti);
+            await _dbContext.SingleInsertAsync(noti);
+        }
+
+        public async Task<bool> ReadNotificationSet(ReadNotiModel readNotiModel)
+        {
+            var entity = await (from n in _dbContext.Notification
+                                where n.NotificationGroup == readNotiModel.GroupId && n.NotificationUserId == readNotiModel.UserId
+                                select n).FirstOrDefaultAsync();
+
+            if (entity == null)
+                return false;
+
+            entity.NotificationStatus = true;
+            _dbContext.Notification.Update(entity);
+            await _dbContext.SaveChangesAsync();
+
+            return true;
+        }
     }
-
-    public async Task<bool> ReadNotificationSet(ReadNotiModel readNotiModel)
-    {
-        var entity = await (from n in _dbContext.Notification
-                            where n.NotificationGroup == readNotiModel.GroupId && n.NotificationUserId == readNotiModel.UserId
-                            select n).FirstOrDefaultAsync();
-
-        if (entity == null)
-            return false;
-
-        entity.NotificationStatus = true;
-        _dbContext.Notification.Update(entity);
-        await _dbContext.SaveChangesAsync();
-
-        return true;
-    }
-}
 }

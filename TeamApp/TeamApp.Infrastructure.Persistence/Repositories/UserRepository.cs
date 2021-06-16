@@ -237,8 +237,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         "where participation_team_id in " +
                         "(select kanban_board.kanban_board_teamid " +
                         "from kanban_board " +
-                        $"where kanban_board.kanban_board_id = '{userKanbanSearch.BoardId}') " +
-                        $"and user.user_fullname like '%{userKanbanSearch.KeyWord}%' ";
+                        $"where kanban_board.kanban_board_id = '{userKanbanSearch.BoardId}') ";
 
             var listUsers = await Helpers.RawQuery.RawSqlQuery(_dbContext, query, (x) => new User
             {
