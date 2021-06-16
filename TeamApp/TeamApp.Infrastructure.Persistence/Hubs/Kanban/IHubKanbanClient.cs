@@ -19,5 +19,6 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Kanban
         Task UpdateTask(object newTask);
         Task UpdateList(KanbanListRequest newTask);
         Task ReAssignUser(object reAssignObject);
+        Task RenameList(KanbanListChangeNameModel kanbanListChangeNameModel);
     }
 }
