@@ -389,7 +389,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         "from user " +
                         "join participation on user.user_id = participation.participation_user_id " +
                         "join team on team.team_id = participation.participation_team_id " +
-                        $"where user.user_id = '{userId}') teamOfUser " +
+                        $"where user.user_id = '{userId}' and participation.participation_is_deleted <> 1 ) teamOfUser " +
 
                         "join post " +
                         "on post.post_team_id = teamOfUser.team_id " +
@@ -409,6 +409,28 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     .Where(x => x.ParticipationTeamId == ele.GroupId).CountAsync();
 
                 ele.GroupMemberCount = count;
+            }
+
+            if (outPut.Count != 5)
+            {
+                var append = 5 - outPut.Count;
+                var listTeam = outPut.Select(x => x.GroupId).ToList();
+
+                var queryTeam = (from p in _dbContext.Participation.AsNoTracking()
+                                 join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
+                                 where p.ParticipationUserId == userId && p.ParticipationIsDeleted == false && !listTeam.Contains(p.ParticipationTeamId)
+                                 select new { t, t.Participation.Count }).Take(append);
+
+                var appendList = await queryTeam.AsNoTracking().Select(x => new TeamRecommendModel
+                {
+                    GroupId = x.t.TeamId,
+                    GroupName = x.t.TeamName,
+                    GroupAvatar = x.t.TeamImageUrl,
+                    GroupNewPostCount = 0,
+                    GroupMemberCount = x.Count,
+                }).ToListAsync();
+
+                outPut.AddRange(appendList);
             }
 
             return outPut;
