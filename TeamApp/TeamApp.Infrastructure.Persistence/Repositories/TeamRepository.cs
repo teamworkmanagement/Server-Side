@@ -72,6 +72,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     GroupChatId = entity.TeamId,
                     GroupChatName = entity.TeamName,
                     GroupChatUpdatedAt = DateTime.UtcNow,
+                    IsOfTeam = true,
                 });
 
                 await _participationRepository.AddParticipation(new Application.DTOs.Paricipation.ParticipationRequest

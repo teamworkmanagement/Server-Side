@@ -13,5 +13,6 @@ namespace TeamApp.Application.DTOs.GroupChat
         public string GroupAvatar { get; set; }
         public string LastestMes { get; set; }
         public string GroupChatType { get; set; }
+        public bool IsOfTeam { get; set; }
     }
 }

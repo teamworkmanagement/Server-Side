@@ -10,5 +10,6 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Chat
     {
         Task NhanMessage(ChatMessage message);
         Task NewGroupChat(GroupChatResponse groupChatResponse);
+        Task ChangeGroupAvatar(GroupChatImageUpdateRequest groupChatImageUpdateRequest);
     }
 }

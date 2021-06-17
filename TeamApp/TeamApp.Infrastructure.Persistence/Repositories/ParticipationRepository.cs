@@ -137,7 +137,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             entity.ParticipationIsDeleted = true;
             _dbContext.Participation.Update(entity);
-            return await _dbContext.SaveChangesAsync() > 0;
+            await _dbContext.SaveChangesAsync();
+
+            var gru = await _dbContext.GroupChatUser.Where(x => x.GroupChatUserGroupChatId == participationDeleteRequest.TeamId && x.GroupChatUserUserId == participationDeleteRequest.UserId)
+                .FirstOrDefaultAsync();
+
+            if (gru != null)
+            {
+                gru.GroupChatUserIsDeleted = true;
+                _dbContext.Update(gru);
+                await _dbContext.SaveChangesAsync();
+            }
+            return true;
         }
 
         public async Task<List<ParticipationResponse>> GetAllByTeamId(string teamId)

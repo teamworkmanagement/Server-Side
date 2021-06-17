@@ -376,7 +376,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                          where p.ParticipationIsDeleted == false && p.ParticipationUserId == userId && p.ParticipationTeamId == kb.KanbanBoardTeamId
                                          select p).FirstOrDefaultAsync();
                 if (memberCheck == null)
-                    throw new KeyNotFoundException("Not found");
+                    throw new KeyNotFoundException("Not found permission");
             }
             else
             {

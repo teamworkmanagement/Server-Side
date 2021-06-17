@@ -10,10 +10,11 @@ namespace TeamApp.Application.Interfaces.Repositories
     {
         Task<CustomListGroupChatResponse> GetAllByUserId(GroupChatSearch search);
         Task<string> AddGroupChat(GroupChatRequest grChatReq);
-        Task<bool> UpdateGroupChat(string grchatId, GroupChatRequest grChatReq);
+        Task<bool> UpdateGroupChatImageUrl(GroupChatImageUpdateRequest grChatReq);
         Task<bool> DeleteGroupChat(string grChatId);
         Task<object> CheckDoubleGroupChatExists(CheckDoubleGroupChatExists chatExists);
         Task<string> AddGroupChatWithMembers(GroupChatRequestMembers requestMembers);
         Task<string> AddGroupChatMembers(AddMembersRequest request);
+
     }
 }

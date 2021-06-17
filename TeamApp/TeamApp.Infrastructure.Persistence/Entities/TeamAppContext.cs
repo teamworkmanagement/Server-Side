@@ -265,6 +265,9 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.GroupChatUpdatedAt)
                     .HasColumnName("group_chat_updated_at")
                     .HasColumnType("timestamp");
+
+                entity.Property(e => e.GroupChatIsOfTeam)
+                   .HasColumnName("group_chat_is_of_team");
             });
 
             modelBuilder.Entity<GroupChatUser>(entity =>

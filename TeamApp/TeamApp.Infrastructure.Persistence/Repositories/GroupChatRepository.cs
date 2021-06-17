@@ -35,6 +35,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 GroupChatName = grChatReq.GroupChatName,
                 GroupChatUpdatedAt = DateTime.UtcNow,
                 GroupChatType = grChatReq.GroupChatType,
+                GroupChatIsOfTeam = grChatReq.IsOfTeam,
             };
 
             await _dbContext.GroupChat.AddAsync(entity);
@@ -217,7 +218,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var query = from gc in _dbContext.GroupChat.AsNoTracking()
                         join grc in _dbContext.GroupChatUser.AsNoTracking() on gc.GroupChatId equals grc.GroupChatUserGroupChatId
-
+                        where grc.GroupChatUserIsDeleted == false
                         select new { gc, grc };
 
             var outputQuery = query.Where(x => x.grc.GroupChatUserUserId == search.UserId).OrderByDescending(x => x.gc.GroupChatUpdatedAt);
@@ -235,24 +236,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 lists.Add(new GroupChatResponse
                 {
+                    IsOfTeam = gr.gc.GroupChatIsOfTeam,
                     GroupChatType = gr.gc.GroupChatType,
                     GroupChatId = gr.gc.GroupChatId,
                     GroupChatName = gr.gc.GroupChatName,
                     GroupChatUpdatedAt = lastest == null ? gr.gc.GroupChatUpdatedAt.FormatTime() : lastest.MessageCreatedAt.FormatTime(),
                     NewMessage = gr.grc.GroupChatUserSeen,
-                    GroupAvatar = $"https://ui-avatars.com/api/?name={gr.gc.GroupChatName}",
+                    GroupAvatar = gr.gc.GroupChatImageUrl,
                     LastestMes = lastest == null ? null : lastest.MessageType == "file" ? "[Tệp tin]" : lastest.MessageType == "image" ? "[Hình ảnh]" : lastest.MessageContent,
                 });
             }
 
-            /*return await outputQuery.Select(x => new GroupChatResponse
-            {
-                GroupChatId = x.gc.GroupChatId,
-                GroupChatName = x.gc.GroupChatName,
-                GroupChatUpdatedAt = x.gc.Message.OrderByDescending(x => x.MessageCreatedAt).FirstOrDefault().MessageCreatedAt.FormatTime(),
-                NewMessage = x.grc.GroupChatUserSeen,
-                LastestMes = x.gc.Message.OrderByDescending(x => x.MessageCreatedAt).FirstOrDefault().MessageContent,
-            }).ToListAsync();*/
             lists = lists.OrderByDescending(x => x.GroupChatUpdatedAt).ToList();
 
             foreach (var l in lists)
@@ -265,7 +259,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                       select new { u.FullName, u.ImageUrl }).FirstOrDefaultAsync();
 
                     l.GroupChatName = !string.IsNullOrEmpty(l.GroupChatName) ? l.GroupChatName : user.FullName;
-                    l.GroupAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
+                    l.GroupAvatar = string.IsNullOrEmpty(l.GroupAvatar) ? (string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl) : l.GroupAvatar;
                 }
                 else
                 {
@@ -277,16 +271,31 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                             select u.FullName).Take(3).ToListAsync();
                         if (partis.Count == 2)
                         {
-                            l.GroupChatName = $"{partis[0]} và {partis[2]}";
+                            l.GroupChatName = $"{partis[0]} và {partis[1]}";
                         }
 
                         else
                         {
-                            l.GroupChatName = $"{partis[0]} + {partis[2]} và ...";
+                            l.GroupChatName = $"{partis[0]} + {partis[1]} và ...";
                         }
+                    }
+
+                    if (string.IsNullOrEmpty(l.GroupAvatar))
+                    {
+                        if (l.IsOfTeam)
+                        {
+                            if (l.GroupAvatar == null)
+                            {
+                                var team = await _dbContext.Team.FindAsync(l.GroupChatId);
+                                l.GroupAvatar = string.IsNullOrEmpty(team.TeamImageUrl) ? $"https://ui-avatars.com/api/?name={l.GroupChatName}" : team.TeamImageUrl;
+                            }
+                        }
+                        else
+                            l.GroupAvatar = $"https://ui-avatars.com/api/?name={l.GroupChatName}";
                     }
                 }
             }
+
 
 
             if (search.IsSearch)
@@ -311,19 +320,26 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return responseCustom;
         }
 
-        public async Task<bool> UpdateGroupChat(string grchatId, GroupChatRequest grChatReq)
+        public async Task<bool> UpdateGroupChatImageUrl(GroupChatImageUpdateRequest grChatReq)
         {
-            var entity = await _dbContext.GroupChat.FindAsync(grchatId);
+            var entity = await _dbContext.GroupChat.FindAsync(grChatReq.GroupChatId);
             if (entity == null)
                 return false;
 
-            entity.GroupChatName = grChatReq.GroupChatName;
-            entity.GroupChatUpdatedAt = grChatReq.GroupChatUpdatedAt;
+            entity.GroupChatImageUrl = grChatReq.ImageUrl;
 
             _dbContext.GroupChat.Update(entity);
-            await _dbContext.SaveChangesAsync();
 
-            return true;
+            var connections = from gru in _dbContext.GroupChatUser.AsNoTracking()
+                              join d in _dbContext.UserConnection.AsNoTracking() on gru.GroupChatUserUserId equals d.UserId
+                              where d.Type == "chat" && gru.GroupChatUserGroupChatId == grChatReq.GroupChatId
+                              select d.ConnectionId;
+
+            var query = await connections.AsNoTracking().ToListAsync();
+            var clients = new ReadOnlyCollection<string>(query);
+            await _chatHub.Clients.Clients(clients).ChangeGroupAvatar(grChatReq);
+
+            return await _dbContext.SaveChangesAsync() > 0;
         }
     }
 }

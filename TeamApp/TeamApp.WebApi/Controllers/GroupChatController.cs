@@ -37,7 +37,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddGroupChat([FromForm] GroupChatRequest grChatReq)
+        public async Task<IActionResult> AddGroupChat([FromBody] GroupChatRequest grChatReq)
         {
             var res = await _repo.AddGroupChat(grChatReq);
 
@@ -51,10 +51,10 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpPut("{grChatId}")]
-        public async Task<IActionResult> UpdateGroupChat(string grChatId, [FromForm] GroupChatRequest grChatReq)
+        [HttpPatch("image")]
+        public async Task<IActionResult> UpdateGroupChatImageUrl(GroupChatImageUpdateRequest grChatReq)
         {
-            var res = await _repo.UpdateGroupChat(grChatId, grChatReq);
+            var res = await _repo.UpdateGroupChatImageUrl(grChatReq);
 
             var outPut = new ApiResponse<bool>
             {
