@@ -425,7 +425,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserName = x.q.u.FullName,
                 UserAvatar = x.q.u.ImageUrl,
                 PostReactCount = x.q.RCount,
-                TeamName = $"<a href=\"/team/{x.q.p.PostTeamId}\">{x.q.TeamName}</a>",
+                TeamName = x.q.TeamName,
                 IsReacted = x.isReacted == null ? false : true,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
@@ -436,17 +436,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                        where f.FilePostOwnerId == ent.PostId
                                        orderby f.FileUploadTime
                                        select f.FileUrl).ToListAsync();
-                List<string> lists = new List<string>
-                {
-
-                };
+                List<string> lists = new List<string>();
 
                 lists.AddRange(listImage);
 
                 ent.PostImages = lists;
             }
-            return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
 
+            return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
         }
 
         public async Task<List<UserResponse>> SearchUser(string userId, string keyWord)
