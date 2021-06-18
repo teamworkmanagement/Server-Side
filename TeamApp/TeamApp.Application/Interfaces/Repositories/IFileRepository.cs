@@ -23,5 +23,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<List<FileResponse>> GetAllByTask(string taskId);
 
         Task<bool> UploadImageForPost(PostFileUploadRequest postFileUploadRequest);
+
+        Task<List<FileResponse>> GetAll(FileRequestParameter parameter);
     }
 }
