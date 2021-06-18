@@ -25,5 +25,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<bool> UploadImageForPost(PostFileUploadRequest postFileUploadRequest);
 
         Task<List<FileResponse>> GetAll(FileRequestParameter parameter);
+        Task<bool> CopyFileToUser(CopyFileToUserModel copyFileToUserModel);
     }
 }

@@ -465,5 +465,29 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             return responses;
         }
+
+        public async Task<bool> CopyFileToUser(CopyFileToUserModel copyFileToUserModel)
+        {
+            var file = await _dbContext.File.FindAsync(copyFileToUserModel.FileId);
+
+            if (file == null)
+                return false;
+
+            var fileCopy = new File
+            {
+                FileId = Guid.NewGuid().ToString(),
+                FileName = file.FileName,
+                FileUrl = file.FileUrl,
+                FileType = file.FileType,
+                FileUserUploadId = file.FileUserUploadId,
+                FileUserOwnerId = copyFileToUserModel.UserId,
+                FileUploadTime = DateTime.UtcNow,
+                FileSize = file.FileSize,
+            };
+
+            await _dbContext.AddAsync(fileCopy);
+
+            return await _dbContext.SaveChangesAsync() > 0;
+        }
     }
 }

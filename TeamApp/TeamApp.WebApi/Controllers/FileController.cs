@@ -100,5 +100,16 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             }); ;
         }
+
+        [HttpPost("copy-file")]
+        public async Task<IActionResult> CopyFile(CopyFileToUserModel copyFileToUserModel)
+        {
+            var outPut = await _repo.CopyFileToUser(copyFileToUserModel);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
+            });
+        }
     }
 }
