@@ -98,13 +98,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<List<KanbanBoardResponse>> GetBoardForUser(string userId)
         {
-            var list = from kb in _dbContext.KanbanBoard.AsNoTracking()
-                       where kb.KanbanBoardUserId == userId
-                       orderby kb.KanbanBoardCreatedAt
-                       select kb;
-            if (list == null)
+            var listBoards = await (from kb in _dbContext.KanbanBoard.AsNoTracking()
+                                    where kb.KanbanBoardUserId == userId
+                                    orderby kb.KanbanBoardCreatedAt
+                                    select kb).ToListAsync();
+            if (listBoards == null)
                 return null;
-            var listBoards = await list.ToListAsync();
+            //var listBoards = await list.ToListAsync();
 
             Dictionary<string, int> TaskCounts = new Dictionary<string, int>();
 
@@ -112,21 +112,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 var taskCount = await (from t in _dbContext.Task.AsNoTracking()
                                        join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
-                                       where kl.KanbanListBoardBelongedId == lb.KanbanBoardId && t.TaskIsDeleted == false
+                                       where kl.KanbanListBoardBelongedId == lb.KanbanBoardId && t.TaskIsDeleted == false && kl.KanbanListIsDeleted == false
                                        select t.TaskId).CountAsync();
 
                 TaskCounts.Add(lb.KanbanBoardId, taskCount);
             }
 
 
-            return await list.Select(x => new KanbanBoardResponse
+            return listBoards.Select(x => new KanbanBoardResponse
             {
                 KanbanBoardId = x.KanbanBoardId,
                 KanbanBoardUserId = x.KanbanBoardUserId,
                 KanbanBoardTeamId = x.KanbanBoardTeamId,
                 KanbanBoardName = x.KanbanBoardName,
                 TasksCount = TaskCounts[x.KanbanBoardId]
-            }).ToListAsync();
+            }).ToList();
         }
 
         public async Task<KanbanBoardUIResponse> GetKanbanBoardUI(string userId, KanbanBoardUIRequest boardUIRequest)
@@ -363,6 +363,40 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     TasksCount = taskCount,
                 });
             }
+
+            return responses;
+        }
+
+        public async Task<List<KanbanBoardResponse>> SearchKanbanBoards(SearchBoardModel searchBoardModel)
+        {
+            var responses = new List<KanbanBoardResponse>();
+
+            if (searchBoardModel.IsOfTeam && string.IsNullOrEmpty(searchBoardModel.UserId))
+            {
+                responses = await GetBoardsForTeam(searchBoardModel.TeamId);
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(searchBoardModel.UserId) && searchBoardModel.IsOfTeam)
+                {
+                    responses = await GetBoardForUserTeams(searchBoardModel.UserId);
+                }
+                else
+                {
+                    if (!string.IsNullOrEmpty(searchBoardModel.UserId) && !searchBoardModel.IsOfTeam)
+                    {
+                        responses = await GetBoardForUser(searchBoardModel.UserId);
+                    }
+                }
+            }
+
+            if (!string.IsNullOrEmpty(searchBoardModel.KeyWord))
+            {
+                var keyword = Extensions.UnsignUnicode(searchBoardModel.KeyWord);
+                responses = responses.Where(res => Extensions.UnsignUnicode(res.KanbanBoardName).Contains(keyword))
+                    .Select(res => res).ToList();
+            }
+
 
             return responses;
         }

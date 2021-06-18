@@ -30,5 +30,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<List<KanbanBoardResponse>> GetBoardForUserTeams(string userId);
         Task<List<KanbanBoardResponse>> GetBoardForUser(string userId);
         Task<List<KanbanBoardResponse>> GetBoardsForTeam(string teamId);
+        Task<List<KanbanBoardResponse>> SearchKanbanBoards(SearchBoardModel searchBoardModel);
     }
 }

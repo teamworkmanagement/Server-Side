@@ -93,5 +93,16 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = outPut != null
             });
         }
+
+        [HttpGet("search-boards")]
+        public async Task<IActionResult> SearchKanbanBoards([FromQuery] SearchBoardModel searchBoardModel)
+        {
+            var outPut = await _repo.SearchKanbanBoards(searchBoardModel);
+            return Ok(new ApiResponse<List<KanbanBoardResponse>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
     }
 }
