@@ -142,7 +142,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FullName = (string)x[1],
                 ImageUrl = (x[2] == DBNull.Value) ? string.Empty : (string)x[2],
             });
-            Console.WriteLine(query);
+            //Console.WriteLine(query);
 
             //var outPut = await _dbContext.User.FromSqlRaw(query).ToListAsync();
 
@@ -213,7 +213,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 FullName = (string)x[1],
                 ImageUrl = (x[2] == DBNull.Value) ? string.Empty : (string)x[2],
             });
-            Console.WriteLine(query);
+            //Console.WriteLine(query);
 
             //var outPut = await _dbContext.User.FromSqlRaw(query).ToListAsync();
 
