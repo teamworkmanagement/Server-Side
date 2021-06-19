@@ -23,6 +23,7 @@ namespace TeamApp.Application.DTOs.Task
 
         public string UserId { get; set; }
         public string UserAvatar { get; set; }
+        public string UserFullName { get; set; }
 
         public int? TaskCompletedPercent { get; set; }
 

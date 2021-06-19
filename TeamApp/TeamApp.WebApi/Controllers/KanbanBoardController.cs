@@ -5,6 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.KanbanBoard;
+using TeamApp.Application.DTOs.Task;
 using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
@@ -102,6 +103,17 @@ namespace TeamApp.WebApi.Controllers
             {
                 Data = outPut,
                 Succeeded = true,
+            });
+        }
+
+        [HttpGet("search-tasklist-inboards")]
+        public async Task<IActionResult> SearchTaskListInBoard([FromQuery] TaskSearchModel taskSearchModel)
+        {
+            var outPut = await _repo.SearchTasksListInBoard(taskSearchModel);
+            return Ok(new ApiResponse<List<TaskUIKanban>>
+            {
+                Succeeded = true,
+                Data = outPut,
             });
         }
     }

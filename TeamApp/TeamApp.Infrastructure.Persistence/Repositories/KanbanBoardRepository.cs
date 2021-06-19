@@ -213,6 +213,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                              UserId = x.Id,
                              UserAvatar = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
+                             UserFullName = x.FullName,
 
                              TaskCompletedPercent = x.t.TaskCompletedPercent,
 
@@ -397,6 +398,174 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     .Select(res => res).ToList();
             }
 
+
+            return responses;
+        }
+
+        public async Task<KanbanBoardUIResponse> SearchTasks(TaskSearchModel taskSearchModel)
+        {
+            var board = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                               where b.KanbanBoardId == taskSearchModel.BoardId
+                               select b).AsNoTracking().FirstOrDefaultAsync();
+
+            if (board == null)
+                throw new KeyNotFoundException("Board not found");
+
+
+            var taskListUIs = new List<TaskUIKanban>();
+            var outPut = new KanbanBoardUIResponse
+            {
+                KanbanBoardId = board.KanbanBoardId,
+                KanbanBoardUserId = board.KanbanBoardUserId,
+                KanbanBoardTeamId = board.KanbanBoardTeamId,
+                KanbanBoardIsOfTeam = board.KanbanBoardIsOfTeam,
+                KanbanListUIs = new List<KanbanListUIResponse>(),
+            };
+
+            //danh sach kanbanlist cua 1 board
+            var listKanbanQuery = from kl in _dbContext.KanbanList.AsNoTracking()
+                                  where kl.KanbanListBoardBelongedId == taskSearchModel.BoardId && !kl.KanbanListIsDeleted.Value
+                                  orderby kl.KanbanListRankInBoard
+                                  select kl;
+
+            var listKanban = await listKanbanQuery.AsNoTracking().ToListAsync();
+            var listKanbanArray = listKanban.Select(x => x.KanbanListId).ToArray();
+
+
+            var listTasksQuery = from t in _dbContext.Task.AsNoTracking()
+                                 join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
+
+                                 from th in tHandle.DefaultIfEmpty()
+                                 join u in _dbContext.User.AsNoTracking() on th.HandleTaskUserId equals u.Id into tUser
+
+                                 from tu in tUser.DefaultIfEmpty()
+                                 where listKanbanArray.Contains(t.TaskBelongedId) && t.TaskIsDeleted == false
+
+                                 select new { t, tu.ImageUrl, tu.FullName, tu.Id, t.Comments };
+
+            var listTasks = await listTasksQuery.AsNoTracking().Where(x => x.t.TaskIsDeleted == false).ToListAsync();
+
+            foreach (var kl in listKanban)
+            {
+                var kanbanListTasks = listTasks.Where(x => x.t.TaskBelongedId == kl.KanbanListId).OrderBy(x => x.t.TaskRankInList);
+
+                var listUITasks = kanbanListTasks.Select(x =>
+                         new TaskUIKanban
+                         {
+                             TaskRankInList = x.t.TaskRankInList,
+                             KanbanListId = x.t.TaskBelongedId,
+                             TaskId = x.t.TaskId,
+
+                             TaskName = x.t.TaskName,
+                             TaskStartDate = x.t.TaskStartDate.FormatTime(),
+                             TaskDeadline = x.t.TaskDeadline.FormatTime(),
+                             TaskStatus = x.t.TaskStatus,
+                             TaskDescription = x.t.TaskDescription,
+
+                             TaskImageUrl = x.t.TaskImageUrl,
+
+                             CommentsCount = x.Comments.Count,
+                             FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileTaskOwnerId == x.t.TaskId).Count(),
+
+                             UserId = x.Id,
+                             UserAvatar = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
+                             UserFullName = x.FullName,
+
+                             TaskCompletedPercent = x.t.TaskCompletedPercent,
+
+                             TaskThemeColor = x.t.TaskThemeColor,
+                         }
+                    ).ToList();
+
+                var kbListUi = new KanbanListUIResponse
+                {
+                    KanbanListId = kl.KanbanListId,
+                    KanbanListTitle = kl.KanbanListTitle,
+                    KanbanListBoardBelongedId = kl.KanbanListBoardBelongedId,
+                    KanbanListRankInBoard = kl.KanbanListRankInBoard,
+                    TaskUIKanbans = listUITasks,
+                };
+
+                outPut.KanbanListUIs.Add(kbListUi);
+            }
+
+            return outPut;
+        }
+
+        public async Task<List<TaskUIKanban>> SearchTasksListInBoard(TaskSearchModel taskSearchModel)
+        {
+            var board = await _dbContext.KanbanBoard.FindAsync(taskSearchModel.BoardId);
+            if (board == null)
+                throw new KeyNotFoundException("Board not found");
+
+            var kbLists = await (from kl in _dbContext.KanbanList.AsNoTracking()
+                                 where kl.KanbanListIsDeleted == false && kl.KanbanListBoardBelongedId == board.KanbanBoardId
+                                 select kl.KanbanListId).ToListAsync();
+
+            //toàn bộ task của 1 board
+            var listTasksQuery = await (from t in _dbContext.Task.AsNoTracking()
+                                        join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
+
+                                        from th in tHandle.DefaultIfEmpty()
+                                        join u in _dbContext.User.AsNoTracking() on th.HandleTaskUserId equals u.Id into tUser
+
+                                        from tu in tUser.DefaultIfEmpty()
+                                        where kbLists.Contains(t.TaskBelongedId) && t.TaskIsDeleted == false
+
+                                        select new { t, tu.ImageUrl, tu.FullName, tu.Id, t.Comments }).ToListAsync();
+            var taskName = string.Empty;
+            var taskDescription = string.Empty;
+
+            if (!string.IsNullOrEmpty(taskSearchModel.TaskName))
+            {
+                taskName = taskSearchModel.TaskName.UnsignUnicode();
+            }
+
+            if (!string.IsNullOrEmpty(taskSearchModel.TaskDescription))
+            {
+                taskDescription = taskSearchModel.TaskDescription.UnsignUnicode();
+            }
+
+            if (taskSearchModel.StartDate != null)
+            {
+                listTasksQuery = listTasksQuery.Where(x => x.t.TaskCreatedAt.Value.Date >= taskSearchModel.StartDate.Value.Date).ToList();
+            }
+
+            if (taskSearchModel.EndDate != null)
+            {
+                listTasksQuery = listTasksQuery.Where(x => x.t.TaskCreatedAt.Value.Date <= taskSearchModel.EndDate.Value.Date).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(taskSearchModel.TaskName))
+            {
+                listTasksQuery = listTasksQuery.Where(x => x.t.TaskName.UnsignUnicode().Contains(taskName)).ToList();
+            }
+
+            var responses = listTasksQuery.Select(x => new TaskUIKanban
+            {
+                TaskRankInList = x.t.TaskRankInList,
+                KanbanListId = x.t.TaskBelongedId,
+                TaskId = x.t.TaskId,
+
+                TaskName = x.t.TaskName,
+                TaskStartDate = x.t.TaskStartDate.FormatTime(),
+                TaskDeadline = x.t.TaskDeadline.FormatTime(),
+                TaskStatus = x.t.TaskStatus,
+                TaskDescription = x.t.TaskDescription,
+
+                TaskImageUrl = x.t.TaskImageUrl,
+
+                CommentsCount = x.Comments.Count,
+                FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileTaskOwnerId == x.t.TaskId).Count(),
+
+                UserId = x.Id,
+                UserAvatar = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
+                UserFullName = x.FullName,
+
+                TaskCompletedPercent = x.t.TaskCompletedPercent,
+
+                TaskThemeColor = x.t.TaskThemeColor,
+            }).ToList();
 
             return responses;
         }

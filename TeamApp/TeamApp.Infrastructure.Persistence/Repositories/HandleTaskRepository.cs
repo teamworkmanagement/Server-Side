@@ -145,7 +145,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     UserId = user.Id,
                     UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
                     TaskId = reAssignModel.TaskId,
-                    KanbanListId = task.TaskBelongedId
+                    KanbanListId = task.TaskBelongedId,
+                    UserFullName = user.FullName,
                 };
 
                 await _kanbanHub.Clients.Clients(clients).ReAssignUser(obj);
