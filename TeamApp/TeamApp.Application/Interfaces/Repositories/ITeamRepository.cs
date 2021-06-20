@@ -28,5 +28,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<List<KanbanBoardResponse>> GetBoardsByTeam(string teamId);
         Task<List<TeamRecommendModel>> GetRecommendTeamForUser(string userId);
         Task<bool> ChangeTeamLeader(ChangeTeamAdminModel changeTeamAdminModel);
+        Task<PagedResponse<UserResponse>> GetUsersByTeamIdPagingSearch(TeamUserParameter userParameter);
     }
 }

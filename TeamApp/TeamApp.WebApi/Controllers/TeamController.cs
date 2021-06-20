@@ -100,7 +100,7 @@ namespace TeamApp.WebApi.Controllers
         [HttpGet("getusers-paging")]
         public async Task<IActionResult> GetUsersByTeamIdPaging([FromQuery] TeamUserParameter userParameter)
         {
-            var outPut = await _repo.GetUsersByTeamIdPaging(userParameter);
+            var outPut = await _repo.GetUsersByTeamIdPagingSearch(userParameter);
             return Ok(new ApiResponse<PagedResponse<UserResponse>>
             {
                 Succeeded = outPut != null,

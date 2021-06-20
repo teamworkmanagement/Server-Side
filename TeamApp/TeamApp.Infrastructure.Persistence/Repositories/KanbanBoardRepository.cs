@@ -526,19 +526,24 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 taskDescription = taskSearchModel.TaskDescription.UnsignUnicode();
             }
 
-            if (taskSearchModel.StartDate != null)
+            if (taskSearchModel.StartRange != null)
             {
-                listTasksQuery = listTasksQuery.Where(x => x.t.TaskCreatedAt.Value.Date >= taskSearchModel.StartDate.Value.Date).ToList();
+                listTasksQuery = listTasksQuery.Where(x => x.t.TaskCreatedAt.Value.Date >= taskSearchModel.StartRange.Value.Date).ToList();
             }
 
-            if (taskSearchModel.EndDate != null)
+            if (taskSearchModel.EndRange != null)
             {
-                listTasksQuery = listTasksQuery.Where(x => x.t.TaskCreatedAt.Value.Date <= taskSearchModel.EndDate.Value.Date).ToList();
+                listTasksQuery = listTasksQuery.Where(x => x.t.TaskCreatedAt.Value.Date <= taskSearchModel.EndRange.Value.Date).ToList();
             }
 
             if (!string.IsNullOrEmpty(taskSearchModel.TaskName))
             {
                 listTasksQuery = listTasksQuery.Where(x => x.t.TaskName.UnsignUnicode().Contains(taskName)).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(taskSearchModel.UserAssignId))
+            {
+                listTasksQuery = listTasksQuery.Where(x => x.Id == taskSearchModel.UserAssignId).ToList();
             }
 
             var responses = listTasksQuery.Select(x => new TaskUIKanban

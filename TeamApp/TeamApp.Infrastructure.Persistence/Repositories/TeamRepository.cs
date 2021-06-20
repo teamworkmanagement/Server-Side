@@ -448,5 +448,46 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             return await _dbContext.SaveChangesAsync() > 0;
         }
+
+        public async Task<PagedResponse<UserResponse>> GetUsersByTeamIdPagingSearch(TeamUserParameter userParameter)
+        {
+            var team = await _dbContext.Team.FindAsync(userParameter.TeamId);
+
+            if (team == null)
+                throw new KeyNotFoundException("Team not found");
+
+            var query = from p in _dbContext.Participation.AsNoTracking()
+                        join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
+                        join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                        where t.TeamId == userParameter.TeamId && u.Id != team.TeamLeaderId && p.ParticipationIsDeleted == false
+                        orderby p.ParticipationCreatedAt
+                        select new { u, t };
+
+
+
+            var listUsers = await query.ToListAsync();
+            if (!string.IsNullOrEmpty(userParameter.KeyWord))
+            {
+                var keyWord = userParameter.KeyWord.UnsignUnicode();
+                listUsers = listUsers.Where(x => x.u.FullName.UnsignUnicode().Contains(keyWord)).ToList();
+            }
+
+            var count = listUsers.Count();
+
+            listUsers = listUsers.Skip((userParameter.PageNumber - 1) * userParameter.PageSize).Take(userParameter.PageSize).ToList();
+
+            var outPut = listUsers.Select(ur => new UserResponse
+            {
+                UserId = ur.u.Id,
+                UserEmail = ur.u.Email,
+                UserFullname = ur.u.FullName,
+                UserImageUrl = string.IsNullOrEmpty(ur.u.ImageUrl) ? $"https://ui-avatars.com/api/?name={ur.u.FullName}" : ur.u.ImageUrl,
+                UserCreatedAt = ur.u.CreatedAt,
+            }).ToList();
+
+            var pagedResponse = new PagedResponse<UserResponse>(outPut, userParameter.PageSize, count);
+
+            return pagedResponse;
+        }
     }
 }
