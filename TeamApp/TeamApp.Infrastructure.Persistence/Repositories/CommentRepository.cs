@@ -14,6 +14,7 @@ using Task = System.Threading.Tasks.Task;
 using TeamApp.Infrastructure.Persistence.Hubs.Post;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.ObjectModel;
+using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -22,13 +23,37 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         private readonly TeamAppContext _dbContext;
         private readonly INotificationRepository _notificationRepository;
         private readonly IHubContext<HubPostClient, IHubPostClient> _postHub;
+        private readonly IHubContext<HubKanbanClient, IHubKanbanClient> _kanbanHub;
 
-        public CommentRepository(TeamAppContext dbContext, INotificationRepository notificationRepository, IHubContext<HubPostClient, IHubPostClient> postHub)
+        public CommentRepository(TeamAppContext dbContext, INotificationRepository notificationRepository, IHubContext<HubPostClient, IHubPostClient> postHub, IHubContext<HubKanbanClient, IHubKanbanClient> kanbanHub)
         {
             _dbContext = dbContext;
             _notificationRepository = notificationRepository;
+            _kanbanHub = kanbanHub;
             _postHub = postHub;
         }
+
+        public object GetTaskUIKanban(Entities.Task entity) => new
+        {
+            entity.TaskRankInList,
+            KanbanListId = entity.TaskBelongedId,
+            entity.TaskId,
+
+            entity.TaskName,
+            TaskStartDate = entity.TaskStartDate.FormatTime(),
+            TaskDeadline = entity.TaskDeadline.FormatTime(),
+            entity.TaskStatus,
+            entity.TaskDescription,
+
+            entity.TaskImageUrl,
+
+            CommentsCount = _dbContext.Comment.AsNoTracking().Where(c => c.CommentTaskId == entity.TaskId).Count(),
+            FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileTaskOwnerId == entity.TaskId).Count(),
+
+            entity.TaskCompletedPercent,
+
+            entity.TaskThemeColor,
+        };
 
         public async Task<CommentResponse> AddComment(CommentRequest cmtReq)
         {
@@ -56,6 +81,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 });
 
             List<string> clients = new List<string>();
+            object taskUIKanban = new { };
 
             if (!string.IsNullOrEmpty(cmtReq.CommentPostId))
             {
@@ -77,7 +103,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     var query = from p in _dbContext.Participation.AsNoTracking()
                                 join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
-                                where p.ParticipationTeamId == board.KanbanBoardTeamId && uc.Type == "post"
+                                where p.ParticipationTeamId == board.KanbanBoardTeamId && uc.Type == "kanban"
                                 select uc.ConnectionId;
 
                     query = query.Distinct();
@@ -87,12 +113,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     var query =
                                 from uc in _dbContext.UserConnection
-                                where uc.UserId == board.KanbanBoardUserId && uc.Type == "post"
+                                where uc.UserId == board.KanbanBoardUserId && uc.Type == "kanban"
                                 select uc.ConnectionId;
 
                     query = query.Distinct();
                     clients = await query.ToListAsync();
                 }
+
+                taskUIKanban = GetTaskUIKanban(task);
 
             }
 
@@ -111,6 +139,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserAvatar = cmtReq.CommentUserAvatar,
                 UserName = cmtReq.CommentUserName,
             });
+
+            if (clients.Count > 0 && cmtReq.CommentTaskId != null)
+            {
+                await _kanbanHub.Clients.Clients(clients).UpdateTask(taskUIKanban);
+            }
 
             if (check > 0)
             {

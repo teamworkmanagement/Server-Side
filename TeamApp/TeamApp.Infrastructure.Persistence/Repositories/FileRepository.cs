@@ -10,16 +10,20 @@ using TeamApp.Application.Wrappers;
 using TeamApp.Application.Filters;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class FileRepository : IFileRepository
     {
         private readonly TeamAppContext _dbContext;
+        private IHubContext<HubKanbanClient, IHubKanbanClient> _kanbanHub;
 
-        public FileRepository(TeamAppContext dbContext)
+        public FileRepository(TeamAppContext dbContext, IHubContext<HubKanbanClient, IHubKanbanClient> kanbanHub)
         {
             _dbContext = dbContext;
+            _kanbanHub = kanbanHub;
         }
 
         public async Task<FileResponse> AddFile(FileRequest fileReq)
@@ -41,6 +45,35 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             await _dbContext.File.AddAsync(entity);
             var check = await _dbContext.SaveChangesAsync() > 0;
+
+            if (!string.IsNullOrEmpty(fileReq.FileTaskOwnerId))
+            {
+                var task = await _dbContext.Task.FindAsync(fileReq.FileTaskOwnerId);
+                var board = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                                   join kl in _dbContext.KanbanList.AsNoTracking() on b.KanbanBoardId equals kl.KanbanListBoardBelongedId
+                                   where kl.KanbanListId == task.TaskBelongedId
+                                   select b).FirstOrDefaultAsync();
+
+                var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                     join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                     where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
+                                     select u.ConnectionId).ToListAsync();
+
+                await _kanbanHub.Clients.Clients(clients).AddFile(new
+                {
+                    KanbanListId = task.TaskBelongedId,
+                    entity.FileId,
+                    entity.FileName,
+                    entity.FileUrl,
+                    entity.FileType,
+                    entity.FileSize,
+                    fileReq.FileUserUploadId,
+                    fileReq.FileUserOwnerId,
+                    fileReq.FileTeamOwnerId,
+                    fileReq.FileTaskOwnerId,
+                    FileUploadTime = entity.FileUploadTime.FormatTime(),
+                });
+            }
 
             if (check)
                 return new FileResponse

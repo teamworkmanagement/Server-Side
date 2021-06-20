@@ -443,7 +443,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             entity.TaskImageUrl,
 
-            CommentsCount = entity.Comments.Count,
+            CommentsCount = _dbContext.Comment.AsNoTracking().Where(c => c.CommentTaskId == entity.TaskId).Count(),
             FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileTaskOwnerId == entity.TaskId).Count(),
 
             entity.TaskCompletedPercent,
