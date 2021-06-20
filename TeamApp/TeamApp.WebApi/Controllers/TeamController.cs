@@ -163,5 +163,17 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = true,
             });
         }
+
+        [HttpPost("change-leader")]
+        public async Task<IActionResult> ChangeTeamLeader([FromBody] ChangeTeamAdminModel changeTeamAdminModel)
+        {
+            var outPut = await _repo.ChangeTeamLeader(changeTeamAdminModel);
+            return Ok(
+                new ApiResponse<bool>
+                {
+                    Succeeded = outPut,
+                    Data = outPut,
+                });
+        }
     }
 }

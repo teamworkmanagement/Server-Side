@@ -242,7 +242,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
                         join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
-                        where t.TeamId == userParameter.TeamId && u.Id != team.TeamLeaderId
+                        where t.TeamId == userParameter.TeamId && u.Id != team.TeamLeaderId && p.ParticipationIsDeleted == false
                         orderby p.ParticipationCreatedAt
                         select new { u, t };
 
@@ -435,6 +435,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }
 
             return outPut;
+        }
+
+        public async Task<bool> ChangeTeamLeader(ChangeTeamAdminModel changeTeamAdminModel)
+        {
+            var team = await _dbContext.Team.FindAsync(changeTeamAdminModel.TeamId);
+            if (team == null)
+                throw new KeyNotFoundException("Team not found");
+
+            team.TeamLeaderId = changeTeamAdminModel.LeaderId;
+            _dbContext.Update(team);
+
+            return await _dbContext.SaveChangesAsync() > 0;
         }
     }
 }
