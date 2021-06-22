@@ -150,13 +150,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 groupChatName = $"{partis[0]} + {partis[2]} và ...";
             }
 
-            var chatNamePush = string.IsNullOrEmpty(requestMembers.GroupChatName) ? groupChatName : requestMembers.GroupChatName;
             await _chatHub.Clients.Clients(clients).NewGroupChat(new GroupChatResponse
             {
                 GroupChatId = entity.GroupChatId,
-                GroupChatName = chatNamePush,
+                GroupChatName = groupChatName,
                 GroupChatUpdatedAt = DateTime.UtcNow,
-                GroupAvatar = $"https://ui-avatars.com/api/?name={chatNamePush}",
+                GroupAvatar = $"https://ui-avatars.com/api/?name={groupChatName}",
                 LastestMes = null,
                 GroupChatType = entity.GroupChatType
             });
