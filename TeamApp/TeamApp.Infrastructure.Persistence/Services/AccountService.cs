@@ -184,18 +184,24 @@ namespace TeamApp.Infrastructure.Persistence.Services
             return verificationUri;
         }
 
-        public async Task<ApiResponse<string>> ConfirmEmailAsync(string userId, string code)
+        public async Task<ApiResponse<string>> ConfirmEmailAsync(string userId, string code, string apiOrgin)
         {
             var user = await _userManager.FindByIdAsync(userId);
+            if (user.EmailConfirmed)
+            {
+                return new ApiResponse<string>(user.Id, message: $"Account Confirmed for {user.Email}.");
+            }
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
             var result = await _userManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
-                return new ApiResponse<string>(user.Id, message: $"Account Confirmed for {user.Email}. You can now use the /api/Account/authenticate endpoint.");
+                return new ApiResponse<string>(user.Id, message: $"Account Confirmed for {user.Email}.");
             }
             else
             {
-                throw new ApiException($"An error occured while confirming {user.Email}.");
+                var verificationUri = await SendVerificationEmail(user, apiOrgin);
+                await _emailService.SendAsyncAWS(new Application.DTOs.Email.EmailRequest() { From = "KD", To = user.Email, Body = $"Hãy xác thực tài khoản của bạn bằng việc nhấn vào link dưới <br> <a href=\'{verificationUri}\'>Xác thực</a>", Subject = "Confirm Registration" });
+                return new ApiResponse<string>(data: "Đường link đã hết hạn, chúng tôi đã gửi link mới qua email, vui lòng kiểm tra lại email");
             }
         }
 
@@ -245,7 +251,18 @@ namespace TeamApp.Infrastructure.Persistence.Services
             }
             else
             {
-                throw new ApiException($"Error occured while reseting the password.");
+
+                var code = await _userManager.GeneratePasswordResetTokenAsync(account);
+
+                var emailRequest = new EmailRequest()
+                {
+                    Body = $"You reset token is - {code}",
+                    To = model.Email,
+                    Subject = "Reset Password",
+                };
+
+                await _emailService.SendAsyncAWS(emailRequest);
+                return new ApiResponse<string>("Vui lòng kiểm tra email để nhận OTP mới");
             }
         }
 

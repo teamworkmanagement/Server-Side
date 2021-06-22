@@ -67,10 +67,10 @@ namespace TeamApp.Infrastructure.Persistence
                 options.Password.RequireNonAlphanumeric = false;
                 options.Password.RequireUppercase = false;
                 options.Password.RequireDigit = false;
-
-                options.Tokens.PasswordResetTokenProvider = nameof(SixDigitTokenProvider<User>);
+                options.Tokens.PasswordResetTokenProvider = "CutomPasswordReset";
             }).AddEntityFrameworkStores<TeamAppContext>().AddDefaultTokenProviders()
-            .AddTokenProvider<SixDigitTokenProvider<User>>(nameof(SixDigitTokenProvider<User>));
+            .AddTokenProvider<CustomPasswordResetTokenProvider<User>>("CutomPasswordReset");
+                
             #region Services
             services.AddTransient<IAccountService, AccountService>();
             #endregion

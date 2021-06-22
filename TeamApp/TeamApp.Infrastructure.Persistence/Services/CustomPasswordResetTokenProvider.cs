@@ -1,4 +1,7 @@
-﻿using Microsoft.AspNetCore.Identity;
+﻿using Microsoft.AspNetCore.DataProtection;
+using Microsoft.AspNetCore.Identity;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
@@ -7,7 +10,6 @@ using System.Net;
 using System.Security.Cryptography;
 using System.Text;
 using System.Threading.Tasks;
-using TeamApp.Infrastructure.Persistence.Entities;
 
 namespace TeamApp.Infrastructure.Persistence.Services
 {
@@ -118,20 +120,18 @@ namespace TeamApp.Infrastructure.Persistence.Services
             return false;
         }
     }
-
-    public class SixDigitTokenProvider<TUser> : TotpSecurityStampBasedTokenProvider<TUser>
-    where TUser : class
+    public class CustomPasswordResetTokenProvider<TUser> : DataProtectorTokenProvider<TUser> where TUser : class
     {
-        public override Task<bool> CanGenerateTwoFactorTokenAsync(UserManager<TUser> manager, TUser user)
+        public CustomPasswordResetTokenProvider(IDataProtectionProvider dataProtectionProvider,
+            IOptions<CustomPasswordResetTokenProviderOptions> options, ILogger<DataProtectorTokenProvider<TUser>> logger) : base(dataProtectionProvider, options, logger)
         {
-            return System.Threading.Tasks.Task.FromResult(false);
-        }
 
-        public override async Task<string> GetUserModifierAsync(string purpose, UserManager<TUser> manager, TUser user)
-        {
-            var email = await manager.GetEmailAsync(user);
-            return "PasswordlessLogin:" + purpose + ":" + email;
         }
+		public override Task<bool> CanGenerateTwoFactorTokenAsync(UserManager<TUser> manager, TUser user)
+		{
+			return System.Threading.Tasks.Task.FromResult(false);
+		}
+
 		public override async Task<string> GenerateAsync(string purpose, UserManager<TUser> manager, TUser user)
 		{
 			var token = new MySecurityToken(await manager.CreateSecurityTokenAsync(user));
@@ -140,7 +140,14 @@ namespace TeamApp.Infrastructure.Persistence.Services
 
 			return code;
 		}
-		public override async Task<bool> ValidateAsync(string purpose, string token, UserManager<TUser> manager, TUser user)
+
+        private async Task<string> GetUserModifierAsync(string purpose, UserManager<TUser> manager, TUser user)
+        {
+			var email = await manager.GetEmailAsync(user);
+			return "PasswordlessLogin:" + purpose + ":" + email;
+		}
+
+        public override async Task<bool> ValidateAsync(string purpose, string token, UserManager<TUser> manager, TUser user)
 		{
 			int code;
 			if (!int.TryParse(token, out code))
@@ -153,5 +160,4 @@ namespace TeamApp.Infrastructure.Persistence.Services
 			return valid;
 		}
 	}
-
 }

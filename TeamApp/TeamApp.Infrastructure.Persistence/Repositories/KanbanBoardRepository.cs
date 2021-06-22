@@ -546,6 +546,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 listTasksQuery = listTasksQuery.Where(x => x.Id == taskSearchModel.UserAssignId).ToList();
             }
 
+            if (!string.IsNullOrEmpty(taskSearchModel.TaskStatus))
+            {
+                listTasksQuery = listTasksQuery.Where(x => x.t.TaskStatus == taskSearchModel.TaskStatus).ToList();
+            }
+
+            var link = string.Empty;
+            if (!string.IsNullOrEmpty(board.KanbanBoardTeamId))
+            {
+                link = $"/team/{board.KanbanBoardTeamId}?tab=task&b={board.KanbanBoardId}";// &t=taskid";
+            }
+            else
+            {
+                link = $"/managetask/mytasks?b={board.KanbanBoardId}";// &t=taskid";
+            }
             var responses = listTasksQuery.Select(x => new TaskUIKanban
             {
                 TaskRankInList = x.t.TaskRankInList,
@@ -570,6 +584,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TaskCompletedPercent = x.t.TaskCompletedPercent,
 
                 TaskThemeColor = x.t.TaskThemeColor,
+
+                Link = $"{link}&t={x.t.TaskId}",
             }).ToList();
 
             return responses;
