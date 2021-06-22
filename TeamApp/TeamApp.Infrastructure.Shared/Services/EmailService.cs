@@ -58,8 +58,9 @@ namespace TeamApp.Infrastructure.Shared.Services
             string CONFIGSET = "ConfigSet";
             string HOST = "email-smtp.ap-southeast-1.amazonaws.com";
 
-            int PORT = 587;
+            //int PORT = 587;
 
+            int PORT = 25;
             // The subject line of the email
             String SUBJECT = request.Subject;
 
