@@ -2,6 +2,7 @@
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 using Microsoft.Extensions.Primitives;
 using Microsoft.IdentityModel.Tokens;
 using Newtonsoft.Json;
@@ -16,6 +17,7 @@ using TeamApp.Application.DTOs.Account;
 using TeamApp.Application.Exceptions;
 using TeamApp.Application.Interfaces;
 using TeamApp.Application.Wrappers;
+using TeamApp.Domain.Settings;
 using TeamApp.Infrastructure.Persistence.Helpers;
 
 namespace TeamApp.WebApi.Controllers
@@ -26,10 +28,12 @@ namespace TeamApp.WebApi.Controllers
     {
         private readonly IAccountService _accountService;
         private readonly IHttpContextAccessor _httpContextAccessor;
-        public AccountController(IAccountService accountService, IHttpContextAccessor httpContextAccessor)
+        private readonly IOptions<MyAppSettings> _config;
+        public AccountController(IAccountService accountService, IHttpContextAccessor httpContextAccessor, IOptions<MyAppSettings> config)
         {
             _accountService = accountService;
             _httpContextAccessor = httpContextAccessor;
+            _config = config;
         }
         /// <summary>
         /// Login API
@@ -46,13 +50,13 @@ namespace TeamApp.WebApi.Controllers
                 var data = outPut.Data;
 
                 HttpContext.Response.Cookies.Append("access_token", data.JWToken,
-                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Domain = _config.Value.Url, Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
                 HttpContext.Response.Cookies.Append("refresh_token", data.RefreshToken,
-                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
+                    new CookieOptions { Domain = _config.Value.Url, Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
                 HttpContext.Response.Cookies.Append("backup", Guid.NewGuid().ToString(),
-                    new CookieOptions { Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
-                //data.JWToken = null;
-                //data.RefreshToken = null;
+                    new CookieOptions { Domain = _config.Value.Url, Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                data.JWToken = null;
+                data.RefreshToken = null;
             }
 
             return Ok(outPut);
@@ -150,13 +154,13 @@ namespace TeamApp.WebApi.Controllers
             if (outPut.Succeeded)
             {
                 HttpContext.Response.Cookies.Append("access_token", outPut.Data.AccessToken,
-                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Domain = _config.Value.Url, Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
                 HttpContext.Response.Cookies.Append("refresh_token", outPut.Data.RefreshToken,
-                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
+                    new CookieOptions { Domain = _config.Value.Url, Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
                 HttpContext.Response.Cookies.Append("backup", Guid.NewGuid().ToString(),
-                    new CookieOptions { Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
-                //outPut.Data.RefreshToken = null;
-                //outPut.Data.AccessToken = null;
+                    new CookieOptions { Domain = _config.Value.Url, Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                outPut.Data.RefreshToken = null;
+                outPut.Data.AccessToken = null;
             }
             return Ok(outPut);
         }
@@ -174,11 +178,11 @@ namespace TeamApp.WebApi.Controllers
             if (outPut.Succeeded)
             {
                 HttpContext.Response.Cookies.Append("access_token", outPut.Data.JWToken,
-                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Domain = _config.Value.Url, Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
                 HttpContext.Response.Cookies.Append("refresh_token", outPut.Data.RefreshToken,
-                    new CookieOptions { Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
+                    new CookieOptions { Domain = _config.Value.Url, Secure = true, HttpOnly = true, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(7), });
                 HttpContext.Response.Cookies.Append("backup", Guid.NewGuid().ToString(),
-                    new CookieOptions { Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
+                    new CookieOptions { Domain = _config.Value.Url, Secure = true, HttpOnly = false, SameSite = SameSiteMode.None, Expires = DateTime.Now.AddDays(30), });
             }
 
             return Ok(outPut);

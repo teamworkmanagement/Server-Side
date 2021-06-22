@@ -75,6 +75,7 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IAccountService, AccountService>();
             #endregion
             services.Configure<JWTSettings>(configuration.GetSection("JWTSettings"));
+            services.Configure<MyAppSettings>(configuration.GetSection("MyApp"));
             services.AddAuthorization(options =>
             {
                 options.AddPolicy("SameIpPolicy",
@@ -113,6 +114,7 @@ namespace TeamApp.Infrastructure.Persistence
                                 c.Response.Headers.Add("X-Token-Expired", "true");
                                 c.Response.Cookies.Append("TokenExpired", "true", new CookieOptions
                                 {
+                                    Domain = configuration["MyApp:Url"],
                                     Expires = DateTime.UtcNow.AddMinutes(5),
                                     Secure = true,
                                     HttpOnly = false,
