@@ -12,7 +12,7 @@ namespace TeamApp.WebApi.Export
         public static async Task<byte[]> GenerateExcelFile(List<Student> students)
         {
             var package = new ExcelPackage();
-            var workSheet = package.Workbook.Worksheets.Add("TestExport");
+            var workSheet = package.Workbook.Worksheets.Add("TestExportfdsdg");
             // create title
             workSheet.Cells["A1:D1"].Merge = true;
             workSheet.Cells["A1"].Value = "Students Export";
@@ -33,7 +33,7 @@ namespace TeamApp.WebApi.Export
                 workSheet.Cells[c].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
             });
 
-            workSheet.Cells[listHeader[0]].Value = "#";
+            workSheet.Cells[listHeader[0]].Value = "STT";
             workSheet.Cells[listHeader[1]].Value = "Id";
             workSheet.Cells[listHeader[2]].Value = "Name";
             workSheet.Cells[listHeader[3]].Value = "Age";

@@ -13,7 +13,6 @@ using TeamApp.Infrastructure.Persistence.Hubs.Notification;
 using TeamApp.Infrastructure.Persistence.Hubs.Post;
 using TeamApp.Infrastructure.Shared;
 using TeamApp.WebApi.Extensions;
-using TeamApp.WebApi.Services;
 
 namespace TeamApp.WebApi
 {

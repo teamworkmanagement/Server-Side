@@ -50,7 +50,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var check = await _dbContext.SaveChangesAsync();
 
             if (postReq.UserIds.Count != 0)
-                await _notificationRepository.PushNoti(postReq.UserIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bài viết");
+                await _notificationRepository.PushNotiAddPostTag(new AddPostMentionRequest
+                {
+                    ActionUserId = postReq.PostUserId,
+                    UserIds = postReq.UserIds,
+                    PostId = entity.PostId,
+                });
 
 
             if (postReq.PostImages != null && postReq.PostImages.Count != 0)
@@ -164,77 +169,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
-        public async Task<List<PostResponse>> GetAllByTeamId(string teamId)
-        {
-            var query = from p in _dbContext.Post
-                        join t in _dbContext.Team on p.PostTeamId equals t.TeamId
-                        join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u.ImageUrl, u.FullName, p.Comments.Count };
-            query = query.Where(x => x.p.PostTeamId == teamId);
-
-            var outPut = await query.Select(x => new PostResponse
-            {
-                PostId = x.p.PostId,
-                PostUserId = x.p.PostUserId,
-                PostTeamId = x.p.PostTeamId,
-                PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
-                PostCommentCount = x.Count,
-                PostIsDeleted = x.p.PostIsDeleted,
-                PostIsPinned = x.p.PostIsPinned,
-                UserAvatar = x.ImageUrl,
-                UserName = x.FullName,
-            }).ToListAsync();
-
-            return outPut;
-        }
-
-        public async Task<List<PostResponse>> GetAllByUserId(string userId)
-        {
-            var query = from p in _dbContext.Post
-                        join u in _dbContext.User on p.PostUserId equals u.Id
-                        select new { p, u.ImageUrl, u.Id, u.FullName, p.Comments.Count };
-
-            query = query.Where(x => x.Id == userId);
-
-            var outPut = await query.Select(x => new PostResponse
-            {
-                PostId = x.p.PostId,
-                PostUserId = x.p.PostUserId,
-                PostTeamId = x.p.PostTeamId,
-                PostContent = x.p.PostContent,
-                PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
-                PostCommentCount = x.Count,
-                PostIsDeleted = x.p.PostIsDeleted,
-                PostIsPinned = x.p.PostIsPinned,
-                UserAvatar = x.ImageUrl,
-                UserName = x.FullName,
-            }).ToListAsync();
-
-            return outPut;
-        }
-
-        public async Task<List<PostResponse>> GetAllByUserTeamId(string userId, string teamId)
-        {
-            var query = from p in _dbContext.Post
-                        where p.PostTeamId == teamId && p.PostUserId == userId
-                        select p;
-
-            var outPut = await query.Select(x => new PostResponse
-            {
-                PostId = x.PostId,
-                PostUserId = x.PostUserId,
-                PostTeamId = x.PostTeamId,
-                PostContent = x.PostContent,
-                PostCreatedAt = x.PostCreatedAt.FormatTime(),
-                PostCommentCount = x.PostCommentCount,
-                PostIsDeleted = x.PostIsDeleted,
-                PostIsPinned = x.PostIsPinned,
-            }).ToListAsync();
-
-            return outPut;
-        }
-
         public async Task<PagedResponse<PostResponse>> GetPaging(RequestParameter parameter)
         {
             var queryUserPost = from p in _dbContext.Post
@@ -267,6 +201,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<PagedResponse<PostResponse>> GetPostPagingTeam(PostRequestParameter parameter)
         {
+            var team = await _dbContext.Team.FindAsync(parameter.TeamId);
+            if (team == null)
+                throw new KeyNotFoundException("Team not found");
             bool advanced = false;
             if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))
                 advanced = true;
@@ -276,7 +213,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Post.AsNoTracking()
                         join t in _dbContext.Team.AsNoTracking() on p.PostTeamId equals t.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
-                        where t.TeamId == parameter.TeamId
+                        where t.TeamId == parameter.TeamId && p.PostIsDeleted == false
                         select new { p, u, p.Comments.Count, RCount = p.PostReacts.Count, t.TeamName };
 
             //tìm kiếm nâng cao
@@ -389,18 +326,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (parameter.FromDate != null || parameter.ToDate != null || !string.IsNullOrEmpty(parameter.GroupId) || !string.IsNullOrEmpty(parameter.PostUser))
                 advanced = true;
 
-            var teamList = from t in _dbContext.Team
-                           join par in _dbContext.Participation on t.TeamId equals par.ParticipationTeamId
-                           join u in _dbContext.User on par.ParticipationUserId equals u.Id
-                           select new { u.Id, t.TeamId, t.TeamName };
-
-            //danh sách team mà user join
-            teamList = teamList.Where(x => x.Id == parameter.UserId);
+            var teamList = from t in _dbContext.Team.AsNoTracking()
+                           join par in _dbContext.Participation.AsNoTracking() on t.TeamId equals par.ParticipationTeamId
+                           where par.ParticipationUserId == parameter.UserId
+                           select new { par.ParticipationUserId, t.TeamId, t.TeamName };
+            var test = await teamList.ToListAsync();
+            /*    //danh sách team mà user join
+                teamList = teamList.Where(x => x.Id == parameter.UserId);*/
 
             //bảng chứa toàn bộ thông tin các post của các team mà user tham gia
             var query = from p in _dbContext.Post
                         join listTeam in teamList on p.PostTeamId equals listTeam.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
+                        where p.PostIsDeleted == false
                         select new { p, u, p.Comments.Count, RCount = p.PostReacts.Count, listTeam.TeamName };
 
 
@@ -471,6 +409,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                              from r in _dbContext.PostReact.Where(r => r.PostReactPostId == q.p.PostId && r.PostReactUserId == parameter.UserId).DefaultIfEmpty()
                              select new { q, isReacted = r.PostReactUserId };
 
+            if (parameter.PostId != null)
+                reactQuery = reactQuery.Where(x => x.q.p.PostId == parameter.PostId);
+
             var entityList = await reactQuery.Select(x => new PostResponse
             {
                 PostId = x.q.p.PostId,
@@ -484,7 +425,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserName = x.q.u.FullName,
                 UserAvatar = x.q.u.ImageUrl,
                 PostReactCount = x.q.RCount,
-                TeamName = $"<a href=\"/team/{x.q.p.PostTeamId}\">{x.q.TeamName}</a>",
+                TeamName = x.q.TeamName,
                 IsReacted = x.isReacted == null ? false : true,
             }).Skip(parameter.SkipItems).Take(parameter.PageSize).ToListAsync();
 
@@ -495,17 +436,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                        where f.FilePostOwnerId == ent.PostId
                                        orderby f.FileUploadTime
                                        select f.FileUrl).ToListAsync();
-                List<string> lists = new List<string>
-                {
-
-                };
+                List<string> lists = new List<string>();
 
                 lists.AddRange(listImage);
 
                 ent.PostImages = lists;
             }
-            return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
 
+            return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
         }
 
         public async Task<List<UserResponse>> SearchUser(string userId, string keyWord)

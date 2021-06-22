@@ -4,6 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using TeamApp.Application.DTOs.KanbanBoard;
 using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Interfaces.Repositories;
@@ -67,9 +68,9 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPut]
-        public async Task<IActionResult> UpdateTeam(string teamId, TeamRequest teamReq)
+        public async Task<IActionResult> UpdateTeam(TeamUpdateRequest teamUpdateRequest)
         {
-            var res = await _repo.UpdateTeam(teamId, teamReq);
+            var res = await _repo.UpdateTeam(teamUpdateRequest);
 
             var outPut = new ApiResponse<bool>
             {
@@ -99,7 +100,7 @@ namespace TeamApp.WebApi.Controllers
         [HttpGet("getusers-paging")]
         public async Task<IActionResult> GetUsersByTeamIdPaging([FromQuery] TeamUserParameter userParameter)
         {
-            var outPut = await _repo.GetUsersByTeamIdPaging(userParameter);
+            var outPut = await _repo.GetUsersByTeamIdPagingSearch(userParameter);
             return Ok(new ApiResponse<PagedResponse<UserResponse>>
             {
                 Succeeded = outPut != null,
@@ -128,6 +129,51 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
                 Succeeded = outPut != null,
             });
+        }
+
+        [HttpGet("users-for-tag/{teamId}")]
+        public async Task<IActionResult> GetUsersForTag(string teamId)
+        {
+            var outPut = await _repo.GetUsersForTag(teamId);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
+
+        [HttpGet("boards-by-team/{teamId}")]
+        public async Task<IActionResult> GetBoardsByTeamId(string teamId)
+        {
+            var outPut = await _repo.GetBoardsByTeam(teamId);
+            return Ok(new ApiResponse<List<KanbanBoardResponse>>
+            {
+                Succeeded = outPut != null,
+                Data = outPut,
+            });
+        }
+
+        [HttpGet("teams-recommend-user/{userId}")]
+        public async Task<IActionResult> GetTeamsRecommedUser(string userId)
+        {
+            var outPut = await _repo.GetRecommendTeamForUser(userId);
+            return Ok(new ApiResponse<List<TeamRecommendModel>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
+
+        [HttpPost("change-leader")]
+        public async Task<IActionResult> ChangeTeamLeader([FromBody] ChangeTeamAdminModel changeTeamAdminModel)
+        {
+            var outPut = await _repo.ChangeTeamLeader(changeTeamAdminModel);
+            return Ok(
+                new ApiResponse<bool>
+                {
+                    Succeeded = outPut,
+                    Data = outPut,
+                });
         }
     }
 }

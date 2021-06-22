@@ -38,9 +38,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var board = await _dbContext.KanbanBoard.FindAsync(kanbanListRequest.KanbanListBoardBelongedId);
 
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
-                             join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                             where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
-                             select u.ConnectionId).ToListAsync();
+                                 join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                 where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
+                                 select u.ConnectionId).ToListAsync();
 
             var response = new KanbanListUIResponse
             {
@@ -62,6 +62,32 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return null;
         }
 
+        public async Task<bool> ChangeName(KanbanListChangeNameModel kanbanListChangeNameModel)
+        {
+            var kbListEntity = await (from kl in _dbContext.KanbanList.AsNoTracking()
+                                      where kl.KanbanListId == kanbanListChangeNameModel.KanbanListId
+                                      select kl).FirstOrDefaultAsync();
+
+            if (kbListEntity == null)
+                return false;
+
+            kbListEntity.KanbanListTitle = kanbanListChangeNameModel.KanbanListName;
+            await _dbContext.SingleUpdateAsync(kbListEntity);
+
+            await _dbContext.KanbanList.SingleUpdateAsync(kbListEntity);
+
+            var board = await _dbContext.KanbanBoard.FindAsync(kbListEntity.KanbanListBoardBelongedId);
+
+            var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                 join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                 where u.Type == "kanban" && p.ParticipationIsDeleted == false && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
+                                 select u.ConnectionId).ToListAsync();
+
+            await _hubKanban.Clients.Clients(clients).RenameList(kanbanListChangeNameModel);
+
+            return true;
+        }
+
         public async Task<bool> RemoveList(KanbanListRequest kanbanListRequest)
         {
             var kbListEntity = await (from kl in _dbContext.KanbanList.AsNoTracking()
@@ -75,10 +101,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.KanbanList.SingleUpdateAsync(kbListEntity);
 
             var board = await _dbContext.KanbanBoard.FindAsync(kanbanListRequest.KanbanListBoardBelongedId);
-            
+
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                 where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
+                                 where u.Type == "kanban" && p.ParticipationIsDeleted == false && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
                                  select u.ConnectionId).ToListAsync();
 
             var response = new KanbanListUIResponse

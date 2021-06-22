@@ -78,10 +78,14 @@ namespace TeamApp.Infrastructure.Persistence.Services
             response.UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl;
             response.FullName = user.FullName;
 
+            response.UserAddress = user.UserAddress;
+            response.UserDescription = user.UserDescription;
+            response.UserGithubLink = user.UserGithubLink;
+            response.UserFacebookLink = user.UserFacebookLink;
+
             var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
             refreshToken.UserId = user.Id;
             response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
-            response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(_jwtSettings.DurationInMinutes)).ToUnixTimeMilliseconds();
 
             await _dbContext.RefreshToken.AddAsync(refreshToken);
             await _dbContext.SaveChangesAsync();
@@ -180,18 +184,24 @@ namespace TeamApp.Infrastructure.Persistence.Services
             return verificationUri;
         }
 
-        public async Task<ApiResponse<string>> ConfirmEmailAsync(string userId, string code)
+        public async Task<ApiResponse<string>> ConfirmEmailAsync(string userId, string code, string apiOrgin)
         {
             var user = await _userManager.FindByIdAsync(userId);
+            if (user.EmailConfirmed)
+            {
+                return new ApiResponse<string>(user.Id, message: $"Account Confirmed for {user.Email}.");
+            }
             code = Encoding.UTF8.GetString(WebEncoders.Base64UrlDecode(code));
             var result = await _userManager.ConfirmEmailAsync(user, code);
             if (result.Succeeded)
             {
-                return new ApiResponse<string>(user.Id, message: $"Account Confirmed for {user.Email}. You can now use the /api/Account/authenticate endpoint.");
+                return new ApiResponse<string>(user.Id, message: $"Account Confirmed for {user.Email}.");
             }
             else
             {
-                throw new ApiException($"An error occured while confirming {user.Email}.");
+                var verificationUri = await SendVerificationEmail(user, apiOrgin);
+                await _emailService.SendAsyncAWS(new Application.DTOs.Email.EmailRequest() { From = "KD", To = user.Email, Body = $"Hãy xác thực tài khoản của bạn bằng việc nhấn vào link dưới <br> <a href=\'{verificationUri}\'>Xác thực</a>", Subject = "Confirm Registration" });
+                return new ApiResponse<string>(data: "Đường link đã hết hạn, chúng tôi đã gửi link mới qua email, vui lòng kiểm tra lại email");
             }
         }
 
@@ -212,7 +222,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var account = await _userManager.FindByEmailAsync(model.Email);
 
             // always return ok response to prevent email enumeration
-            if (account == null) return;
+            if (account == null) throw new KeyNotFoundException("Not found account");
 
             var code = await _userManager.GeneratePasswordResetTokenAsync(account);
             var route = "api/account/reset-password/";
@@ -234,11 +244,25 @@ namespace TeamApp.Infrastructure.Persistence.Services
 
             if (result.Succeeded)
             {
+                account = await _userManager.FindByEmailAsync(model.Email);
+                account.FirstTimeSocial = false;
+                await _userManager.UpdateAsync(account);
                 return new ApiResponse<string>(model.Email, message: $"Password Resetted.");
             }
             else
             {
-                throw new ApiException($"Error occured while reseting the password.");
+
+                var code = await _userManager.GeneratePasswordResetTokenAsync(account);
+
+                var emailRequest = new EmailRequest()
+                {
+                    Body = $"You reset token is - {code}",
+                    To = model.Email,
+                    Subject = "Reset Password",
+                };
+
+                await _emailService.SendAsyncAWS(emailRequest);
+                return new ApiResponse<string>("Vui lòng kiểm tra email để nhận OTP mới");
             }
         }
 
@@ -320,10 +344,14 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 response.FullName = userWithSameEmail.FullName;
                 response.IsVerified = userWithSameEmail.EmailConfirmed;
 
+                response.UserAddress = userWithSameEmail.UserAddress;
+                response.UserDescription = userWithSameEmail.UserDescription;
+                response.UserGithubLink = userWithSameEmail.UserGithubLink;
+                response.UserFacebookLink = userWithSameEmail.UserFacebookLink;
+
                 var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
                 refreshToken.UserId = userWithSameEmail.Id;
                 response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
-                response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds();
 
                 await _dbContext.RefreshToken.AddAsync(refreshToken);
                 await _dbContext.SaveChangesAsync();
@@ -339,9 +367,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     CreatedAt = DateTime.UtcNow,
                     EmailConfirmed = true,
                     UserName = request.Email,
+                    FirstTimeSocial = true,
                 };
 
-                var result = await _userManager.CreateAsync(user, "@Social11");
+                var result = await _userManager.CreateAsync(user);
 
                 var entity = await _userManager.FindByIdAsync(request.Id);
 
@@ -352,11 +381,16 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 response.IsVerified = entity.EmailConfirmed;
                 response.UserAvatar = entity.ImageUrl;
                 response.FullName = entity.FullName;
+                response.FirstTimeSocial = true;
+
+                response.UserAddress = entity.UserAddress;
+                response.UserDescription = entity.UserDescription;
+                response.UserGithubLink = entity.UserGithubLink;
+                response.UserFacebookLink = entity.UserFacebookLink;
 
                 var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
                 refreshToken.UserId = entity.Id;
                 response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
-                response.ExprireToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds();
 
                 await _dbContext.RefreshToken.AddAsync(refreshToken);
                 await _dbContext.SaveChangesAsync();
@@ -401,11 +435,14 @@ namespace TeamApp.Infrastructure.Persistence.Services
             var user = await _dbContext.User.FindAsync(changePasswordModel.UserId);
             if (user == null)
                 throw new KeyNotFoundException("No user found");
-
-            var results = await _userManager.ChangePasswordAsync(user, changePasswordModel.CurrentPassword, changePasswordModel.NewPassword);
+            var token = await _userManager.GeneratePasswordResetTokenAsync(user);
+            var results = await _userManager.ResetPasswordAsync(user, token, changePasswordModel.NewPassword);
 
             if (results.Succeeded)
             {
+                user = await _dbContext.User.FindAsync(changePasswordModel.UserId);
+                user.FirstTimeSocial = false;
+                await _userManager.UpdateAsync(user);
                 return new ApiResponse<bool>
                 {
                     Data = true,
@@ -443,6 +480,10 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 user.Dob = updateInfoModel.UserDob;
                 user.PhoneNumber = updateInfoModel.UserPhoneNumber;
                 user.UserName = updateInfoModel.Email;
+                user.UserAddress = updateInfoModel.UserAddress;
+                user.UserDescription = updateInfoModel.UserDescription;
+                user.UserGithubLink = updateInfoModel.UserGithubLink;
+                user.UserFacebookLink = updateInfoModel.UserFacebookLink;
 
                 await _userManager.UpdateAsync(user);
                 return new ApiResponse<bool>

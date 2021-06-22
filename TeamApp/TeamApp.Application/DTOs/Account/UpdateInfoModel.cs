@@ -11,5 +11,9 @@ namespace TeamApp.Application.DTOs.Account
         public string Email { get; set; }
         public string UserPhoneNumber { get; set; }
         public DateTime? UserDob { get; set; }
+        public string UserAddress { get; set; }
+        public string UserDescription { get; set; }
+        public string UserGithubLink { get; set; }
+        public string UserFacebookLink { get; set; }
     }
 }

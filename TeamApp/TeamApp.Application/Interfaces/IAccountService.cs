@@ -12,7 +12,7 @@ namespace TeamApp.Application.Interfaces
     {
         Task<ApiResponse<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, string ipAddress);
         Task<ApiResponse<string>> RegisterAsync(RegisterRequest request, string origin);
-        Task<ApiResponse<string>> ConfirmEmailAsync(string userId, string code);
+        Task<ApiResponse<string>> ConfirmEmailAsync(string userId, string code, string apiOrigin);
         Task ForgotPassword(ForgotPasswordRequest model, string origin);
         Task<ApiResponse<string>> ResetPassword(ResetPasswordRequest model);
         Task<ApiResponse<TokenModel>> Refresh(string refreshTokenEncry);

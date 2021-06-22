@@ -10,16 +10,20 @@ using TeamApp.Application.Wrappers;
 using TeamApp.Application.Filters;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class FileRepository : IFileRepository
     {
         private readonly TeamAppContext _dbContext;
+        private IHubContext<HubKanbanClient, IHubKanbanClient> _kanbanHub;
 
-        public FileRepository(TeamAppContext dbContext)
+        public FileRepository(TeamAppContext dbContext, IHubContext<HubKanbanClient, IHubKanbanClient> kanbanHub)
         {
             _dbContext = dbContext;
+            _kanbanHub = kanbanHub;
         }
 
         public async Task<FileResponse> AddFile(FileRequest fileReq)
@@ -41,6 +45,35 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             await _dbContext.File.AddAsync(entity);
             var check = await _dbContext.SaveChangesAsync() > 0;
+
+            if (!string.IsNullOrEmpty(fileReq.FileTaskOwnerId))
+            {
+                var task = await _dbContext.Task.FindAsync(fileReq.FileTaskOwnerId);
+                var board = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                                   join kl in _dbContext.KanbanList.AsNoTracking() on b.KanbanBoardId equals kl.KanbanListBoardBelongedId
+                                   where kl.KanbanListId == task.TaskBelongedId
+                                   select b).FirstOrDefaultAsync();
+
+                var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                     join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
+                                     where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
+                                     select u.ConnectionId).ToListAsync();
+
+                await _kanbanHub.Clients.Clients(clients).AddFile(new
+                {
+                    KanbanListId = task.TaskBelongedId,
+                    entity.FileId,
+                    entity.FileName,
+                    entity.FileUrl,
+                    entity.FileType,
+                    entity.FileSize,
+                    fileReq.FileUserUploadId,
+                    fileReq.FileUserOwnerId,
+                    fileReq.FileTeamOwnerId,
+                    fileReq.FileTaskOwnerId,
+                    FileUploadTime = entity.FileUploadTime.FormatTime(),
+                });
+            }
 
             if (check)
                 return new FileResponse
@@ -150,6 +183,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     }).ToList();
                     break;
                 case "team":
+
+                    var team = await _dbContext.Team.FindAsync(param.OwnerId);
+                    if (team == null)
+                        throw new KeyNotFoundException("Team not found");
+
                     query = from f in _dbContext.File.AsNoTracking()
                             join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
                             orderby f.FileUploadTime descending
@@ -304,6 +342,185 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.BulkInsertAsync(files);
 
             return true;
+        }
+
+        public async Task<List<FileResponse>> GetAll(FileRequestParameter param)
+        {
+            List<FileResponse> responses = new List<FileResponse>();
+            int count = 0;
+            switch (param.OwnerType)
+            {
+                case "user":
+                    var query = from f in _dbContext.File.AsNoTracking()
+                                join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
+                                orderby f.FileUploadTime descending
+                                where f.FileUserOwnerId == param.OwnerId
+                                select new { f, u.FullName, u.ImageUrl };
+
+                    var results = await query
+                   .Select(p => new
+                   {
+                       p,
+                       TotalCount = query.Count()
+                   }).ToArrayAsync();
+
+                    count = results.FirstOrDefault()?.TotalCount ?? await query.CountAsync();
+                    var files = results.Select(r => r.p).ToArray();
+
+
+                    responses = files.Select(entity => new FileResponse
+                    {
+                        FileId = entity.f.FileId,
+                        FileName = entity.f.FileName,
+                        FileUrl = entity.f.FileUrl,
+                        FileType = entity.f.FileType,
+                        FileSize = entity.f.FileSize,
+                        FileUserUploadId = entity.f.FileUserUploadId,
+                        FileUserOwnerId = entity.f.FileUserOwnerId,
+                        FileTeamOwnerId = entity.f.FileTeamOwnerId,
+                        FileTaskOwnerId = entity.f.FileTaskOwnerId,
+                        FilePostOwnerId = entity.f.FilePostOwnerId,
+                        FileUploadTime = entity.f.FileUploadTime.FormatTime(),
+                        FileUserUploadName = entity.FullName,
+                        UserImage = entity.ImageUrl,
+                    }).ToList();
+                    break;
+                case "team":
+
+                    var team = await _dbContext.Team.FindAsync(param.OwnerId);
+                    if (team == null)
+                        throw new KeyNotFoundException("Team not found");
+
+                    query = from f in _dbContext.File.AsNoTracking()
+                            join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
+                            orderby f.FileUploadTime descending
+                            where f.FileTeamOwnerId == param.OwnerId
+                            select new { f, u.FullName, u.ImageUrl };
+                    results = await query
+                   .Select(p => new
+                   {
+                       p,
+                       TotalCount = query.Count()
+                   }).ToArrayAsync();
+
+                    count = results.FirstOrDefault()?.TotalCount ?? await query.CountAsync();
+                    files = results.Select(r => r.p).ToArray();
+
+
+                    responses = files.Select(entity => new FileResponse
+                    {
+                        FileId = entity.f.FileId,
+                        FileName = entity.f.FileName,
+                        FileUrl = entity.f.FileUrl,
+                        FileType = entity.f.FileType,
+                        FileSize = entity.f.FileSize,
+                        FileUserUploadId = entity.f.FileUserUploadId,
+                        FileUserOwnerId = entity.f.FileUserOwnerId,
+                        FileTeamOwnerId = entity.f.FileTeamOwnerId,
+                        FileTaskOwnerId = entity.f.FileTaskOwnerId,
+                        FilePostOwnerId = entity.f.FilePostOwnerId,
+                        FileUploadTime = entity.f.FileUploadTime.FormatTime(),
+                        FileUserUploadName = entity.FullName,
+                        UserImage = entity.ImageUrl,
+                    }).ToList();
+                    break;
+                case "task":
+                    query = from f in _dbContext.File.AsNoTracking()
+                            join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
+                            orderby f.FileUploadTime descending
+                            where f.FileTaskOwnerId == param.OwnerId
+                            select new { f, u.FullName, u.ImageUrl };
+                    results = await query
+                   .Select(p => new
+                   {
+                       p,
+                       TotalCount = query.Count()
+                   }).ToArrayAsync();
+
+                    count = results.FirstOrDefault()?.TotalCount ?? await query.CountAsync();
+                    files = results.Select(r => r.p).ToArray();
+
+
+                    responses = files.Select(entity => new FileResponse
+                    {
+                        FileId = entity.f.FileId,
+                        FileName = entity.f.FileName,
+                        FileUrl = entity.f.FileUrl,
+                        FileType = entity.f.FileType,
+                        FileSize = entity.f.FileSize,
+                        FileUserUploadId = entity.f.FileUserUploadId,
+                        FileUserOwnerId = entity.f.FileUserOwnerId,
+                        FileTeamOwnerId = entity.f.FileTeamOwnerId,
+                        FileTaskOwnerId = entity.f.FileTaskOwnerId,
+                        FilePostOwnerId = entity.f.FilePostOwnerId,
+                        FileUploadTime = entity.f.FileUploadTime.FormatTime(),
+                        FileUserUploadName = entity.FullName,
+                        UserImage = entity.ImageUrl,
+                    }).ToList();
+                    break;
+                case "post":
+                    query = from f in _dbContext.File.AsNoTracking()
+                            join u in _dbContext.User.AsNoTracking() on f.FileUserUploadId equals u.Id
+                            orderby f.FileUploadTime descending
+                            where f.FilePostOwnerId == param.OwnerId
+                            select new { f, u.FullName, u.ImageUrl };
+                    results = await query
+                   .Select(p => new
+                   {
+                       p,
+                       TotalCount = query.Count()
+                   }).ToArrayAsync();
+
+                    count = results.FirstOrDefault()?.TotalCount ?? await query.CountAsync();
+                    files = results.Select(r => r.p).ToArray();
+
+
+                    responses = files.Select(entity => new FileResponse
+                    {
+                        FileId = entity.f.FileId,
+                        FileName = entity.f.FileName,
+                        FileUrl = entity.f.FileUrl,
+                        FileType = entity.f.FileType,
+                        FileSize = entity.f.FileSize,
+                        FileUserUploadId = entity.f.FileUserUploadId,
+                        FileUserOwnerId = entity.f.FileUserOwnerId,
+                        FileTeamOwnerId = entity.f.FileTeamOwnerId,
+                        FileTaskOwnerId = entity.f.FileTaskOwnerId,
+                        FilePostOwnerId = entity.f.FilePostOwnerId,
+                        FileUploadTime = entity.f.FileUploadTime.FormatTime(),
+                        FileUserUploadName = entity.FullName,
+                        UserImage = entity.ImageUrl,
+                    }).ToList();
+                    break;
+                default:
+                    break;
+            }
+
+            return responses;
+        }
+
+        public async Task<bool> CopyFileToUser(CopyFileToUserModel copyFileToUserModel)
+        {
+            var file = await _dbContext.File.FindAsync(copyFileToUserModel.FileId);
+
+            if (file == null)
+                return false;
+
+            var fileCopy = new File
+            {
+                FileId = Guid.NewGuid().ToString(),
+                FileName = file.FileName,
+                FileUrl = file.FileUrl,
+                FileType = file.FileType,
+                FileUserUploadId = file.FileUserUploadId,
+                FileUserOwnerId = copyFileToUserModel.UserId,
+                FileUploadTime = DateTime.UtcNow,
+                FileSize = file.FileSize,
+            };
+
+            await _dbContext.AddAsync(fileCopy);
+
+            return await _dbContext.SaveChangesAsync() > 0;
         }
     }
 }

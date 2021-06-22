@@ -89,5 +89,27 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = outPut,
             });
         }
+
+        [HttpGet("get-all")]
+        public async Task<IActionResult> GetAllFiles([FromQuery] FileRequestParameter parameter)
+        {
+            var outPut = await _repo.GetAll(parameter);
+            return Ok(new ApiResponse<List<FileResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            }); ;
+        }
+
+        [HttpPost("copy-file")]
+        public async Task<IActionResult> CopyFile(CopyFileToUserModel copyFileToUserModel)
+        {
+            var outPut = await _repo.CopyFileToUser(copyFileToUserModel);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
+            });
+        }
     }
 }

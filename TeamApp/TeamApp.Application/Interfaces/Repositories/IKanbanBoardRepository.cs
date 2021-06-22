@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.KanbanBoard;
 using TeamApp.Application.DTOs.KanbanList;
+using TeamApp.Application.DTOs.Task;
 
 namespace TeamApp.Application.Interfaces.Repositories
 {
@@ -20,7 +21,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// </summary>
         /// <param name="boardId"></param>
         /// <returns></returns>
-        Task<KanbanBoardUIResponse> GetKanbanBoardUI(string boardId);
+        Task<KanbanBoardUIResponse> GetKanbanBoardUI(string userId, KanbanBoardUIRequest boardId);
         /// <summary>
         /// Swap liskanban
         /// </summary>
@@ -30,5 +31,9 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<List<KanbanBoardResponse>> GetBoardForUserTeams(string userId);
         Task<List<KanbanBoardResponse>> GetBoardForUser(string userId);
         Task<List<KanbanBoardResponse>> GetBoardsForTeam(string teamId);
+        Task<List<KanbanBoardResponse>> SearchKanbanBoards(SearchBoardModel searchBoardModel);
+
+        Task<KanbanBoardUIResponse> SearchTasks(TaskSearchModel taskSearchModel);
+        Task<List<TaskUIKanban>> SearchTasksListInBoard(TaskSearchModel taskSearchModel);
     }
 }

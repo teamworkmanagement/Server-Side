@@ -161,12 +161,11 @@ namespace TeamApp.WebApi.Controllers
         /// <summary>
         /// Add mention tag in comment notification
         /// </summary>
-        /// <param name="userIds"></param>
         /// <returns></returns>
         [HttpPost("add-mentions")]
-        public async Task<IActionResult> AddMentions([FromBody]List<string> userIds)
+        public async Task<IActionResult> AddMentions([FromBody]CommentMentionRequest mentionRequest)
         {
-            await _repo.AddMentions(userIds);
+            await _repo.AddMentions(mentionRequest);
             return Ok();
         }
     }

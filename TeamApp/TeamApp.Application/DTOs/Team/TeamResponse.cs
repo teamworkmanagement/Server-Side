@@ -17,5 +17,6 @@ namespace TeamApp.Application.DTOs.Team
         public int? TeamMemberCount { get; set; }
         public string TeamLeaderName { get; set; }
         public string TeamLeaderImageUrl { get; set; }
+        public List<TeamUserResponse> TeamUsers { get; set; }
     }
 }

@@ -22,5 +22,6 @@ namespace TeamApp.Application.DTOs.Post
         public string GroupId { get; set; }
         public string PostUser { get; set; }
         public string TeamId { get; set; }
+        public string PostId { get; set; }
     }
 }

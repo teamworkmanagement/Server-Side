@@ -49,12 +49,5 @@ namespace TeamApp.WebApi.Controllers
 
             return Ok(outPut);
         }
-
-        [HttpPost("push")]
-        public async Task<IActionResult> PushNoti(List<string> userIds, string title, string body)
-        {
-            await _repo.PushNoti(userIds, title, body);
-            return Ok();
-        }
     }
 }

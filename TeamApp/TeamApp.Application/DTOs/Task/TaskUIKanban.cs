@@ -6,7 +6,7 @@ namespace TeamApp.Application.DTOs.Task
 {
     public class TaskUIKanban
     {
-        public string RankInList { get; set; }
+        public string TaskRankInList { get; set; }
         public string KanbanListId { get; set; }
         public string TaskId { get; set; }
 
@@ -23,9 +23,12 @@ namespace TeamApp.Application.DTOs.Task
 
         public string UserId { get; set; }
         public string UserAvatar { get; set; }
+        public string UserFullName { get; set; }
 
         public int? TaskCompletedPercent { get; set; }
 
         public string TaskThemeColor { get; set; }
+
+        public string Link { get; set; }
     }
 }

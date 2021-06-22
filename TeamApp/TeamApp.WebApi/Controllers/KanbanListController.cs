@@ -39,9 +39,20 @@ namespace TeamApp.WebApi.Controllers
         /// <param name="kanbanListRequest"></param>
         /// <returns></returns>
         [HttpDelete]
-        public async Task<IActionResult> RemoveKanbanList([FromQuery]KanbanListRequest kanbanListRequest)
+        public async Task<IActionResult> RemoveKanbanList([FromQuery] KanbanListRequest kanbanListRequest)
         {
             var result = await _repo.RemoveList(kanbanListRequest);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = result,
+                Succeeded = result,
+            });
+        }
+
+        [HttpPatch("name-list")]
+        public async Task<IActionResult> ChangeNameList(KanbanListChangeNameModel kanbanListChangeNameModel)
+        {
+            var result = await _repo.ChangeName(kanbanListChangeNameModel);
             return Ok(new ApiResponse<bool>
             {
                 Data = result,

@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Task;
 using TeamApp.Application.Filters;
+using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -17,9 +18,11 @@ namespace TeamApp.WebApi.Controllers
     public class TaskController : ControllerBase
     {
         private readonly ITaskRepository _repo;
-        public TaskController(ITaskRepository repo)
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        public TaskController(ITaskRepository repo, IAuthenticatedUserService authenticatedUserService)
         {
             _repo = repo;
+            _authenticatedUserService = authenticatedUserService;
         }
 
         [HttpGet("byuserid/{userId}")]
@@ -145,6 +148,19 @@ namespace TeamApp.WebApi.Controllers
                     Succeeded = outPut,
                     Data = outPut,
                 });
+        }
+
+        [HttpGet("boardtask")]
+        public async Task<IActionResult> GetTaskByBoard([FromQuery] TaskGetRequest taskGetRequest)
+        {
+            var userId = _authenticatedUserService.UserId;
+            var outPut = await _repo.GetTaskByBoard(userId, taskGetRequest);
+
+            return Ok(new ApiResponse<TaskResponse>
+            {
+                Succeeded = outPut == null ? false : true,
+                Data = outPut,
+            });
         }
     }
 }

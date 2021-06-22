@@ -25,48 +25,6 @@ namespace TeamApp.WebApi.Controllers
             _teamRepo = teamRepo;
         }
 
-        [HttpGet("byuserid/{userId}")]
-        public async Task<IActionResult> GetAllByUserId(string userId)
-        {
-            var res = await _repo.GetAllByUserId(userId);
-
-            var outPut = new ApiResponse<List<PostResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpGet("byteamid/{teamId}")]
-        public async Task<IActionResult> GetAllByTeamId(string teamId)
-        {
-            var res = await _repo.GetAllByTeamId(teamId);
-
-            var outPut = new ApiResponse<List<PostResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpGet("byuserid/{userId}/byteamid/{teamId}")]
-        public async Task<IActionResult> GetAllByUserTeamId(string userId, string teamId)
-        {
-            var res = await _repo.GetAllByUserTeamId(userId, teamId);
-
-            var outPut = new ApiResponse<List<PostResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
         [HttpGet]
         public async Task<IActionResult> GetPaging([FromQuery] RequestParameter parameter)
         {
@@ -123,24 +81,6 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
-
-        [HttpGet("allforuser")]
-        public async Task<IActionResult> GetAllPostForUser(string userId)
-        {
-            var outPut = new List<PostResponse>();
-            var userTeams = await _teamRepo.GetByUserId(userId);
-            foreach (var e in userTeams)
-            {
-                var posts = await _repo.GetAllByTeamId(e.TeamId);
-                outPut.AddRange(posts);
-            }
-
-            return Ok(new ApiResponse<List<PostResponse>>
-            {
-                Succeeded = true,
-                Data = outPut,
-            });
         }
 
         [HttpGet("paging-multi-user")]

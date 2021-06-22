@@ -244,6 +244,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.GroupChatImageUrl)
+                    .HasColumnName("group_chat_imageurl")
+                    .HasColumnType("varchar(500)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
                 entity.Property(e => e.GroupChatName)
                     .HasColumnName("group_chat_name")
                     .HasColumnType("varchar(50)")
@@ -259,6 +265,9 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.GroupChatUpdatedAt)
                     .HasColumnName("group_chat_updated_at")
                     .HasColumnType("timestamp");
+
+                entity.Property(e => e.GroupChatIsOfTeam)
+                   .HasColumnName("group_chat_is_of_team");
             });
 
             modelBuilder.Entity<GroupChatUser>(entity =>
@@ -421,6 +430,12 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
+                entity.Property(e => e.NotificationActionUserId)
+                    .HasColumnName("notification_actionuser_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
                 entity.Property(e => e.NotificationGroup)
                     .HasColumnName("notification_group")
                     .HasColumnType("varchar(50)")
@@ -457,6 +472,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .WithMany(p => p.Notification)
                     .HasForeignKey(d => d.NotificationUserId)
                     .HasConstraintName("notification_ibfk_1");
+
+                entity.HasOne(d => d.NotificationActionUser)
+                .WithMany(p => p.NotificationActionUsers)
+                .HasForeignKey(d => d.NotificationActionUserId);
             });
 
             modelBuilder.Entity<Participation>(entity =>
@@ -613,6 +632,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnName("task_created_at")
                     .HasColumnType("timestamp");
 
+                entity.Property(e => e.TaskDoneDate)
+                    .HasColumnName("task_done_date")
+                    .HasColumnType("timestamp");
+
                 entity.Property(e => e.TaskStartDate)
                     .HasColumnName("task_start_date")
                     .HasColumnType("timestamp");
@@ -700,7 +723,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.TaskVersionTaskIsDeleted).HasColumnName("task_version_task_is_deleted");
 
                 entity.Property(e => e.TaskVersionTaskName)
                     .HasColumnName("task_version_task_name")
@@ -724,6 +746,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .WithMany(p => p.TaskVersion)
                     .HasForeignKey(d => d.TaskVersionTaskId)
                     .HasConstraintName("task_version_ibfk_1");
+
+                entity.HasOne(d => d.TaskVersionActionUser)
+                    .WithMany(p => p.TaskVersions)
+                    .HasForeignKey(d => d.TaskVersionActionUserId);
             });
 
             modelBuilder.Entity<Team>(entity =>
@@ -791,11 +817,36 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.PhoneNumber)
-                    .HasColumnName("use_phone_number")
-                    .HasColumnType("varchar(20)")
+                entity.Property(e => e.UserDescription)
+                    .HasColumnName("user_description")
+                    .HasColumnType("text")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.UserAddress)
+                    .HasColumnName("user_address")
+                    .HasColumnType("varchar(350)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.UserGithubLink)
+                    .HasColumnName("user_github_link")
+                    .HasColumnType("varchar(350)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.UserFacebookLink)
+                .HasColumnName("user_facebook_link")
+                .HasColumnType("varchar(350)")
+                .HasCollation("utf8mb4_0900_ai_ci")
+                .HasCharSet("utf8mb4");
+
+
+                entity.Property(e => e.PhoneNumber)
+                            .HasColumnName("use_phone_number")
+                            .HasColumnType("varchar(20)")
+                            .HasCollation("utf8mb4_0900_ai_ci")
+                            .HasCharSet("utf8mb4");
 
                 entity.Property(e => e.CreatedAt)
                     .HasColumnName("user_created_at")
@@ -804,6 +855,10 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.Property(e => e.Dob)
                     .HasColumnName("user_date_of_birth")
                     .HasColumnType("timestamp");
+
+                entity.Property(e => e.FirstTimeSocial)
+                    .HasColumnName("user_firstime_social")
+                    .HasDefaultValue(false);
 
                 entity.Property(e => e.Email)
                     .HasColumnName("user_email")

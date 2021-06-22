@@ -301,6 +301,16 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("GroupChatImageUrl")
+                        .HasColumnName("group_chat_imageurl")
+                        .HasColumnType("varchar(500)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<bool>("GroupChatIsOfTeam")
+                        .HasColumnName("group_chat_is_of_team")
+                        .HasColumnType("tinyint(1)");
+
                     b.Property<string>("GroupChatName")
                         .HasColumnName("group_chat_name")
                         .HasColumnType("varchar(50)")
@@ -468,7 +478,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("KanbanListRankInBoard")
                         .HasColumnName("kanban_list_rank_in_board")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(50)");
 
                     b.Property<string>("KanbanListTitle")
                         .HasColumnName("kanban_list_title")
@@ -546,6 +556,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("NotificationActionUserId")
+                        .HasColumnName("notification_actionuser_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
                     b.Property<string>("NotificationContent")
                         .HasColumnName("notification_content")
                         .HasColumnType("text")
@@ -583,6 +599,8 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
                     b.HasKey("NotificationId");
+
+                    b.HasIndex("NotificationActionUserId");
 
                     b.HasIndex("NotificationUserId")
                         .HasName("notification_user_id");
@@ -804,6 +822,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<DateTime?>("TaskDoneDate")
+                        .HasColumnName("task_done_date")
+                        .HasColumnType("timestamp");
+
                     b.Property<string>("TaskImageUrl")
                         .HasColumnName("task_image_url")
                         .HasColumnType("varchar(200)")
@@ -826,7 +848,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.Property<string>("TaskRankInList")
                         .HasColumnName("task_rank_inlist")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                        .HasColumnType("varchar(50)");
 
                     b.Property<DateTime?>("TaskStartDate")
                         .HasColumnName("task_start_date")
@@ -868,6 +890,15 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
 
+                    b.Property<string>("TaskVersionActionUserId")
+                        .HasColumnType("varchar(50)");
+
+                    b.Property<DateTime?>("TaskVersionDoneDate")
+                        .HasColumnType("datetime(6)");
+
+                    b.Property<DateTime?>("TaskVersionStartDate")
+                        .HasColumnType("datetime(6)");
+
                     b.Property<int?>("TaskVersionTaskCompletedPercent")
                         .HasColumnName("task_version_task_completed_percent")
                         .HasColumnType("int");
@@ -887,10 +918,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("varchar(50)")
                         .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .HasAnnotation("MySql:CharSet", "utf8mb4");
-
-                    b.Property<bool?>("TaskVersionTaskIsDeleted")
-                        .HasColumnName("task_version_task_is_deleted")
-                        .HasColumnType("tinyint(1)");
 
                     b.Property<string>("TaskVersionTaskName")
                         .HasColumnName("task_version_task_name")
@@ -913,6 +940,8 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasColumnType("timestamp");
 
                     b.HasKey("TaskVersionId");
+
+                    b.HasIndex("TaskVersionActionUserId");
 
                     b.HasIndex("TaskVersionTaskId")
                         .HasName("task_version_task_id");
@@ -1007,6 +1036,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.Property<bool>("EmailConfirmed")
                         .HasColumnType("tinyint(1)");
 
+                    b.Property<bool?>("FirstTimeSocial")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnName("user_firstime_social")
+                        .HasColumnType("tinyint(1)")
+                        .HasDefaultValue(false);
+
                     b.Property<string>("FullName")
                         .HasColumnName("user_fullname")
                         .HasColumnType("varchar(100)")
@@ -1056,6 +1091,30 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
                     b.Property<bool>("TwoFactorEnabled")
                         .HasColumnType("tinyint(1)");
+
+                    b.Property<string>("UserAddress")
+                        .HasColumnName("user_address")
+                        .HasColumnType("varchar(350)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("UserDescription")
+                        .HasColumnName("user_description")
+                        .HasColumnType("text")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("UserFacebookLink")
+                        .HasColumnName("user_facebook_link")
+                        .HasColumnType("varchar(350)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("UserGithubLink")
+                        .HasColumnName("user_github_link")
+                        .HasColumnType("varchar(350)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
 
                     b.Property<string>("UserName")
                         .HasColumnType("varchar(256) CHARACTER SET utf8mb4")
@@ -1248,6 +1307,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Notification", b =>
                 {
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "NotificationActionUser")
+                        .WithMany("NotificationActionUsers")
+                        .HasForeignKey("NotificationActionUserId");
+
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "NotificationUser")
                         .WithMany("Notification")
                         .HasForeignKey("NotificationUserId")
@@ -1312,6 +1375,10 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.TaskVersion", b =>
                 {
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "TaskVersionActionUser")
+                        .WithMany("TaskVersions")
+                        .HasForeignKey("TaskVersionActionUserId");
+
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Task", "TaskVersionTask")
                         .WithMany("TaskVersion")
                         .HasForeignKey("TaskVersionTaskId")

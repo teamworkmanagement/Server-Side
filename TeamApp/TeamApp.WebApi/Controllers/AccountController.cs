@@ -87,7 +87,13 @@ namespace TeamApp.WebApi.Controllers
         public async Task<IActionResult> ConfirmEmailAsync([FromQuery] string userId, [FromQuery] string code)
         {
             var origin = Request.Headers["origin"];
-            return Ok(await _accountService.ConfirmEmailAsync(userId, code));
+            var scheme = HttpContext.Request.Scheme;
+            var host = HttpContext.Request.Host.Value;
+
+            //https://localhost:9001
+
+            var apiOrigin = string.Concat(scheme, "://", host);
+            return Ok(await _accountService.ConfirmEmailAsync(userId, code, apiOrigin));
         }
 
         /// <summary>
@@ -110,7 +116,13 @@ namespace TeamApp.WebApi.Controllers
         [HttpPost("reset-password")]
         public async Task<IActionResult> ResetPassword(ResetPasswordRequest model)
         {
+            var origin = Request.Headers["origin"];
+            var scheme = HttpContext.Request.Scheme;
+            var host = HttpContext.Request.Host.Value;
 
+            //https://localhost:9001
+
+            var apiOrigin = string.Concat(scheme, "://", host);
             return Ok(await _accountService.ResetPassword(model));
         }
         private string GenerateIPAddress()

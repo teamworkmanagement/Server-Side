@@ -6,6 +6,7 @@ namespace TeamApp.Application.DTOs.Task
 {
     public class TaskUpdateRequest
     {
+        public string UserActionId { get; set; }
         public string TaskId { get; set; }
         public string TaskName { get; set; }
         public string TaskDescription { get; set; }

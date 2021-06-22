@@ -17,5 +17,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<KanbanListUIResponse> AddKanbanList(KanbanListRequest kanbanListRequest);
 
         Task<bool> RemoveList(KanbanListRequest kanbanListRequest);
+
+        Task<bool> ChangeName(KanbanListChangeNameModel kanbanListChangeNameModel);
     }
 }

@@ -14,6 +14,7 @@ using Task = System.Threading.Tasks.Task;
 using TeamApp.Infrastructure.Persistence.Hubs.Post;
 using Microsoft.AspNetCore.SignalR;
 using System.Collections.ObjectModel;
+using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -22,13 +23,37 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         private readonly TeamAppContext _dbContext;
         private readonly INotificationRepository _notificationRepository;
         private readonly IHubContext<HubPostClient, IHubPostClient> _postHub;
+        private readonly IHubContext<HubKanbanClient, IHubKanbanClient> _kanbanHub;
 
-        public CommentRepository(TeamAppContext dbContext, INotificationRepository notificationRepository, IHubContext<HubPostClient, IHubPostClient> postHub)
+        public CommentRepository(TeamAppContext dbContext, INotificationRepository notificationRepository, IHubContext<HubPostClient, IHubPostClient> postHub, IHubContext<HubKanbanClient, IHubKanbanClient> kanbanHub)
         {
             _dbContext = dbContext;
             _notificationRepository = notificationRepository;
+            _kanbanHub = kanbanHub;
             _postHub = postHub;
         }
+
+        public object GetTaskUIKanban(Entities.Task entity) => new
+        {
+            entity.TaskRankInList,
+            KanbanListId = entity.TaskBelongedId,
+            entity.TaskId,
+
+            entity.TaskName,
+            TaskStartDate = entity.TaskStartDate.FormatTime(),
+            TaskDeadline = entity.TaskDeadline.FormatTime(),
+            entity.TaskStatus,
+            entity.TaskDescription,
+
+            entity.TaskImageUrl,
+
+            CommentsCount = _dbContext.Comment.AsNoTracking().Where(c => c.CommentTaskId == entity.TaskId).Count(),
+            FilesCount = _dbContext.File.AsNoTracking().Where(f => f.FileTaskOwnerId == entity.TaskId).Count(),
+
+            entity.TaskCompletedPercent,
+
+            entity.TaskThemeColor,
+        };
 
         public async Task<CommentResponse> AddComment(CommentRequest cmtReq)
         {
@@ -46,17 +71,59 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.Comment.AddAsync(entity);
             var check = await _dbContext.SaveChangesAsync();
 
-            if (cmtReq.CommentUserTagIds.Count != 0)
-                await _notificationRepository.PushNoti(cmtReq.CommentUserTagIds, "Thông báo", "Bạn vừa được nhắc đến trong 1 bình luận");
+            if (cmtReq.CommentUserTagIds != null && cmtReq.CommentUserTagIds.Count != 0)
+                await _notificationRepository.PushNotiCommentTag(new CommentMentionRequest
+                {
+                    ActionUserId = cmtReq.CommentUserId,
+                    UserIds = cmtReq.CommentUserTagIds,
+                    PostId = cmtReq.CommentPostId,
+                    TaskId = cmtReq.CommentTaskId,
+                });
 
+            List<string> clients = new List<string>();
+            object taskUIKanban = new { };
 
-            var query = from p in _dbContext.Participation.AsNoTracking()
-                        join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
-                        where p.ParticipationTeamId == cmtReq.CommentTeamId && uc.Type == "post" && uc.UserId != cmtReq.CommentUserId
-                        select uc.ConnectionId;
+            if (!string.IsNullOrEmpty(cmtReq.CommentPostId))
+            {
+                var query = from p in _dbContext.Participation.AsNoTracking()
+                            join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                            where p.ParticipationTeamId == cmtReq.CommentTeamId && uc.Type == "post"
+                            select uc.ConnectionId;
 
-            query = query.Distinct();
-            var clients = await query.ToListAsync();
+                query = query.Distinct();
+                clients = await query.ToListAsync();
+            }
+            else
+            {
+                var task = await _dbContext.Task.FindAsync(cmtReq.CommentTaskId);
+                var kblist = await _dbContext.KanbanList.FindAsync(task.TaskBelongedId);
+                var board = await _dbContext.KanbanBoard.FindAsync(kblist.KanbanListBoardBelongedId);
+
+                if (!string.IsNullOrEmpty(board.KanbanBoardTeamId))
+                {
+                    var query = from p in _dbContext.Participation.AsNoTracking()
+                                join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                                where p.ParticipationTeamId == board.KanbanBoardTeamId && uc.Type == "kanban"
+                                select uc.ConnectionId;
+
+                    query = query.Distinct();
+                    clients = await query.ToListAsync();
+                }
+                else
+                {
+                    var query =
+                                from uc in _dbContext.UserConnection
+                                where uc.UserId == board.KanbanBoardUserId && uc.Type == "kanban"
+                                select uc.ConnectionId;
+
+                    query = query.Distinct();
+                    clients = await query.ToListAsync();
+                }
+
+                taskUIKanban = GetTaskUIKanban(task);
+
+            }
+
 
             var readOnlyStr = new ReadOnlyCollection<string>(clients);
 
@@ -72,6 +139,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserAvatar = cmtReq.CommentUserAvatar,
                 UserName = cmtReq.CommentUserName,
             });
+
+            if (clients.Count > 0 && cmtReq.CommentTaskId != null)
+            {
+                await _kanbanHub.Clients.Clients(clients).UpdateTask(taskUIKanban);
+            }
 
             if (check > 0)
             {
@@ -92,9 +164,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return null;
         }
 
-        public async Task AddMentions(List<string> userIds)
+        public async Task AddMentions(CommentMentionRequest mentionRequest)
         {
-            await _notificationRepository.PushNoti(userIds, "Tag", "Bạn đã được đề cập đến trong một bình luận");
+            await _notificationRepository.PushNotiCommentTag(mentionRequest);
         }
 
         public async Task<bool> DeleteComment(string cmtId)

@@ -13,8 +13,12 @@ namespace TeamApp.Application.DTOs.TaskVersion
         public string TaskVersionTaskDescription { get; set; }
         public int? TaskVersionTaskPoint { get; set; }
         public DateTime? TaskVersionTaskDeadline { get; set; }
+        public DateTime? TaskVersionStartDate { get; set; }
+        public DateTime? TaskVersionDoneDate { get; set; }
         public string TaskVersionTaskStatus { get; set; }
         public int? TaskVersionTaskCompletedPercent { get; set; }
-        public bool? TaskVersionTaskIsDeleted { get; set; }
+        public string TaskVersionActionUserId { get; set; }
+        public string TaskVersionActionUserName { get; set; }
+        public string TaskVersionActionUserImage { get; set; }
     }
 }

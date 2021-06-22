@@ -3,7 +3,9 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
 using System.IO;
 using System.Threading.Tasks;
@@ -17,6 +19,8 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Infrastructure.Persistence.Helpers;
 using TeamApp.WebApi.Export;
 using TeamApp.WebApi.Extensions;
+using static TeamApp.Application.Utils.Extensions;
+using RadomString = TeamApp.Application.Utils.Extensions.RadomString;
 
 namespace TeamApp.WebApi.Controllers.Test
 {
@@ -56,8 +60,8 @@ namespace TeamApp.WebApi.Controllers.Test
                     UserId = authenticatedUserService.UserId,
                 });
         }
-        [HttpPost("export-excel")]
-        public async Task<IActionResult> GetExcel()
+        [HttpGet("export-excel")]
+        public async Task<FileContentResult> GetExcel()
         {
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             string fileName = "tests.xlsx";
@@ -80,12 +84,13 @@ namespace TeamApp.WebApi.Controllers.Test
         }
 
         [HttpGet("random")]
-        public IActionResult Random()
+        public async Task<IActionResult> Random()
         {
+            var res = await _dbContext.Message.FindAsync("2dc73c78-c510-4387-91e2-3725ffb3178c");
             return Ok(
-                new ApiResponse<string>
+                new ApiResponse<DateTime?>
                 {
-                    Data = RadomString.RandomString(6),
+                    Data = res.MessageCreatedAt.FormatTime(),
                     Succeeded = true,
                 }
                 );
@@ -174,7 +179,7 @@ namespace TeamApp.WebApi.Controllers.Test
 
         [Authorize(Policy = "TeamPolicy")]
         [HttpGet("test-policy")]
-        public IActionResult TestPolicy([FromQuery]TeamResponse teamResponse)
+        public IActionResult TestPolicy([FromQuery] TeamResponse teamResponse)
         {
             return Ok("zzzzzzzz");
         }
@@ -184,6 +189,35 @@ namespace TeamApp.WebApi.Controllers.Test
         public IActionResult TestPolicy2([FromBody] TeamResponse teamResponse)
         {
             return Ok("zzzzzzzz");
+        }
+
+        [HttpGet("listdoublestring")]
+        public IActionResult RandomText(int number)
+        {
+            var rd = new Random();
+            List<int> lengths = new List<int> { 6, 7, 8, 9, 10 };
+            var results = new List<object>();
+            for (int i = 0; i < number; i++)
+            {
+                var a = RadomString.RandomString(lengths[rd.Next(lengths.Count)]);
+                var b = RadomString.RandomString(lengths[rd.Next(lengths.Count)]);
+
+                var check = string.Compare(a, b) < 0;
+                results.Add(new
+                {
+                    a = check ? a : b,
+                    b = check ? b : a,
+                });
+            }
+
+            var obj = new
+            {
+                Counts = number,
+                Data = results,
+            };
+
+            return Content(JsonConvert.SerializeObject(obj), "application/json");
+
         }
     }
 }

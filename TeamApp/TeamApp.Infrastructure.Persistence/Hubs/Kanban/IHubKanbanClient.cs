@@ -16,7 +16,10 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.Kanban
         Task RemoveList(KanbanListUIResponse newTask);
         Task MoveTask(DragTaskModel newTask);
         Task MoveList(SwapListModel swapListModel);
-        Task UpdateTask(TaskUIKanban newTask);
+        Task UpdateTask(object newTask);
         Task UpdateList(KanbanListRequest newTask);
+        Task ReAssignUser(object reAssignObject);
+        Task RenameList(KanbanListChangeNameModel kanbanListChangeNameModel);
+        Task AddFile(object fileObj);
     }
 }

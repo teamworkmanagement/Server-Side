@@ -27,7 +27,7 @@ namespace TeamApp.WebApi.Controllers
         {
             var res = await _repo.GetAllByUserId(search);
 
-            var outPut = new ApiResponse<List<GroupChatResponse>>
+            var outPut = new ApiResponse<CustomListGroupChatResponse>
             {
                 Data = res,
                 Succeeded = true,
@@ -37,7 +37,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> AddGroupChat([FromForm] GroupChatRequest grChatReq)
+        public async Task<IActionResult> AddGroupChat([FromBody] GroupChatRequest grChatReq)
         {
             var res = await _repo.AddGroupChat(grChatReq);
 
@@ -51,10 +51,10 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpPut("{grChatId}")]
-        public async Task<IActionResult> UpdateGroupChat(string grChatId, [FromForm] GroupChatRequest grChatReq)
+        [HttpPatch("image")]
+        public async Task<IActionResult> UpdateGroupChatImageUrl(GroupChatImageUpdateRequest grChatReq)
         {
-            var res = await _repo.UpdateGroupChat(grChatId, grChatReq);
+            var res = await _repo.UpdateGroupChatImageUrl(grChatReq);
 
             var outPut = new ApiResponse<bool>
             {
@@ -79,6 +79,42 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpPost("check-double-exists")]
+        public async Task<IActionResult> CheckDoubleExists([FromBody] CheckDoubleGroupChatExists chatExists)
+        {
+            var res = await _repo.CheckDoubleGroupChatExists(chatExists);
+
+            var outPut = new ApiResponse<object>
+            {
+                Data = res,
+                Succeeded = true,
+            };
+
+            return Ok(outPut);
+        }
+
+        [HttpPost("add-with-members")]
+        public async Task<IActionResult> AddGroupChatWithMembers(GroupChatRequestMembers requestMembers)
+        {
+            var outPut = await _repo.AddGroupChatWithMembers(requestMembers);
+            return Ok(new ApiResponse<string>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
+        }
+
+        [HttpPost("add-members")]
+        public async Task<IActionResult> AddGroupChatMembers(AddMembersRequest request)
+        {
+            var outPut = await _repo.AddGroupChatMembers(request);
+            return Ok(new ApiResponse<string>
+            {
+                Data = outPut,
+                Succeeded = outPut != null
+            });
         }
     }
 }

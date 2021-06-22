@@ -26,6 +26,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// <returns></returns>
         Task<List<CommentResponse>> GetListByTask(string taskId, int skipItems = 0, int pageSize = 3);
 
-        Task AddMentions(List<string> userIds);
+        Task AddMentions(CommentMentionRequest mentionRequest);
     }
 }

@@ -10,15 +10,19 @@ using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Application.Utils;
 using TeamApp.Application.Exceptions;
 using Newtonsoft.Json;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.Notification;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class ParticipationRepository : IParticipationRepository
     {
         private readonly TeamAppContext _dbContext;
-        public ParticipationRepository(TeamAppContext dbContext)
+        private readonly INotificationRepository _notiRepo;
+        public ParticipationRepository(TeamAppContext dbContext, INotificationRepository notiRepo)
         {
             _dbContext = dbContext;
+            _notiRepo = notiRepo;
         }
 
         public async Task<ParticipationResponse> AddParticipation(ParticipationRequest participationRequest)
@@ -80,7 +84,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 entity = new Participation
                 {
                     ParticipationId = Guid.NewGuid().ToString(),
-                    ParticipationUserId = participationRequest.ParticipationUserId,
+                    ParticipationUserId = user.Id,
                     ParticipationTeamId = participationRequest.ParticipationTeamId,
                     ParticipationCreatedAt = DateTime.UtcNow,
                     ParticipationIsDeleted = false,
@@ -103,6 +107,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             if (await _dbContext.SaveChangesAsync() > 0)
             {
+                await _notiRepo.PushNotiJoinTeam(new Application.DTOs.Team.JoinTeamNotification
+                {
+                    ActionUserId = participationRequest.ActionUserId,
+                    UserId = user.Id,
+                    TeamId = participationRequest.ParticipationTeamId,
+                });
+
                 return new ParticipationResponse
                 {
                     ParticipationId = entity.ParticipationId,
@@ -116,19 +127,27 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return null;
         }
 
-        public async Task<bool> DeleteParticipation(string userId, string teamId)
+        public async Task<bool> DeleteParticipation(ParticipationDeleteRequest participationDeleteRequest)
         {
-            var entity = _dbContext.Participation.Where(x => x.ParticipationUserId == userId
-            && x.ParticipationTeamId == teamId);
+            var entity = await _dbContext.Participation.AsNoTracking().Where(x => x.ParticipationUserId == participationDeleteRequest.UserId
+             && x.ParticipationTeamId == participationDeleteRequest.TeamId).FirstOrDefaultAsync();
 
-            if (entity.Count() < 0)
-                return false;
+            if (entity == null)
+                throw new KeyNotFoundException("Not found participation");
 
-            var en = entity.ToList()[0];
-            en.ParticipationIsDeleted = true;
-            _dbContext.Participation.Update(en);
+            entity.ParticipationIsDeleted = true;
+            _dbContext.Participation.Update(entity);
             await _dbContext.SaveChangesAsync();
 
+            var gru = await _dbContext.GroupChatUser.Where(x => x.GroupChatUserGroupChatId == participationDeleteRequest.TeamId && x.GroupChatUserUserId == participationDeleteRequest.UserId)
+                .FirstOrDefaultAsync();
+
+            if (gru != null)
+            {
+                gru.GroupChatUserIsDeleted = true;
+                _dbContext.Update(gru);
+                await _dbContext.SaveChangesAsync();
+            }
             return true;
         }
 

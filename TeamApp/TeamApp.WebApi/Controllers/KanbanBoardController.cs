@@ -5,6 +5,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.KanbanBoard;
+using TeamApp.Application.DTOs.Task;
+using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -16,9 +18,11 @@ namespace TeamApp.WebApi.Controllers
     public class KanbanBoardController : ControllerBase
     {
         private readonly IKanbanBoardRepository _repo;
-        public KanbanBoardController(IKanbanBoardRepository repo)
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        public KanbanBoardController(IKanbanBoardRepository repo, IAuthenticatedUserService authenticatedUserService)
         {
             _repo = repo;
+            _authenticatedUserService = authenticatedUserService;
         }
 
 
@@ -33,11 +37,12 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
-        [HttpGet("ui/{boardId}")]
+        [HttpGet("ui")]
         [ProducesDefaultResponseType(typeof(KanbanBoardUIResponse))]
-        public async Task<IActionResult> GetKanbanBoardUI(string boardId)
+        public async Task<IActionResult> GetKanbanBoardUI([FromQuery] KanbanBoardUIRequest boardUIRequest)
         {
-            var outPut = await _repo.GetKanbanBoardUI(boardId);
+            var userId = _authenticatedUserService.UserId;
+            var outPut = await _repo.GetKanbanBoardUI(userId, boardUIRequest);
 
             return Ok(new ApiResponse<KanbanBoardUIResponse>
             {
@@ -87,6 +92,28 @@ namespace TeamApp.WebApi.Controllers
             {
                 Data = outPut,
                 Succeeded = outPut != null
+            });
+        }
+
+        [HttpGet("search-boards")]
+        public async Task<IActionResult> SearchKanbanBoards([FromQuery] SearchBoardModel searchBoardModel)
+        {
+            var outPut = await _repo.SearchKanbanBoards(searchBoardModel);
+            return Ok(new ApiResponse<List<KanbanBoardResponse>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
+
+        [HttpGet("search-tasklist-inboards")]
+        public async Task<IActionResult> SearchTaskListInBoard([FromQuery] TaskSearchModel taskSearchModel)
+        {
+            var outPut = await _repo.SearchTasksListInBoard(taskSearchModel);
+            return Ok(new ApiResponse<List<TaskUIKanban>>
+            {
+                Succeeded = true,
+                Data = outPut,
             });
         }
     }
