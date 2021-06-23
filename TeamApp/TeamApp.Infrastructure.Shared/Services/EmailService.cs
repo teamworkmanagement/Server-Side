@@ -1,6 +1,10 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Amazon;
+using Amazon.SimpleEmail;
+using Amazon.SimpleEmail.Model;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Net;
 using System.Net.Mail;
 using System.Threading.Tasks;
@@ -46,7 +50,7 @@ namespace TeamApp.Infrastructure.Shared.Services
             return Task.CompletedTask;
         }
 
-        public Task SendAsyncAWS(EmailRequest request)
+        public async Task SendAsyncAWS(EmailRequest request)
         {
             string FROM = "kdsoftverify@gmail.com";
             string FROMNAME = "KDSoftVerify";
@@ -75,7 +79,7 @@ namespace TeamApp.Infrastructure.Shared.Services
             message.Subject = SUBJECT;
             message.Body = BODY;
 
-            using (var client = new System.Net.Mail.SmtpClient(HOST, PORT))
+            /*using (var client = new System.Net.Mail.SmtpClient(HOST, PORT))
             {
                 // Pass SMTP credentials
                 client.Credentials =
@@ -96,9 +100,54 @@ namespace TeamApp.Infrastructure.Shared.Services
                     Console.WriteLine("The email was not sent.");
                     Console.WriteLine("Error message: " + ex.Message);
                 }
+            }*/
+
+            using (var client = new AmazonSimpleEmailServiceClient(RegionEndpoint.APSoutheast1))
+            {
+                var sendRequest = new SendEmailRequest
+                {
+                    Source = FROM,
+                    Destination = new Destination
+                    {
+                        ToAddresses =
+                        new List<string> { TO }
+                    },
+                    Message = new Message
+                    {
+                        Subject = new Content(SUBJECT),
+                        Body = new Body
+                        {
+                            Html = new Content
+                            {
+                                Charset = "UTF-8",
+                                Data = BODY
+                            },
+                            /*Text = new Content
+                            {
+                                Charset = "UTF-8",
+                                Data = BODY
+                            }*/
+                        }
+                    },
+                    // If you are not using a configuration set, comment
+                    // or remove the following line 
+                    //ConfigurationSetName = CONFIGSET,
+                };
+                try
+                {
+                    Console.WriteLine("Sending email using Amazon SES...");
+                    var response = await client.SendEmailAsync(sendRequest);
+                    Console.WriteLine("The email was sent successfully.");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine("The email was not sent.");
+                    Console.WriteLine("Error message: " + ex.Message);
+
+                }
             }
 
-            return Task.CompletedTask;
+            //return Task.CompletedTask;
         }
     }
 }
