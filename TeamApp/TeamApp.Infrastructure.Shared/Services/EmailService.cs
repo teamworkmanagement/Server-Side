@@ -1,4 +1,6 @@
 ﻿using Amazon;
+using Amazon.Runtime;
+using Amazon.Runtime.CredentialManagement;
 using Amazon.SimpleEmail;
 using Amazon.SimpleEmail.Model;
 using Microsoft.Extensions.Logging;
@@ -102,50 +104,68 @@ namespace TeamApp.Infrastructure.Shared.Services
                 }
             }*/
 
-            using (var client = new AmazonSimpleEmailServiceClient(RegionEndpoint.APSoutheast1))
+            var options = new CredentialProfileOptions
             {
-                var sendRequest = new SendEmailRequest
-                {
-                    Source = FROM,
-                    Destination = new Destination
-                    {
-                        ToAddresses =
-                        new List<string> { TO }
-                    },
-                    Message = new Message
-                    {
-                        Subject = new Content(SUBJECT),
-                        Body = new Body
-                        {
-                            Html = new Content
-                            {
-                                Charset = "UTF-8",
-                                Data = BODY
-                            },
-                            /*Text = new Content
-                            {
-                                Charset = "UTF-8",
-                                Data = BODY
-                            }*/
-                        }
-                    },
-                    // If you are not using a configuration set, comment
-                    // or remove the following line 
-                    //ConfigurationSetName = CONFIGSET,
-                };
-                try
-                {
-                    Console.WriteLine("Sending email using Amazon SES...");
-                    var response = await client.SendEmailAsync(sendRequest);
-                    Console.WriteLine("The email was sent successfully.");
-                }
-                catch (Exception ex)
-                {
-                    Console.WriteLine("The email was not sent.");
-                    Console.WriteLine("Error message: " + ex.Message);
+                AccessKey = "AKIAYN6LHKCURUYRT6W3",
+                SecretKey = "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"
+            };
+            var profile = new CredentialProfile("shared_profile", options);
+            profile.Region = RegionEndpoint.APSoutheast1;
+            var sharedFile = new SharedCredentialsFile();
+            sharedFile.RegisterProfile(profile);
 
+
+            CredentialProfile basicProfile;
+            AWSCredentials awsCredentials;
+            if (sharedFile.TryGetProfile("shared_profile", out basicProfile) &&
+    AWSCredentialsFactory.TryGetAWSCredentials(basicProfile, sharedFile, out awsCredentials))
+            {
+                using (var client = new AmazonSimpleEmailServiceClient(awsCredentials, RegionEndpoint.APSoutheast1))
+                {
+                    var sendRequest = new SendEmailRequest
+                    {
+                        Source = FROM,
+                        Destination = new Destination
+                        {
+                            ToAddresses =
+                            new List<string> { TO }
+                        },
+                        Message = new Message
+                        {
+                            Subject = new Content(SUBJECT),
+                            Body = new Body
+                            {
+                                Html = new Content
+                                {
+                                    Charset = "UTF-8",
+                                    Data = BODY
+                                },
+                                /*Text = new Content
+                                {
+                                    Charset = "UTF-8",
+                                    Data = BODY
+                                }*/
+                            }
+                        },
+                        // If you are not using a configuration set, comment
+                        // or remove the following line 
+                        //ConfigurationSetName = CONFIGSET,
+                    };
+                    try
+                    {
+                        Console.WriteLine("Sending email using Amazon SES...");
+                        var response = await client.SendEmailAsync(sendRequest);
+                        Console.WriteLine("The email was sent successfully.");
+                    }
+                    catch (Exception ex)
+                    {
+                        Console.WriteLine("The email was not sent.");
+                        Console.WriteLine("Error message: " + ex.Message);
+
+                    }
                 }
             }
+
 
             //return Task.CompletedTask;
         }
