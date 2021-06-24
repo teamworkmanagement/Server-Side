@@ -23,3 +23,5 @@ jobs:
       run: dotnet build
     - name: Release
       run: dotnet publish -c Release
+    - name: Restart
+      run: systemctl restart teamapiprod.service
