@@ -268,6 +268,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         join t in _dbContext.Task.AsNoTracking() on c.CommentTaskId equals t.TaskId
                         join u in _dbContext.User.AsNoTracking() on c.CommentUserId equals u.Id
                         where t.TaskId == taskId
+                        orderby c.CommentCreatedAt descending
                         select new { c, u.FullName, u.ImageUrl };
 
             query = query.AsNoTracking().Skip(skipItems).Take(pageSize);

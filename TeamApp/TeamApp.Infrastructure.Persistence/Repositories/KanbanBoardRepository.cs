@@ -43,6 +43,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             if (check)
             {
+                var entityKl = new KanbanList
+                {
+                    KanbanListId = Guid.NewGuid().ToString(),
+                    KanbanListTitle = "Mới nhất",
+                    KanbanListBoardBelongedId = entity.KanbanBoardId,
+                    KanbanListRankInBoard = "iiiiii",
+                    KanbanListDefault = true,
+                };
+
+                await _dbContext.KanbanList.AddAsync(entityKl);
+                await _dbContext.SaveChangesAsync();
+
                 return new KanbanBoardResponse
                 {
                     KanbanBoardId = entity.KanbanBoardId,
@@ -228,6 +240,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     KanbanListTitle = kl.KanbanListTitle,
                     KanbanListBoardBelongedId = kl.KanbanListBoardBelongedId,
                     KanbanListRankInBoard = kl.KanbanListRankInBoard,
+                    KanbanListDefault = kl.KanbanListDefault,
                     TaskUIKanbans = listUITasks,
                 };
 

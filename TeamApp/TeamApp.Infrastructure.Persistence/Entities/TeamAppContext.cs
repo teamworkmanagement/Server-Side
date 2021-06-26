@@ -927,6 +927,9 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 
                 entity.HasKey(e => e.KanbanListId);
 
+                entity.Property(e => e.KanbanListDefault)
+                      .HasColumnName("kanban_list_default");
+
                 entity.Property(e => e.KanbanListId)
                     .HasColumnName("kanban_list_id")
                     .HasColumnType("varchar(50)")

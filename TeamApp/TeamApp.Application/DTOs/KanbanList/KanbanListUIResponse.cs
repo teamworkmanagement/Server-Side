@@ -11,6 +11,7 @@ namespace TeamApp.Application.DTOs.KanbanList
         public string KanbanListTitle { get; set; }
         public string KanbanListBoardBelongedId { get; set; }
         public string KanbanListRankInBoard { get; set; }
+        public bool? KanbanListDefault { get; set; }
         public List<TaskUIKanban> TaskUIKanbans { get; set; }
     }
 }

@@ -15,6 +15,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Remove="Migrations\20210625153640_addkblistdfprop.cs" />
+    <Compile Remove="Migrations\20210625153640_addkblistdfprop.Designer.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="AWSSDK.Extensions.NETCore.Setup" Version="3.7.0.1" />
     <PackageReference Include="Dapper" Version="2.0.35" />
     <PackageReference Include="EPPlus" Version="5.6.1" />
