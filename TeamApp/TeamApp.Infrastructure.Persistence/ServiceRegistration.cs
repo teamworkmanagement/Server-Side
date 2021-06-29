@@ -52,6 +52,7 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IKanbanBoardRepository, KanbanBoardRepository>();
             services.AddTransient<IKanbanListRepository, KanbanListRepository>();
             services.AddTransient<IStatisticsRepository, StatisticsRepository>();
+            services.AddTransient<IFeedbackRepository, FeedbackRepository>();
             #endregion
             services.AddTransient<IFirebaseMessagingService, FirebaseMessagingService>();
             ConfigAuthService(services, configuration);
@@ -70,7 +71,7 @@ namespace TeamApp.Infrastructure.Persistence
                 options.Tokens.PasswordResetTokenProvider = "CutomPasswordReset";
             }).AddEntityFrameworkStores<TeamAppContext>().AddDefaultTokenProviders()
             .AddTokenProvider<CustomPasswordResetTokenProvider<User>>("CutomPasswordReset");
-                
+
             #region Services
             services.AddTransient<IAccountService, AccountService>();
             #endregion

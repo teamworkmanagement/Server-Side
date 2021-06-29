@@ -42,6 +42,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<PostReact> PostReact { get; set; }
         public virtual DbSet<KanbanBoard> KanbanBoard { get; set; }
         public virtual DbSet<KanbanList> KanbanList { get; set; }
+        public virtual DbSet<Feedback> Feedback { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -72,6 +73,32 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnType("varchar(50)")
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
+            });
+
+            modelBuilder.Entity<Feedback>(entity =>
+            {
+                entity.ToTable("feedback");
+                entity.HasKey(e => e.FeedbackId);
+                entity.Property(e => e.FeedbackId)
+                    .HasColumnName("feedback_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.FeedbackCreatedAt)
+                    .HasColumnName("feedback_created_at")
+                    .HasColumnType("timestamp");
+
+                entity.Property(e => e.FeedbackContent)
+                    .HasColumnName("feedback_content")
+                    .HasColumnType("text")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+
+                entity.HasOne(f => f.UserFeedback)
+                      .WithMany(u => u.Feedbacks)
+                      .HasForeignKey(f => f.UserFeedbackId);
             });
 
             modelBuilder.Entity<Comment>(entity =>
