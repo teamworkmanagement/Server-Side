@@ -150,6 +150,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (board == null)
                 throw new KeyNotFoundException("Board not found");
 
+            var outPut = new KanbanBoardUIResponse();
+
             if (boardUIRequest.IsOfTeam)
             {
                 if (board.KanbanBoardTeamId != boardUIRequest.OwnerId)
@@ -161,22 +163,27 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 if (memberCheck == null)
                     throw new KeyNotFoundException("Not found");
+
+                var team = await _dbContext.Team.FindAsync(memberCheck.ParticipationTeamId);
+
+                if (team.TeamLeaderId == userId)
+                    outPut.AdminAction = true;
             }
             else
             {
-                if (board.KanbanBoardUserId != boardUIRequest.OwnerId)
+                if (board.KanbanBoardUserId != boardUIRequest.OwnerId || userId != boardUIRequest.OwnerId)
                     throw new KeyNotFoundException("Board not found");
+
+                outPut.AdminAction = true;
             }
 
             var taskListUIs = new List<TaskUIKanban>();
-            var outPut = new KanbanBoardUIResponse
-            {
-                KanbanBoardId = board.KanbanBoardId,
-                KanbanBoardUserId = board.KanbanBoardUserId,
-                KanbanBoardTeamId = board.KanbanBoardTeamId,
-                KanbanBoardIsOfTeam = board.KanbanBoardIsOfTeam,
-                KanbanListUIs = new List<KanbanListUIResponse>(),
-            };
+
+            outPut.KanbanBoardId = board.KanbanBoardId;
+            outPut.KanbanBoardUserId = board.KanbanBoardUserId;
+            outPut.KanbanBoardTeamId = board.KanbanBoardTeamId;
+            outPut.KanbanBoardIsOfTeam = board.KanbanBoardIsOfTeam;
+            outPut.KanbanListUIs = new List<KanbanListUIResponse>();
 
             //danh sach kanbanlist cua 1 board
             var listKanbanQuery = from kl in _dbContext.KanbanList.AsNoTracking()

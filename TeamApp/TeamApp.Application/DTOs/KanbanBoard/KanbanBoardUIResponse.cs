@@ -11,6 +11,7 @@ namespace TeamApp.Application.DTOs.KanbanBoard
         public bool? KanbanBoardIsOfTeam { get; set; }
         public string KanbanBoardUserId { get; set; }
         public string KanbanBoardTeamId { get; set; }
+        public bool? AdminAction { get; set; } = false;
         public List<KanbanListUIResponse> KanbanListUIs { get; set; }
     }
 }
