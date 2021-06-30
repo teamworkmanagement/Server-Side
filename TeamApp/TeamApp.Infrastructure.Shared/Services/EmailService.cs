@@ -106,8 +106,8 @@ namespace TeamApp.Infrastructure.Shared.Services
 
             var options = new CredentialProfileOptions
             {
-                AccessKey = "AKIAYN6LHKCURUYRT6W3",
-                SecretKey = "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"
+                AccessKey = "AKIAYN6LHKCU4EYT2EMT",
+                SecretKey = "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"
             };
             var profile = new CredentialProfile("shared_profile", options);
             profile.Region = RegionEndpoint.APSoutheast1;
