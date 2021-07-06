@@ -61,6 +61,7 @@ namespace TeamApp.Infrastructure.Persistence
         {
             services.AddSingleton<IAuthorizationHandler, IpCheckHandler>();
             services.AddSingleton<IAuthorizationHandler, TeamCheckHandler>();
+            services.AddSingleton<IAuthorizationHandler, AdminCheckHandler>();
             services.AddIdentity<User, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 6;
@@ -84,6 +85,9 @@ namespace TeamApp.Infrastructure.Persistence
 
                 options.AddPolicy("TeamPolicy",
                     policy => policy.Requirements.Add(new TeamCheckRequirement { }));
+
+                options.AddPolicy("AdminPolicy",
+                    policy => policy.Requirements.Add(new AdminCheckRequirement { }));
             });
             services.AddAuthentication(options =>
             {
