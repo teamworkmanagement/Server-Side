@@ -135,7 +135,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var task = await _dbContext.Task.FindAsync(assignNotiModel.TaskId);
             var kl = await _dbContext.KanbanList.FindAsync(task.TaskBelongedId);
-            var link = $"/managetask/teamtasks?b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
+            var board = await _dbContext.KanbanBoard.FindAsync(kl.KanbanListBoardBelongedId);
+            var link = $"/managetask/teamtasks?gr={board.KanbanBoardTeamId}&b={kl.KanbanListBoardBelongedId}&t={task.TaskId}";
 
             var actionUser = await _dbContext.User.FindAsync(assignNotiModel.ActionUserId);
 
@@ -144,9 +145,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationActionFullName = actionUser.FullName,
                 NotificationActionAvatar = actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
-                NotificationContent = "đã nhắc đến bạn trong 1 bài viết",
+                NotificationContent = "đã giao cho bạn 1 công việc",
                 NotificationStatus = false,
                 NotificationLink = link,
+                NotificationCreatedAt = DateTime.UtcNow,
             });
 
 
@@ -155,11 +157,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationId = Guid.NewGuid().ToString(),
                 NotificationUserId = assignNotiModel.UserId,
                 NotificationGroup = notiGroup,
-                NotificationContent = "Bạn vừa được giao một công việc",
+                NotificationContent = "đã giao cho bạn 1 công việc",
                 NotificationCreatedAt = DateTime.UtcNow,
                 NotificationStatus = false,
                 NotificationIsDeleted = false,
                 NotificationLink = link,
+                NotificationActionUserId = assignNotiModel.ActionUserId,
             };
 
             await _dbContext.SingleInsertAsync(noti);
