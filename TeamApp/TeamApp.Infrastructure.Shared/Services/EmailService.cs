@@ -54,7 +54,7 @@ namespace TeamApp.Infrastructure.Shared.Services
 
         public async Task SendAsyncAWS(EmailRequest request)
         {
-            string FROM = "kdsoftverify@gmail.com";
+            string FROM = "dung.thpt.hk@gmail.com";
             string FROMNAME = "KDSoftVerify";
 
             string TO = request.To;

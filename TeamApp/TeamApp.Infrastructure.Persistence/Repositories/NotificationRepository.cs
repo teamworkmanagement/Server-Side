@@ -110,7 +110,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     NotificationId = Guid.NewGuid().ToString(),
                     NotificationUserId = u,
                     NotificationGroup = notiGroup,
-                    NotificationContent = "Bạn vừa được nhắc đến trong 1 bài viết",
+                    NotificationContent = "đã nhắc đến bạn trong 1 bài viết",
                     NotificationCreatedAt = DateTime.UtcNow,
                     NotificationStatus = false,
                     NotificationIsDeleted = false,

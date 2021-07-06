@@ -524,7 +524,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                  select kl.KanbanListId).ToListAsync();
 
             //toàn bộ task của 1 board
-            var listTasksQuery = await (from t in _dbContext.Task.AsNoTracking()
+            var listTasksRes = await (from t in _dbContext.Task.AsNoTracking()
                                         join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
 
                                         from th in tHandle.DefaultIfEmpty()
@@ -549,30 +549,35 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             if (taskSearchModel.StartRange != null)
             {
-                listTasksQuery = listTasksQuery.Where(x => x.t.TaskCreatedAt.Value.Date >= taskSearchModel.StartRange.Value.Date).ToList();
+                listTasksRes = listTasksRes.Where(x => x.t.TaskCreatedAt.Value.Date >= taskSearchModel.StartRange.Value.Date).ToList();
             }
 
             if (taskSearchModel.EndRange != null)
             {
-                listTasksQuery = listTasksQuery.Where(x => x.t.TaskCreatedAt.Value.Date <= taskSearchModel.EndRange.Value.Date).ToList();
+                listTasksRes = listTasksRes.Where(x => x.t.TaskCreatedAt.Value.Date <= taskSearchModel.EndRange.Value.Date).ToList();
             }
 
             if (!string.IsNullOrEmpty(taskSearchModel.TaskName))
             {
-                listTasksQuery = listTasksQuery.Where(x => x.t.TaskName.UnsignUnicode().Contains(taskName)).ToList();
+                listTasksRes = listTasksRes.Where(x => x.t.TaskName.UnsignUnicode().Contains(taskName)).ToList();
             }
 
-            if (!string.IsNullOrEmpty(taskSearchModel.UserAssignId))
+            if (!string.IsNullOrEmpty(taskSearchModel.TaskDescription))
             {
-                listTasksQuery = listTasksQuery.Where(x => x.Id == taskSearchModel.UserAssignId).ToList();
+                listTasksRes = listTasksRes.Where(x => x.t.TaskDescription!=null && x.t.TaskDescription.UnsignUnicode().Contains(taskDescription)).ToList();
+            }
+
+            if (!string.IsNullOrEmpty(taskSearchModel.UserId))
+            {
+                listTasksRes = listTasksRes.Where(x => x.Id == taskSearchModel.UserId).ToList();
             }
 
             if (!string.IsNullOrEmpty(taskSearchModel.TaskStatus))
             {
-                listTasksQuery = listTasksQuery.Where(x => x.t.TaskStatus == taskSearchModel.TaskStatus).ToList();
+                listTasksRes = listTasksRes.Where(x => x.t.TaskStatus == taskSearchModel.TaskStatus).ToList();
             }
 
-            var responses = listTasksQuery.Select(x => new TaskUIKanban
+            var responses = listTasksRes.Select(x => new TaskUIKanban
             {
                 TaskRankInList = x.t.TaskRankInList,
                 KanbanListId = x.t.TaskBelongedId,

@@ -12,6 +12,6 @@ namespace TeamApp.Application.DTOs.KanbanBoard
         public string BoardId { get; set; }
         public DateTime? StartRange { get; set; }
         public DateTime? EndRange { get; set; }
-        public string UserAssignId { get; set; }
+        public string UserId { get; set; }
     }
 }
