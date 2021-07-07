@@ -8,6 +8,5 @@ namespace TeamApp.Application.DTOs.Account
     {
         public string AccessToken { get; set; }
         public string RefreshToken { get; set; }
-        public long ExprieToken { get; set; }
     }
 }

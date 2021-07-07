@@ -301,7 +301,6 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 {
                     RefreshToken = StringHelper.EncryptString(refreshObj.Token),
                     AccessToken = StringHelper.EncryptString(new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken)),
-                    ExprieToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds(),
                 }
             };
 
