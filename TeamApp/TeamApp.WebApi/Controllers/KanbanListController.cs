@@ -21,7 +21,13 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
+        /// <summary>
+        /// Add kanbanlist API
+        /// </summary>
+        /// <param name="kanbanListRequest"></param>
+        /// <returns></returns>
         [HttpPost]
+        [ProducesDefaultResponseType(typeof(ApiResponse<KanbanListUIResponse>))]
         public async Task<IActionResult> AddKanbanList(KanbanListRequest kanbanListRequest)
         {
             var outPut = await _repo.AddKanbanList(kanbanListRequest);
@@ -34,11 +40,12 @@ namespace TeamApp.WebApi.Controllers
         }
 
         /// <summary>
-        /// Remove kanbanlist
+        /// Remove kanbanlist API
         /// </summary>
         /// <param name="kanbanListRequest"></param>
         /// <returns></returns>
         [HttpDelete]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> RemoveKanbanList([FromQuery] KanbanListRequest kanbanListRequest)
         {
             var result = await _repo.RemoveList(kanbanListRequest);
@@ -49,7 +56,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Change kanbanlist name API
+        /// </summary>
+        /// <param name="kanbanListChangeNameModel"></param>
+        /// <returns></returns>
         [HttpPatch("name-list")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> ChangeNameList(KanbanListChangeNameModel kanbanListChangeNameModel)
         {
             var result = await _repo.ChangeName(kanbanListChangeNameModel);

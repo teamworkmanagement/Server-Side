@@ -41,53 +41,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return entity.MessageId;
         }
 
-        public async Task<bool> DeleteMessage(string msgId)
-        {
-            var entity = await _dbContext.Message.FindAsync(msgId);
-            if (entity == null)
-                return false;
-
-            entity.MessageIsDeleted = true;
-            _dbContext.Message.Update(entity);
-            await _dbContext.SaveChangesAsync();
-
-            return true;
-        }
-
-        public async Task<List<MessageResponse>> GetAllByUserId(string userId)
-        {
-            var query = from m in _dbContext.Message
-                        where m.MessageUserId == userId
-                        select m;
-
-            return await query.Select(x => new MessageResponse
-            {
-                MessageId = x.MessageId,
-                MessageUserId = x.MessageUserId,
-                MessageGroupChatId = x.MessageGroupChatId,
-                MessageContent = x.MessageContent,
-                MessageCreatedAt = x.MessageCreatedAt.FormatTime(),
-                MessageIsDeleted = x.MessageIsDeleted,
-            }).ToListAsync();
-        }
-
-        public async Task<List<MessageResponse>> GetByGroupId(string groupId)
-        {
-            var query = from m in _dbContext.Message
-                        where m.MessageGroupChatId == groupId
-                        select m;
-
-            return await query.Select(x => new MessageResponse
-            {
-                MessageId = x.MessageId,
-                MessageUserId = x.MessageUserId,
-                MessageGroupChatId = x.MessageGroupChatId,
-                MessageContent = x.MessageContent,
-                MessageCreatedAt = x.MessageCreatedAt.FormatTime(),
-                MessageIsDeleted = x.MessageIsDeleted,
-            }).OrderBy(x => x.MessageCreatedAt).ToListAsync();
-        }
-
         public async Task<PagedResponse<MessageResponse>> GetPaging(MessageRequestParameter parameter)
         {
             var group = await _dbContext.GroupChat.FindAsync(parameter.GroupId);

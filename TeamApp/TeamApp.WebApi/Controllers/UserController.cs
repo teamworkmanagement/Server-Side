@@ -20,11 +20,12 @@ namespace TeamApp.WebApi.Controllers
         }
 
         /// <summary>
-        /// Get user by their id
+        /// Get user by user id API
         /// </summary>
         /// <param name="userId"></param>
         /// <returns></returns>
         [HttpGet("{userId}")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<UserResponse>))]
         public async Task<IActionResult> GetByUserId(string userId)
         {
             var outPut = await _repo.GetById(userId);
@@ -36,19 +37,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
 
-        [HttpPut]
-        public async Task<IActionResult> UpdateUser([FromForm] string userId, [FromForm] UserRequest userReq)
-        {
-            return Ok(await _repo.UpdateUser(userId, userReq));
-        }
-
-        [HttpDelete("{userId}")]
-        public async Task<IActionResult> DeleteUser(string userId)
-        {
-            return Ok(await _repo.DeleteUser(userId));
-        }
-
-        [HttpGet("searchuser-nojointeam")]
+        /*[HttpGet("searchuser-nojointeam")]
         public async Task<IActionResult> SearchUserNoJoinTeam(string teamId, string keyWord)
         {
             var outPut = await _repo.SearchUserNoJoinTeam(teamId, keyWord);
@@ -57,15 +46,16 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
                 Succeeded = outPut == null ? false : true,
             });
-        }
+        }*/
 
         /// <summary>
-        /// Get all user for tag
+        /// Get all user for tag API
         /// </summary>
         /// <param name="userId"></param>
         /// <param name="teamId"></param>
         /// <returns></returns>
         [HttpGet("getuser-inteam")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<UserResponse>>))]
         public async Task<IActionResult> GetAllUserInTeam(string userId, string teamId = null)
         {
             var outPut = await _repo.GetAllUserInTeam(userId, teamId);
@@ -76,7 +66,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Search all users in all group user joined API
+        /// </summary>
+        /// <param name="searchModel"></param>
+        /// <returns></returns>
         [HttpGet("search-user")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<UserResponse>>))]
         public async Task<IActionResult> SearchUser([FromQuery] UserSearchModel searchModel)
         {
             var outPut = await _repo.SearchUser(searchModel.UserId, searchModel.Keyword, searchModel.IsEmail);
@@ -87,7 +83,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Search users to add to exists chat API
+        /// </summary>
+        /// <param name="searchModel"></param>
+        /// <returns></returns>
         [HttpGet("search-user-add-chat")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<UserResponse>>))]
         public async Task<IActionResult> SearchUserExistsAddChat([FromQuery] UserExistsChatAddModel searchModel)
         {
             var outPut = await _repo.SearchUserAddToExistsChat(searchModel.UserId, searchModel.GroupChatId, searchModel.Keyword, searchModel.IsEmail);
@@ -98,7 +100,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Search users for kanban action API
+        /// </summary>
+        /// <param name="userKanbanSearch"></param>
+        /// <returns></returns>
         [HttpGet("search-users-kanban")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<UserResponse>>))]
         public async Task<IActionResult> SearchUsersKanban([FromQuery] UserKanbanSearchModel userKanbanSearch)
         {
             var outPut = await _repo.SearchUsersForKanban(userKanbanSearch);
@@ -109,7 +117,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Update user avatar API
+        /// </summary>
+        /// <param name="updateImageModel"></param>
+        /// <returns></returns>
         [HttpPatch("image")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> UpdateUserImage(UpdateImageModel updateImageModel)
         {
             var outPut = await _repo.UpdateUserImage(updateImageModel);

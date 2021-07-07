@@ -15,7 +15,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<PagedResponse<PostResponse>> GetPostPagingUser(PostRequestParameter parameter);
         Task<PagedResponse<PostResponse>> GetPostPagingTeam(PostRequestParameter parameter);
         Task<PostResponse> AddPost(PostRequest postReq);
-        Task<bool> UpdatePost(string postId, PostRequest postReq);
         Task<bool> DeletePost(string postId);
         Task<string> AddReact(ReactModel react);
         Task<bool> DeleteReact(ReactModel react);

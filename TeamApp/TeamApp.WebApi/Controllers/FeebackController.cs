@@ -21,6 +21,12 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
+        /// <summary>
+        /// Add feedback API
+        /// </summary>
+        /// <param name="feedbackRequest"></param>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
         [HttpPost]
         public async Task<IActionResult> AddFeedback([FromBody] FeedbackRequest feedbackRequest)
         {

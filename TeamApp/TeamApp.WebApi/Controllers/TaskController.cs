@@ -25,63 +25,13 @@ namespace TeamApp.WebApi.Controllers
             _authenticatedUserService = authenticatedUserService;
         }
 
-        [HttpGet("byuserid/{userId}")]
-        public async Task<IActionResult> GetAllByUserId(string userId)
-        {
-            var res = await _repo.GetAllByUserId(userId);
-
-            var outPut = new ApiResponse<List<TaskResponse>>
-            {
-                Data = res,
-                Succeeded = false,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpGet("byteamid/{teamId}")]
-        public async Task<IActionResult> GetAllByTeamId(string teamId)
-        {
-            var res = await _repo.GetAllByTeamId(teamId);
-
-            var outPut = new ApiResponse<List<TaskResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpGet("byteamid/{teamId}/byuserid/{userId}")]
-        public async Task<IActionResult> GetAllByUserTeamId(string userId, string teamId)
-        {
-            var res = await _repo.GetAllByUserTeamId(userId, teamId);
-
-            var outPut = new ApiResponse<List<TaskResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpGet]
-        public async Task<IActionResult> GetPaging([FromQuery] RequestParameter parameter)
-        {
-            var res = await _repo.GetPaging(parameter);
-
-            var outPut = new ApiResponse<PagedResponse<TaskResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
+        /// <summary>
+        /// Add task API
+        /// </summary>
+        /// <param name="taskReq"></param>
+        /// <returns></returns>
         [HttpPost]
+        [ProducesDefaultResponseType(typeof(ApiResponse<string>))]
         public async Task<IActionResult> AddTask(TaskRequest taskReq)
         {
             var res = await _repo.AddTask(taskReq);
@@ -95,7 +45,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Update task API
+        /// </summary>
+        /// <param name="taskReq"></param>
+        /// <returns></returns>
         [HttpPut]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> UpdateTask(TaskUpdateRequest taskReq)
         {
             var res = await _repo.UpdateTask(taskReq);
@@ -110,7 +66,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Remove task API
+        /// </summary>
+        /// <param name="taskId"></param>
+        /// <returns></returns>
         [HttpDelete("{taskId}")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> DeleteTask(string taskId)
         {
             var res = await _repo.DeleteTask(taskId);
@@ -125,7 +87,7 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpGet("{taskId}")]
+        /*[HttpGet("{taskId}")]
         [ProducesDefaultResponseType(typeof(TaskResponse))]
         public async Task<IActionResult> GetTaskById(string taskId)
         {
@@ -136,9 +98,15 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = outPut == null ? false : true,
                 Data = outPut,
             });
-        }
+        }*/
 
+        /// <summary>
+        /// Drag task API
+        /// </summary>
+        /// <param name="dragTaskModel"></param>
+        /// <returns></returns>
         [HttpPost("drag-task")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> DragTask(DragTaskModel dragTaskModel)
         {
             var outPut = await _repo.DragTask(dragTaskModel);
@@ -150,7 +118,13 @@ namespace TeamApp.WebApi.Controllers
                 });
         }
 
+        /// <summary>
+        /// Get task by filter API
+        /// </summary>
+        /// <param name="taskGetRequest"></param>
+        /// <returns></returns>
         [HttpGet("boardtask")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<TaskResponse>))]
         public async Task<IActionResult> GetTaskByBoard([FromQuery] TaskGetRequest taskGetRequest)
         {
             var userId = _authenticatedUserService.UserId;

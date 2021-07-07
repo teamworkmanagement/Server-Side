@@ -25,80 +25,13 @@ namespace TeamApp.WebApi.Controllers
             _authenticatedUserService = authenticatedUserService;
         }
 
-        [HttpGet("bytaskid/{taskId}")]
-        public async Task<IActionResult> GetAllByTaskId(string taskId)
-        {
-            var res = await _repo.GetAllByTaskId(taskId);
-
-            var outPut = new ApiResponse<List<HandleTaskResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpGet("byuserid/{userId}")]
-        public async Task<IActionResult> GetAllByUserId(string userId)
-        {
-            var res = await _repo.GetAllByUserId(userId);
-
-            var outPut = new ApiResponse<List<HandleTaskResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddHandleTask(HandleTaskRequest handleTaskReq)
-        {
-            var res = await _repo.AddHandleTask(handleTaskReq);
-
-            var outPut = new ApiResponse<HandleTaskResponse>
-            {
-                Data = res,
-                Succeeded = res == null ? false : true,
-                Message = res == null ? "Thêm thất bại" : null,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpPut("{handleTaskId}")]
-        public async Task<IActionResult> UpdateHandleTask(string handleTaskId, [FromForm] HandleTaskRequest handleTaskReq)
-        {
-            var res = await _repo.UpdateHandleTask(handleTaskId, handleTaskReq);
-
-            var outPut = new ApiResponse<bool>
-            {
-                Data = res,
-                Succeeded = res,
-                Message = !res ? "Sửa thất bại" : null,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpDelete("{handleTaskId}")]
-        public async Task<IActionResult> DeleteHandleTask(string handleTaskId)
-        {
-            var res = await _repo.DeleteHandleTask(handleTaskId);
-
-            var outPut = new ApiResponse<bool>
-            {
-                Data = res,
-                Succeeded = res,
-                Message = !res ? "Xóa thất bại" : null,
-            };
-
-            return Ok(outPut);
-        }
-
+        /// <summary>
+        /// Assign user in task API
+        /// </summary>
+        /// <param name="reAssignModel"></param>
+        /// <returns></returns>
         [HttpPost("reassign-task")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), 200)]
         public async Task<IActionResult> ReAssignTask(ReAssignModel reAssignModel)
         {
             reAssignModel.UserActionId = _authenticatedUserService.UserId;

@@ -41,7 +41,7 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<ITaskRepository, TaskRepository>();
             services.AddTransient<IPostRepository, PostRepository>();
             services.AddTransient<ICommentRepository, CommentRepository>();
-            services.AddTransient<ITagRepository, TagRepository>();
+            //services.AddTransient<ITagRepository, TagRepository>();
             services.AddTransient<IHandleTaskRepository, HandleTaskRepository>();
             services.AddTransient<INotificationRepository, NotificationRepository>();
             services.AddTransient<ITaskVersionRepository, TaskVersionRepository>();
@@ -53,6 +53,7 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IKanbanListRepository, KanbanListRepository>();
             services.AddTransient<IStatisticsRepository, StatisticsRepository>();
             services.AddTransient<IFeedbackRepository, FeedbackRepository>();
+            services.AddTransient<ISearchRepository, SearchRepository>();
             #endregion
             services.AddTransient<IFirebaseMessagingService, FirebaseMessagingService>();
             ConfigAuthService(services, configuration);
