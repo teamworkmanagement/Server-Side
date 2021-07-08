@@ -220,5 +220,24 @@ namespace TeamApp.WebApi.Controllers.Test
             return Content(JsonConvert.SerializeObject(obj), "application/json");
 
         }
+
+        [HttpPost("excel-export-file")]
+        public async Task<IActionResult> ExcelExportFile(IFormFile file)
+        {
+            var base64 = "";
+            using (var ms = new MemoryStream())
+            {
+                file.CopyTo(ms);
+                var fileBytes = ms.ToArray();
+                base64 = Convert.ToBase64String(fileBytes);
+                // act on the Base64 data
+            }
+
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = "tests.xlsx";
+            byte[] data = await ExportExcel.GenerateExcelFromImageFile2(base64);
+
+            return File(data, contentType, fileName);
+        }
     }
 }

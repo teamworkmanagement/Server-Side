@@ -1,8 +1,12 @@
 ﻿using OfficeOpenXml;
+using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace TeamApp.WebApi.Export
@@ -76,6 +80,86 @@ namespace TeamApp.WebApi.Export
                 }
             }
             return await package.GetAsByteArrayAsync();
+        }
+
+        private static Bitmap Base64StringToBitmap(string base64String)
+        {
+            var bitmapData = Convert.FromBase64String(FixBase64ForImage(base64String));
+            var streamBitmap = new System.IO.MemoryStream(bitmapData);
+            var bitmap = new Bitmap((Bitmap)Image.FromStream(streamBitmap));
+            return bitmap;
+        }
+
+        private static string FixBase64ForImage(string Image)
+        {
+            var sbText = new System.Text.StringBuilder(Image, Image.Length);
+            sbText.Replace("\r\n", String.Empty);
+            sbText.Replace(" ", String.Empty);
+            return sbText.ToString();
+        }
+
+        public static async Task<byte[]> GenerateExcelFromImageFile(string imageBase64)
+        {
+            var package = new ExcelPackage();
+            var receiptSheet = package.Workbook.Worksheets.Add("Receipt");
+            int rowIndex = 1;
+            int columnIndex = 1;
+
+            imageBase64 = imageBase64.Replace(" ", "+");
+            int mod4 = imageBase64.Length % 4;
+            if (mod4 > 0)
+            {
+                imageBase64 += new string('=', 4 - mod4);
+            }
+
+            var image = Base64StringToBitmap(imageBase64);
+            ExcelPicture picture = null;
+            if (image != null)
+            {
+                picture = receiptSheet.Drawings.AddPicture("pic" + rowIndex.ToString() + columnIndex.ToString(), image);
+                picture.From.Column = columnIndex;
+                picture.From.Row = rowIndex;
+                picture.SetSize(600, 400);
+            }
+            package.Save();
+
+            return await package.GetAsByteArrayAsync();
+
+        }
+
+        public static int Pixel2MTU(int pixels)
+        {
+            int mtus = pixels * 9525;
+            return mtus;
+        }
+
+        public static async Task<byte[]> GenerateExcelFromImageFile2(string imageBase64)
+        {
+            var package = new ExcelPackage();
+            var receiptSheet = package.Workbook.Worksheets.Add("Receipt");
+
+            byte[] imageBytes = Convert.FromBase64String(imageBase64);
+            // Convert byte[] to Image
+            using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+            {
+                Image image = Image.FromStream(ms, true);
+
+                ExcelPicture pic = receiptSheet.Drawings.AddPicture("picture_name", image);
+
+                pic.From.Column = 8;
+                pic.From.Row = 8;
+
+                var endColumn = image.Width / 68;
+                var endRow = image.Height / 68;
+
+                receiptSheet.Cells[8, 8, 26, 25].Merge = true;
+
+            }
+
+            package.Save();
+
+            return await package.GetAsByteArrayAsync();
+
         }
     }
 }
