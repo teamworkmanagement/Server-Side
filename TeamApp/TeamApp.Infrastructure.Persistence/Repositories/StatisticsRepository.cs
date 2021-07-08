@@ -133,7 +133,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 case "week":
                     startEndDates = new List<StartEndDate>();
                     var now = DateTime.UtcNow.Date;
-                    
+
                     for (int i = 0; i < 7; i++)
                     {
                         startEndDates.Add(new StartEndDate
@@ -218,7 +218,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 case "week":
                     startEndDates = new List<StartEndDate>();
                     var now = DateTime.UtcNow.Date;
-                    
+
                     for (int i = 0; i < 7; i++)
                     {
                         startEndDates.Add(new StartEndDate
@@ -232,7 +232,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 case "month":
                     startEndDates = new List<StartEndDate>();
                     now = DateTime.UtcNow.Date;
-                    
+
                     for (int i = 0; i < 30; i++)
                     {
                         startEndDates.Add(new StartEndDate
@@ -301,7 +301,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                         $"where date(task.task_done_date) >= '{startString}' and date(task.task_done_date) < '{endString}' ) taskdone " +
                         "join handle_task on handle_task.handle_task_task_id = taskdone.task_id " +
-                        $"where handle_task.handle_task_user_id = '${statisticsRequest.UserId}'";
+                        $"where handle_task.handle_task_user_id = '{statisticsRequest.UserId}'";
 
 
             using (var connection = new MySqlConnection(connectionString))
@@ -351,7 +351,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 case "week":
                     startEndDates = new List<StartEndDate>();
                     var now = DateTime.UtcNow.Date;
-             
+
                     for (int i = 0; i < 7; i++)
                     {
                         startEndDates.Add(new StartEndDate
@@ -401,6 +401,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     Filter = userTaskDoneInBoardsRequest.Filter,
                     StartDate = e.StartDate,
                     EndDate = e.EndDate,
+                    UserId = userTaskDoneInBoardsRequest.UserId,
                 });
 
                 keyValuePairs[e.StartDate] = count;
@@ -498,7 +499,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return await package.GetAsByteArrayAsync();
         }
 
-        public  async Task<byte[]> ExportBoardDoneTask(BoardDoneTaskExportRequest exportRequest)
+        public async Task<byte[]> ExportBoardDoneTask(BoardDoneTaskExportRequest exportRequest)
         {
             var package = new ExcelPackage();
             var workSheet = package.Workbook.Worksheets.Add("Công việc nhóm");
