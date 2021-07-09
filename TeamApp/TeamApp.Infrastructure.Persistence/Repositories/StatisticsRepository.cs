@@ -648,5 +648,254 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }
             return await package.GetAsByteArrayAsync();
         }
+
+        async Task<int> ReportCount(TaskStatRequest taskStatRequest)
+        {
+            var count = 0;
+            if (taskStatRequest.OwnerType == "personal")
+            {
+                if (taskStatRequest.StatusType == "todo")
+                {
+                    count = await (from t in _dbContext.Task.AsNoTracking()
+                                   join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                   join b in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals b.KanbanBoardId
+                                   where b.KanbanBoardUserId == taskStatRequest.UserId && t.TaskIsDeleted != true
+                                   && kl.KanbanListIsDeleted != true && t.TaskStatus == "todo"
+                                   orderby t.TaskCreatedAt descending
+                                   select t.TaskId).CountAsync();
+                }
+                else
+                {
+                    count = await (from t in _dbContext.Task.AsNoTracking()
+                                   join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                   join b in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals b.KanbanBoardId
+                                   where b.KanbanBoardUserId == taskStatRequest.UserId && t.TaskIsDeleted != true
+                                   && kl.KanbanListIsDeleted != true && t.TaskDeadline.Value.Date == DateTime.UtcNow.Date
+                                   orderby t.TaskCreatedAt descending
+                                   select t.TaskId).CountAsync();
+                }
+            }
+            else
+            {
+                //all teams user joined
+                var teams = await (from p in _dbContext.Participation.AsNoTracking()
+                                   where p.ParticipationUserId == taskStatRequest.UserId && p.ParticipationIsDeleted != true
+                                   select p.ParticipationTeamId).Distinct().ToListAsync();
+
+                //all boards of teams
+                var teamsBoards = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                                         where teams.Contains(b.KanbanBoardTeamId)
+                                         select b.KanbanBoardId).ToListAsync();
+
+                if (taskStatRequest.StatusType == "todo")
+                {
+                    count = await (from t in _dbContext.Task.AsNoTracking()
+                                   join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                   join b in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals b.KanbanBoardId
+                                   join ht in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals ht.HandleTaskTaskId
+                                   where teamsBoards.Contains(b.KanbanBoardId) && t.TaskIsDeleted != true
+                                   && kl.KanbanListIsDeleted != true && t.TaskStatus == "todo" && ht.HandleTaskUserId == taskStatRequest.UserId
+                                   orderby t.TaskCreatedAt descending
+                                   select t.TaskId).CountAsync();
+                }
+                else
+                {
+                    count = await (from t in _dbContext.Task.AsNoTracking()
+                                   join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                   join b in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals b.KanbanBoardId
+                                   join ht in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals ht.HandleTaskTaskId
+                                   where teamsBoards.Contains(b.KanbanBoardId) && t.TaskIsDeleted != true
+                                   && kl.KanbanListIsDeleted != true && t.TaskDeadline.Value.Date == DateTime.UtcNow.Date
+                                   && ht.HandleTaskUserId == taskStatRequest.UserId
+                                   orderby t.TaskCreatedAt descending
+                                   select t.TaskId).CountAsync();
+                }
+            }
+
+            return count;
+        }
+        public async Task<List<int>> TasksReportCount(string userId)
+        {
+            var userTodo = await ReportCount(new TaskStatRequest
+            {
+                UserId = userId,
+                OwnerType = "personal",
+                StatusType = "todo",
+            });
+
+            var userDeadline = await ReportCount(new TaskStatRequest
+            {
+                UserId = userId,
+                OwnerType = "personal",
+                StatusType = "deadline",
+            });
+
+            var teamTodo = await ReportCount(new TaskStatRequest
+            {
+                UserId = userId,
+                OwnerType = "team",
+                StatusType = "todo",
+            });
+
+            var teamDeadline = await ReportCount(new TaskStatRequest
+            {
+                UserId = userId,
+                OwnerType = "team",
+                StatusType = "deadline",
+            });
+
+            var response = new List<int> { userTodo, userDeadline, teamTodo, teamDeadline };
+
+            return response;
+        }
+
+        public async Task<List<TaskModalResponse>> TasksStatGet(TaskStatRequest taskStatRequest)
+        {
+            var response = new List<TaskModalResponse>();
+            if (taskStatRequest.OwnerType == "personal")
+            {
+                if (taskStatRequest.StatusType == "todo")
+                {
+                    var tasks = await (from t in _dbContext.Task.AsNoTracking()
+                                       join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                       join b in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals b.KanbanBoardId
+                                       where b.KanbanBoardUserId == taskStatRequest.UserId && t.TaskIsDeleted != true
+                                       && kl.KanbanListIsDeleted != true && t.TaskStatus == "todo"
+                                       orderby t.TaskCreatedAt descending
+                                       select new
+                                       {
+                                           t.TaskId,
+                                           t.TaskName,
+                                           t.TaskStatus,
+                                           t.TaskDeadline,
+                                           t.TaskDescription,
+                                           t.TaskImageUrl,
+                                           b.KanbanBoardId
+                                       }).ToListAsync();
+
+                    response = tasks.Select(t => new TaskModalResponse
+                    {
+                        TaskId = t.TaskId,
+                        TaskName = t.TaskName,
+                        TaskStatus = t.TaskStatus,
+                        TaskDeadline = t.TaskDeadline,
+                        TaskDescription = t.TaskDescription,
+                        TaskImage = t.TaskImageUrl,
+                        Link = $"/managetask/mytasks?b={t.KanbanBoardId}&t={t.TaskId}",
+                    }).ToList();
+                }
+                else
+                {
+                    var tasks = await (from t in _dbContext.Task.AsNoTracking()
+                                       join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                       join b in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals b.KanbanBoardId
+                                       where b.KanbanBoardUserId == taskStatRequest.UserId && t.TaskIsDeleted != true
+                                       && kl.KanbanListIsDeleted != true && t.TaskDeadline.Value.Date == DateTime.UtcNow.Date
+                                       orderby t.TaskCreatedAt descending
+                                       select new
+                                       {
+                                           t.TaskId,
+                                           t.TaskName,
+                                           t.TaskStatus,
+                                           t.TaskDeadline,
+                                           t.TaskDescription,
+                                           t.TaskImageUrl,
+                                           b.KanbanBoardId,
+                                       }).ToListAsync();
+
+                    response = tasks.Select(t => new TaskModalResponse
+                    {
+                        TaskId = t.TaskId,
+                        TaskName = t.TaskName,
+                        TaskStatus = t.TaskStatus,
+                        TaskDeadline = t.TaskDeadline,
+                        TaskDescription = t.TaskDescription,
+                        TaskImage = t.TaskImageUrl,
+                        Link = $"/managetask/mytasks?b={t.KanbanBoardId}&t={t.TaskId}",
+                    }).ToList();
+                }
+            }
+            else
+            {
+                //all teams user joined
+                var teams = await (from p in _dbContext.Participation.AsNoTracking()
+                                   where p.ParticipationUserId == taskStatRequest.UserId && p.ParticipationIsDeleted != true
+                                   select p.ParticipationTeamId).Distinct().ToListAsync();
+
+                //all boards of teams
+                var teamsBoards = await (from b in _dbContext.KanbanBoard.AsNoTracking()
+                                         where teams.Contains(b.KanbanBoardTeamId)
+                                         select b.KanbanBoardId).ToListAsync();
+
+                if (taskStatRequest.StatusType == "todo")
+                {
+                    var tasks = await (from t in _dbContext.Task.AsNoTracking()
+                                       join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                       join b in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals b.KanbanBoardId
+                                       join ht in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals ht.HandleTaskTaskId
+                                       where teamsBoards.Contains(b.KanbanBoardId) && t.TaskIsDeleted != true
+                                       && kl.KanbanListIsDeleted != true && t.TaskStatus == "todo"
+                                       && ht.HandleTaskUserId == taskStatRequest.UserId
+                                       orderby t.TaskCreatedAt descending
+                                       select new
+                                       {
+                                           t.TaskId,
+                                           t.TaskName,
+                                           t.TaskStatus,
+                                           t.TaskDeadline,
+                                           t.TaskDescription,
+                                           t.TaskImageUrl,
+                                           b.KanbanBoardId,
+                                           b.KanbanBoardTeamId
+                                       }).ToListAsync();
+
+                    response = tasks.Select(t => new TaskModalResponse
+                    {
+                        TaskId = t.TaskId,
+                        TaskName = t.TaskName,
+                        TaskStatus = t.TaskStatus,
+                        TaskDeadline = t.TaskDeadline,
+                        TaskDescription = t.TaskDescription,
+                        TaskImage = t.TaskImageUrl,
+                        Link = $"/managetask/teamtasks?gr={t.KanbanBoardTeamId}&b={t.KanbanBoardId}&t={t.TaskId}",
+                    }).ToList();
+                }
+                else
+                {
+                    var tasks = await (from t in _dbContext.Task.AsNoTracking()
+                                       join kl in _dbContext.KanbanList.AsNoTracking() on t.TaskBelongedId equals kl.KanbanListId
+                                       join b in _dbContext.KanbanBoard.AsNoTracking() on kl.KanbanListBoardBelongedId equals b.KanbanBoardId
+                                       join ht in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals ht.HandleTaskTaskId
+                                       where teamsBoards.Contains(b.KanbanBoardId) && t.TaskIsDeleted != true
+                                       && kl.KanbanListIsDeleted != true && t.TaskDeadline.Value.Date == DateTime.UtcNow.Date
+                                       && ht.HandleTaskUserId == taskStatRequest.UserId
+                                       orderby t.TaskCreatedAt descending
+                                       select new
+                                       {
+                                           t.TaskId,
+                                           t.TaskName,
+                                           t.TaskStatus,
+                                           t.TaskDeadline,
+                                           t.TaskDescription,
+                                           t.TaskImageUrl,
+                                           b.KanbanBoardId,
+                                           b.KanbanBoardTeamId
+                                       }).ToListAsync();
+
+                    response = tasks.Select(t => new TaskModalResponse
+                    {
+                        TaskId = t.TaskId,
+                        TaskName = t.TaskName,
+                        TaskStatus = t.TaskStatus,
+                        TaskDeadline = t.TaskDeadline,
+                        TaskDescription = t.TaskDescription,
+                        TaskImage = t.TaskImageUrl,
+                        Link = $"/managetask/teamtasks?gr={t.KanbanBoardTeamId}&b={t.KanbanBoardId}&t={t.TaskId}",
+                    }).ToList();
+                }
+            }
+
+            return response;
+        }
     }
 }

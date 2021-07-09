@@ -21,6 +21,7 @@ using TeamApp.WebApi.Export;
 using TeamApp.WebApi.Extensions;
 using static TeamApp.Application.Utils.Extensions;
 using RadomString = TeamApp.Application.Utils.Extensions.RadomString;
+using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.WebApi.Controllers.Test
 {
@@ -228,6 +229,30 @@ namespace TeamApp.WebApi.Controllers.Test
             using (var ms = new MemoryStream())
             {
                 file.CopyTo(ms);
+                var fileBytes = ms.ToArray();
+                base64 = Convert.ToBase64String(fileBytes);
+                // act on the Base64 data
+            }
+
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = "tests.xlsx";
+            byte[] data = await ExportExcel.GenerateExcelFromImageFile2(base64);
+
+            return File(data, contentType, fileName);
+        }
+
+        public class RequestComplex
+        {
+            public IFormFile File { get; set; }
+            public string Datas { get; set; }
+        }
+        [HttpPost("test-export-complex")]
+        public async Task<IActionResult> ExportComplexExcel([FromForm]RequestComplex request)
+        {
+            var base64 = "";
+            using (var ms = new MemoryStream())
+            {
+                request.File.CopyTo(ms);
                 var fileBytes = ms.ToArray();
                 base64 = Convert.ToBase64String(fileBytes);
                 // act on the Base64 data

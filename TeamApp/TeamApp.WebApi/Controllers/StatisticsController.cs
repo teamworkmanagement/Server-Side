@@ -1,22 +1,27 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Statistics;
+using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
+    [Authorize]
     [Route("api/statistics")]
     public class StatisticsController : ControllerBase
     {
         private readonly IStatisticsRepository _repo;
-        public StatisticsController(IStatisticsRepository statisticsRepository)
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        public StatisticsController(IStatisticsRepository statisticsRepository, IAuthenticatedUserService authenticatedUserService)
         {
             _repo = statisticsRepository;
+            _authenticatedUserService = authenticatedUserService;
         }
 
         [HttpGet("personal-task-done")]
@@ -95,6 +100,31 @@ namespace TeamApp.WebApi.Controllers
             byte[] data = await _repo.ExportUserBoardDonePointAndTask(pointAndDoneRequest);
 
             return File(data, contentType, fileName);
+        }
+
+        [HttpGet("tasks-status-count")]
+        public async Task<IActionResult> TasksReportCount()
+        {
+            var outPut = await _repo.TasksReportCount(_authenticatedUserService.UserId);
+
+            return Ok(new ApiResponse<List<int>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
+
+        [HttpGet("tasks-status-list")]
+        public async Task<IActionResult> TasksStatGet([FromQuery] TaskStatRequest taskStatRequest)
+        {
+            taskStatRequest.UserId = _authenticatedUserService.UserId;
+            var outPut = await _repo.TasksStatGet(taskStatRequest);
+
+            return Ok(new ApiResponse<List<TaskModalResponse>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
         }
     }
 }
