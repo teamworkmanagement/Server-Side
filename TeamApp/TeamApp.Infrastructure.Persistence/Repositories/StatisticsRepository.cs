@@ -2,6 +2,7 @@
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
+using Newtonsoft.Json;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 using System;
@@ -421,6 +422,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<byte[]> ExportPersonalAndTeamsTask(ExportPersonalAndTeamsTaskRequest exportPersonal)
         {
+            var userStatis = JsonConvert.DeserializeObject<List<int>>(exportPersonal.UserStatis);
+            var teamStatis = JsonConvert.DeserializeObject<List<int>>(exportPersonal.TeamStatis);
+
             var package = new ExcelPackage();
             var workSheet = package.Workbook.Worksheets.Add("Công việc cá nhân và nhóm");
             // create title
@@ -449,20 +453,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             workSheet.Cells[listHeader[3]].Value = "Công việc nhóm hoàn thành";
 
             //fill data
-            for (int i = 0; i < exportPersonal.UserStatis.Count; i++)
+            for (int i = 0; i < userStatis.Count; i++)
             {
                 DateTime dt = new DateTime();
-                if (exportPersonal.UserStatis.Count == 7 || exportPersonal.UserStatis.Count == 30)
-                    dt = DateTime.UtcNow.AddDays(-(exportPersonal.UserStatis.Count - i - 1));
+                if (userStatis.Count == 7 || userStatis.Count == 30)
+                    dt = DateTime.UtcNow.AddDays(-(userStatis.Count - i - 1));
 
-                if (exportPersonal.UserStatis.Count == 12)
+                if (userStatis.Count == 12)
                 {
-                    dt = DateTime.UtcNow.AddMonths(-(exportPersonal.UserStatis.Count - i - 1));
+                    dt = DateTime.UtcNow.AddMonths(-(userStatis.Count - i - 1));
                 }
                 workSheet.Cells[i + 3, 1].Value = (i + 1).ToString();
-                workSheet.Cells[i + 3, 2].Value = exportPersonal.UserStatis.Count != 12 ? dt.ToString("dd/MM/yyyy", new CultureInfo("vi-VN")) : dt.ToString("MM/yyyy", new CultureInfo("vi-VN"));
-                workSheet.Cells[i + 3, 3].Value = exportPersonal.UserStatis[i];
-                workSheet.Cells[i + 3, 4].Value = exportPersonal.TeamStatis[i];
+                workSheet.Cells[i + 3, 2].Value = userStatis.Count != 12 ? dt.ToString("dd/MM/yyyy", new CultureInfo("vi-VN")) : dt.ToString("MM/yyyy", new CultureInfo("vi-VN"));
+                workSheet.Cells[i + 3, 3].Value = userStatis[i];
+                workSheet.Cells[i + 3, 4].Value = teamStatis[i];
             }
             // format column width
             for (int i = 1; i < 5; i++)
@@ -485,7 +489,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }
 
             // format cell border
-            for (int i = 0; i < exportPersonal.UserStatis.Count; i++)
+            for (int i = 0; i < userStatis.Count; i++)
             {
                 for (int j = 1; j < 5; j++)
                 {
@@ -501,6 +505,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<byte[]> ExportBoardDoneTask(BoardDoneTaskExportRequest exportRequest)
         {
+            var boardTaskDone = JsonConvert.DeserializeObject<List<int>>(exportRequest.BoardTaskDone);
             var package = new ExcelPackage();
             var workSheet = package.Workbook.Worksheets.Add("Công việc nhóm");
             // create title
@@ -528,19 +533,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             workSheet.Cells[listHeader[2]].Value = "Công việc hoàn thành";
 
             //fill data
-            for (int i = 0; i < exportRequest.BoardTaskDone.Count; i++)
+            for (int i = 0; i < boardTaskDone.Count; i++)
             {
                 DateTime dt = new DateTime();
-                if (exportRequest.BoardTaskDone.Count == 7 || exportRequest.BoardTaskDone.Count == 30)
-                    dt = DateTime.UtcNow.AddDays(-(exportRequest.BoardTaskDone.Count - i - 1));
+                if (boardTaskDone.Count == 7 || boardTaskDone.Count == 30)
+                    dt = DateTime.UtcNow.AddDays(-(boardTaskDone.Count - i - 1));
 
-                if (exportRequest.BoardTaskDone.Count == 12)
+                if (boardTaskDone.Count == 12)
                 {
-                    dt = DateTime.UtcNow.AddMonths(-(exportRequest.BoardTaskDone.Count - i - 1));
+                    dt = DateTime.UtcNow.AddMonths(-(boardTaskDone.Count - i - 1));
                 }
                 workSheet.Cells[i + 3, 1].Value = (i + 1).ToString();
-                workSheet.Cells[i + 3, 2].Value = exportRequest.BoardTaskDone.Count != 12 ? dt.ToString("dd/MM/yyyy", new CultureInfo("vi-VN")) : dt.ToString("MM/yyyy", new CultureInfo("vi-VN"));
-                workSheet.Cells[i + 3, 3].Value = exportRequest.BoardTaskDone[i];
+                workSheet.Cells[i + 3, 2].Value = boardTaskDone.Count != 12 ? dt.ToString("dd/MM/yyyy", new CultureInfo("vi-VN")) : dt.ToString("MM/yyyy", new CultureInfo("vi-VN"));
+                workSheet.Cells[i + 3, 3].Value = boardTaskDone[i];
             }
             // format column width
             for (int i = 1; i < 4; i++)
@@ -563,7 +568,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }
 
             // format cell border
-            for (int i = 0; i < exportRequest.BoardTaskDone.Count; i++)
+            for (int i = 0; i < boardTaskDone.Count; i++)
             {
                 for (int j = 1; j < 4; j++)
                 {
@@ -579,6 +584,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<byte[]> ExportUserBoardDonePointAndTask(BoardPointAndDoneRequest pointAndDoneRequest)
         {
+            var requestModels = JsonConvert.DeserializeObject<List<UsersTaskDoneAndPointResponse>>(pointAndDoneRequest.RequestModels);
+
             var package = new ExcelPackage();
             var workSheet = package.Workbook.Worksheets.Add("Công việc nhóm và tổng điểm");
             // create title
@@ -607,12 +614,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             workSheet.Cells[listHeader[3]].Value = "Tổng công việc";
 
             //fill data
-            for (int i = 0; i < pointAndDoneRequest.RequestModels.Count; i++)
+            for (int i = 0; i < requestModels.Count; i++)
             {
                 workSheet.Cells[i + 3, 1].Value = (i + 1).ToString();
-                workSheet.Cells[i + 3, 2].Value = pointAndDoneRequest.RequestModels[0].UserFullName;
-                workSheet.Cells[i + 3, 3].Value = pointAndDoneRequest.RequestModels[0].Point;
-                workSheet.Cells[i + 3, 4].Value = pointAndDoneRequest.RequestModels[0].TaskDoneCount;
+                workSheet.Cells[i + 3, 2].Value = requestModels[i].UserFullName;
+                workSheet.Cells[i + 3, 3].Value = requestModels[i].Point;
+                workSheet.Cells[i + 3, 4].Value = requestModels[i].TaskDoneCount;
             }
             // format column width
             for (int i = 1; i < 5; i++)
@@ -635,7 +642,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }
 
             // format cell border
-            for (int i = 0; i < pointAndDoneRequest.RequestModels.Count; i++)
+            for (int i = 0; i < requestModels.Count; i++)
             {
                 for (int j = 1; j < 5; j++)
                 {

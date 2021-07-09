@@ -247,7 +247,7 @@ namespace TeamApp.WebApi.Controllers.Test
             public string Datas { get; set; }
         }
         [HttpPost("test-export-complex")]
-        public async Task<IActionResult> ExportComplexExcel([FromForm]RequestComplex request)
+        public async Task<IActionResult> ExportComplexExcel([FromForm] RequestComplex request)
         {
             var base64 = "";
             using (var ms = new MemoryStream())
@@ -260,7 +260,10 @@ namespace TeamApp.WebApi.Controllers.Test
 
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             string fileName = "tests.xlsx";
-            byte[] data = await ExportExcel.GenerateExcelFromImageFile2(base64);
+
+            var list = JsonConvert.DeserializeObject<List<int>>(request.Datas);
+
+            byte[] data = await ExportExcel.GenerateExcelFromImageFile(base64, list);
 
             return File(data, contentType, fileName);
         }

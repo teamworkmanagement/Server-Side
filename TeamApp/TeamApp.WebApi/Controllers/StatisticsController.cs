@@ -73,7 +73,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost("export-personalandteam")]
-        public async Task<IActionResult> ExportPersonalAndTeamsTask(ExportPersonalAndTeamsTaskRequest exportPersonal)
+        public async Task<IActionResult> ExportPersonalAndTeamsTask([FromForm] ExportPersonalAndTeamsTaskRequest exportPersonal)
         {
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             string fileName = $"personalandteam_{Extensions.RadomString.RandomString(6)}.xlsx";
@@ -83,7 +83,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost("export-teamdoneboard")]
-        public async Task<IActionResult> ExportTeamDoneBoard(BoardDoneTaskExportRequest exportRequest)
+        public async Task<IActionResult> ExportTeamDoneBoard([FromForm] BoardDoneTaskExportRequest exportRequest)
         {
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             string fileName = $"teamdoneboard_{Extensions.RadomString.RandomString(6)}.xlsx";
@@ -93,7 +93,7 @@ namespace TeamApp.WebApi.Controllers
         }
 
         [HttpPost("export-pointtask-groupbyuser")]
-        public async Task<IActionResult> ExportTeamUserPointTask(BoardPointAndDoneRequest pointAndDoneRequest)
+        public async Task<IActionResult> ExportTeamUserPointTask([FromForm] BoardPointAndDoneRequest pointAndDoneRequest)
         {
             string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
             string fileName = $"pointtask_{Extensions.RadomString.RandomString(6)}.xlsx";
