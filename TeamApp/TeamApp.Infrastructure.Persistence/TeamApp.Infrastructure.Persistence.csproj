@@ -17,6 +17,7 @@
   <ItemGroup>
     <Compile Remove="Migrations\20210625153640_addkblistdfprop.cs" />
     <Compile Remove="Migrations\20210625153640_addkblistdfprop.Designer.cs" />
+    <Compile Remove="Repositories\TagRepository.cs" />
   </ItemGroup>
 
   <ItemGroup>

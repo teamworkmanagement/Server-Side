@@ -21,6 +21,7 @@ using TeamApp.WebApi.Export;
 using TeamApp.WebApi.Extensions;
 using static TeamApp.Application.Utils.Extensions;
 using RadomString = TeamApp.Application.Utils.Extensions.RadomString;
+using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.WebApi.Controllers.Test
 {
@@ -40,8 +41,9 @@ namespace TeamApp.WebApi.Controllers.Test
             _environment = environment;
             _emailService = emailService;
         }
-        [Authorize]
+        //[Authorize]
         [HttpGet]
+        [Authorize(Policy = "AdminPolicy")]
         public IActionResult ShowTest()
         {
             return Ok(new
@@ -218,6 +220,52 @@ namespace TeamApp.WebApi.Controllers.Test
 
             return Content(JsonConvert.SerializeObject(obj), "application/json");
 
+        }
+
+        [HttpPost("excel-export-file")]
+        public async Task<IActionResult> ExcelExportFile(IFormFile file)
+        {
+            var base64 = "";
+            using (var ms = new MemoryStream())
+            {
+                file.CopyTo(ms);
+                var fileBytes = ms.ToArray();
+                base64 = Convert.ToBase64String(fileBytes);
+                // act on the Base64 data
+            }
+
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = "tests.xlsx";
+            byte[] data = await ExportExcel.GenerateExcelFromImageFile2(base64);
+
+            return File(data, contentType, fileName);
+        }
+
+        public class RequestComplex
+        {
+            public IFormFile File { get; set; }
+            public string Datas { get; set; }
+        }
+        [HttpPost("test-export-complex")]
+        public async Task<IActionResult> ExportComplexExcel([FromForm] RequestComplex request)
+        {
+            var base64 = "";
+            using (var ms = new MemoryStream())
+            {
+                request.File.CopyTo(ms);
+                var fileBytes = ms.ToArray();
+                base64 = Convert.ToBase64String(fileBytes);
+                // act on the Base64 data
+            }
+
+            string contentType = "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet";
+            string fileName = "tests.xlsx";
+
+            var list = JsonConvert.DeserializeObject<List<int>>(request.Datas);
+
+            byte[] data = await ExportExcel.GenerateExcelFromImageFile(base64, list);
+
+            return File(data, contentType, fileName);
         }
     }
 }

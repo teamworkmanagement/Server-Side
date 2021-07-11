@@ -41,7 +41,7 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<ITaskRepository, TaskRepository>();
             services.AddTransient<IPostRepository, PostRepository>();
             services.AddTransient<ICommentRepository, CommentRepository>();
-            services.AddTransient<ITagRepository, TagRepository>();
+            //services.AddTransient<ITagRepository, TagRepository>();
             services.AddTransient<IHandleTaskRepository, HandleTaskRepository>();
             services.AddTransient<INotificationRepository, NotificationRepository>();
             services.AddTransient<ITaskVersionRepository, TaskVersionRepository>();
@@ -53,6 +53,7 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IKanbanListRepository, KanbanListRepository>();
             services.AddTransient<IStatisticsRepository, StatisticsRepository>();
             services.AddTransient<IFeedbackRepository, FeedbackRepository>();
+            services.AddTransient<ISearchRepository, SearchRepository>();
             #endregion
             services.AddTransient<IFirebaseMessagingService, FirebaseMessagingService>();
             ConfigAuthService(services, configuration);
@@ -61,6 +62,7 @@ namespace TeamApp.Infrastructure.Persistence
         {
             services.AddSingleton<IAuthorizationHandler, IpCheckHandler>();
             services.AddSingleton<IAuthorizationHandler, TeamCheckHandler>();
+            services.AddSingleton<IAuthorizationHandler, AdminCheckHandler>();
             services.AddIdentity<User, IdentityRole>(options =>
             {
                 options.Password.RequiredLength = 6;
@@ -84,6 +86,9 @@ namespace TeamApp.Infrastructure.Persistence
 
                 options.AddPolicy("TeamPolicy",
                     policy => policy.Requirements.Add(new TeamCheckRequirement { }));
+
+                options.AddPolicy("AdminPolicy",
+                    policy => policy.Requirements.Add(new AdminCheckRequirement { }));
             });
             services.AddAuthentication(options =>
             {

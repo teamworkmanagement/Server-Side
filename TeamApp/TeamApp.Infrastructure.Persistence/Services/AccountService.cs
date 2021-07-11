@@ -147,7 +147,8 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 new Claim(JwtRegisteredClaimNames.Jti, Guid.NewGuid().ToString()),
                 //new Claim(JwtRegisteredClaimNames.Email, user.Email),
                 new Claim("uid", user.Id),
-                new Claim("ip", ipAddress)
+                new Claim("ip", ipAddress),
+                new Claim("admin",user.Email=="admin@ezteam.tech"?"true":"false")
             }
             .Union(userClaims);
 
@@ -300,7 +301,6 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 {
                     RefreshToken = StringHelper.EncryptString(refreshObj.Token),
                     AccessToken = StringHelper.EncryptString(new JwtSecurityTokenHandler().WriteToken(jwtSecurityToken)),
-                    ExprieToken = ((DateTimeOffset)DateTime.UtcNow.AddMinutes(359)).ToUnixTimeMilliseconds(),
                 }
             };
 

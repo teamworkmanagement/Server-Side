@@ -22,7 +22,13 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
+        /// <summary>
+        /// Get group chat by user id API
+        /// </summary>
+        /// <param name="search"></param>
+        /// <returns></returns>
         [HttpGet("byuserid")]
+        [ProducesResponseType(typeof(ApiResponse<CustomListGroupChatResponse>), 200)]
         public async Task<IActionResult> GetAllByUserId([FromQuery] GroupChatSearch search)
         {
             var res = await _repo.GetAllByUserId(search);
@@ -36,7 +42,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Add group chat API
+        /// </summary>
+        /// <param name="grChatReq"></param>
+        /// <returns></returns>
         [HttpPost]
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
         public async Task<IActionResult> AddGroupChat([FromBody] GroupChatRequest grChatReq)
         {
             var res = await _repo.AddGroupChat(grChatReq);
@@ -51,7 +63,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Change group chat image API
+        /// </summary>
+        /// <param name="grChatReq"></param>
+        /// <returns></returns>
         [HttpPatch("image")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), 200)]
         public async Task<IActionResult> UpdateGroupChatImageUrl(GroupChatImageUpdateRequest grChatReq)
         {
             var res = await _repo.UpdateGroupChatImageUrl(grChatReq);
@@ -66,7 +84,7 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpDelete("{grChatId}")]
+        /*[HttpDelete("{grChatId}")]
         public async Task<IActionResult> DeleteGroupChat(string grChatId)
         {
             var res = await _repo.DeleteGroupChat(grChatId);
@@ -79,9 +97,15 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
+        }*/
 
+        /// <summary>
+        /// Check exists chat 1 vs 1 API
+        /// </summary>
+        /// <param name="chatExists"></param>
+        /// <returns></returns>
         [HttpPost("check-double-exists")]
+        [ProducesResponseType(typeof(ApiResponse<object>), 200)]
         public async Task<IActionResult> CheckDoubleExists([FromBody] CheckDoubleGroupChatExists chatExists)
         {
             var res = await _repo.CheckDoubleGroupChatExists(chatExists);
@@ -95,7 +119,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Create group chat with members list API
+        /// </summary>
+        /// <param name="requestMembers"></param>
+        /// <returns></returns>
         [HttpPost("add-with-members")]
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
         public async Task<IActionResult> AddGroupChatWithMembers(GroupChatRequestMembers requestMembers)
         {
             var outPut = await _repo.AddGroupChatWithMembers(requestMembers);
@@ -106,7 +136,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Add group chat members API
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("add-members")]
+        [ProducesResponseType(typeof(ApiResponse<string>), 200)]
         public async Task<IActionResult> AddGroupChatMembers(AddMembersRequest request)
         {
             var outPut = await _repo.AddGroupChatMembers(request);

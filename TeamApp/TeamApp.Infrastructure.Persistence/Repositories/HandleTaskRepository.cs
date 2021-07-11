@@ -27,82 +27,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _kanbanHub = kanbanHub;
             _notiRepo = notiRepo;
         }
-        public async Task<HandleTaskResponse> AddHandleTask(HandleTaskRequest handleTaskReq)
-        {
-            var entity = new HandleTask
-            {
-                HandleTaskId = Guid.NewGuid().ToString(),
-                HandleTaskUserId = handleTaskReq.HandleTaskUserId,
-                HandleTaskTaskId = handleTaskReq.HandleTaskTaskId,
-                HandleTaskCreatedAt = DateTime.UtcNow,
-                HandleTaskIsDeleted = false,
-            };
-
-            await _dbContext.HandleTask.AddAsync(entity);
-            var check = await _dbContext.SaveChangesAsync();
-
-            if (check > 0)
-            {
-                return new HandleTaskResponse
-                {
-                    HandleTaskId = entity.HandleTaskId,
-                    HandleTaskUserId = entity.HandleTaskUserId,
-                    HandleTaskTaskId = entity.HandleTaskTaskId,
-                    HandleTaskCreatedAt = entity.HandleTaskCreatedAt,
-                    HandleTaskIsDeleted = entity.HandleTaskIsDeleted,
-                };
-            }
-            return null;
-        }
-
-        public async Task<bool> DeleteHandleTask(string handleTaskId)
-        {
-            var entity = await _dbContext.HandleTask.FindAsync(handleTaskId);
-            if (entity == null)
-                return false;
-
-            entity.HandleTaskIsDeleted = true;
-            _dbContext.HandleTask.Update(entity);
-
-            await _dbContext.SaveChangesAsync();
-            return true;
-        }
-
-        public async Task<List<HandleTaskResponse>> GetAllByTaskId(string taskId)
-        {
-            var query = from ht in _dbContext.HandleTask
-                        where ht.HandleTaskTaskId == taskId
-                        select ht;
-
-            var outPut = await query.Select(x => new HandleTaskResponse
-            {
-                HandleTaskId = x.HandleTaskId,
-                HandleTaskUserId = x.HandleTaskUserId,
-                HandleTaskTaskId = x.HandleTaskTaskId,
-                HandleTaskCreatedAt = x.HandleTaskCreatedAt.FormatTime(),
-                HandleTaskIsDeleted = x.HandleTaskIsDeleted,
-            }).ToListAsync();
-
-            return outPut;
-        }
-
-        public async Task<List<HandleTaskResponse>> GetAllByUserId(string userId)
-        {
-            var query = from ht in _dbContext.HandleTask
-                        where ht.HandleTaskUserId == userId
-                        select ht;
-
-            var outPut = await query.Select(x => new HandleTaskResponse
-            {
-                HandleTaskId = x.HandleTaskId,
-                HandleTaskUserId = x.HandleTaskUserId,
-                HandleTaskTaskId = x.HandleTaskTaskId,
-                HandleTaskCreatedAt = x.HandleTaskCreatedAt.FormatTime(),
-                HandleTaskIsDeleted = x.HandleTaskIsDeleted,
-            }).ToListAsync();
-
-            return outPut;
-        }
 
         public async Task<bool> ReAssignTask(ReAssignModel reAssignModel)
         {
@@ -180,25 +104,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     await _kanbanHub.Clients.Clients(clients).ReAssignUser(obj);
                 }
             }
-
             return await _dbContext.SaveChangesAsync() > 0;
-        }
-
-        public async Task<bool> UpdateHandleTask(string handleTaskId, HandleTaskRequest handleTaskReq)
-        {
-            var entity = await _dbContext.HandleTask.FindAsync(handleTaskId);
-            if (entity == null)
-                return false;
-
-            entity.HandleTaskUserId = handleTaskReq.HandleTaskUserId;
-            entity.HandleTaskTaskId = handleTaskReq.HandleTaskTaskId;
-            entity.HandleTaskCreatedAt = handleTaskReq.HandleTaskCreatedAt;
-            entity.HandleTaskIsDeleted = handleTaskReq.HandleTaskIsDeleted;
-
-            _dbContext.HandleTask.Update(entity);
-            await _dbContext.SaveChangesAsync();
-
-            return true;
         }
     }
 }

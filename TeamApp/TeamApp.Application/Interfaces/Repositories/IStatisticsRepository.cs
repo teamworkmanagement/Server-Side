@@ -17,5 +17,8 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<byte[]> ExportPersonalAndTeamsTask(ExportPersonalAndTeamsTaskRequest exportPersonal);
         Task<byte[]> ExportBoardDoneTask(BoardDoneTaskExportRequest exportPersonal);
         Task<byte[]> ExportUserBoardDonePointAndTask(BoardPointAndDoneRequest exportPersonal);
+
+        Task<List<int>> TasksReportCount(string userId);
+        Task<List<TaskModalResponse>> TasksStatGet(TaskStatRequest taskStatRequest);
     }
 }

@@ -20,12 +20,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext = dbContext;
         }
 
-
-        public async Task<bool> DeleteUser(string userId)
-        {
-            return await System.Threading.Tasks.Task.FromResult(false);
-        }
-
         public async Task<List<UserResponse>> GetAllUserInTeam(string userId, string teamId = null)
         {
             if (teamId != null)
@@ -277,18 +271,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             }).ToList();
 
             return outPut;
-        }
-
-        public async Task<bool> UpdateUser(string userId, UserRequest user)
-        {
-            var entity = await _dbContext.User.FindAsync(userId);
-            if (entity == null)
-                return false;
-
-
-            _dbContext.User.Update(entity);
-            await _dbContext.SaveChangesAsync();
-            return true;
         }
 
         public async Task<bool> UpdateUserImage(UpdateImageModel updateImageModel)

@@ -1,8 +1,12 @@
 ﻿using OfficeOpenXml;
+using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Linq;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace TeamApp.WebApi.Export
@@ -75,6 +79,63 @@ namespace TeamApp.WebApi.Export
                     workSheet.Cells[i + 3, j].Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 }
             }
+            return await package.GetAsByteArrayAsync();
+        }
+
+        public static async Task<byte[]> GenerateExcelFromImageFile(string imageBase64, List<int> datas)
+        {
+            var package = new ExcelPackage();
+            var workSheet = package.Workbook.Worksheets.Add("Công việc cá nhân và nhóm");
+
+            byte[] imageBytes = Convert.FromBase64String(imageBase64);
+            // Convert byte[] to Image
+            using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+            {
+                Image image = Image.FromStream(ms, true);
+
+                ExcelPicture pic = workSheet.Drawings.AddPicture("picture_name", image);
+
+                pic.From.Column = 8;
+                pic.From.Row = 8;
+
+                var endColumn = image.Width / 68;
+                var endRow = image.Height / 68;
+
+                //8+19 row, 8+14 column
+                workSheet.Cells[8, 8, 8 + 19, 8 + 14].Merge = true;
+            }
+
+            package.Save();
+
+            return await package.GetAsByteArrayAsync();
+        }
+
+        public static async Task<byte[]> GenerateExcelFromImageFile2(string imageBase64)
+        {
+            var package = new ExcelPackage();
+            var receiptSheet = package.Workbook.Worksheets.Add("Receipt");
+
+            byte[] imageBytes = Convert.FromBase64String(imageBase64);
+            // Convert byte[] to Image
+            using (var ms = new MemoryStream(imageBytes, 0, imageBytes.Length))
+            {
+                Image image = Image.FromStream(ms, true);
+
+                ExcelPicture pic = receiptSheet.Drawings.AddPicture("picture_name", image);
+
+                pic.From.Column = 8;
+                pic.From.Row = 8;
+
+                var endColumn = image.Width / 68;
+                var endRow = image.Height / 68;
+
+                //8+19 row, 8+14 column
+                receiptSheet.Cells[8, 8, 8 + 19, 8 + 14].Merge = true;
+
+            }
+
+            package.Save();
+
             return await package.GetAsByteArrayAsync();
         }
     }

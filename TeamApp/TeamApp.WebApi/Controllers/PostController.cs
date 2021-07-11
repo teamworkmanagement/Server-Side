@@ -25,7 +25,7 @@ namespace TeamApp.WebApi.Controllers
             _teamRepo = teamRepo;
         }
 
-        [HttpGet]
+        /*[HttpGet]
         public async Task<IActionResult> GetPaging([FromQuery] RequestParameter parameter)
         {
             var res = await _repo.GetPaging(parameter);
@@ -37,9 +37,15 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
+        }*/
 
+        /// <summary>
+        /// Create post API
+        /// </summary>
+        /// <param name="postReq"></param>
+        /// <returns></returns>
         [HttpPost]
+        [ProducesDefaultResponseType(typeof(ApiResponse<PostResponse>))]
         public async Task<IActionResult> AddPost(PostRequest postReq)
         {
             var res = await _repo.AddPost(postReq);
@@ -53,23 +59,10 @@ namespace TeamApp.WebApi.Controllers
 
             return Ok(outPut);
         }
-        [HttpPut("{postId}")]
-        public async Task<IActionResult> UpdatePost(string postId, [FromForm] PostRequest postReq)
-        {
-            var res = await _repo.UpdatePost(postId, postReq);
-
-            var outPut = new ApiResponse<bool>
-            {
-                Data = res,
-                Succeeded = res,
-                Message = !res ? "Sửa thất bại" : "Sửa thành công",
-            };
-
-            return Ok(outPut);
-        }
+        
 
         [HttpDelete("{postId}")]
-        public async Task<IActionResult> DeletePost(string postId)
+        /*public async Task<IActionResult> DeletePost(string postId)
         {
             var res = await _repo.DeletePost(postId);
 
@@ -81,9 +74,15 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
+        }*/
 
+        /// <summary>
+        /// Get post pagination for user API
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HttpGet("paging-multi-user")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<PagedResponse<PostResponse>>))]
         public async Task<IActionResult> GetMultiPagingUser([FromQuery] PostRequestParameter parameter)
         {
             var res = await _repo.GetPostPagingUser(parameter);
@@ -97,7 +96,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Get post pagination for team API
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HttpGet("paging-multi-team")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<PagedResponse<PostResponse>>))]
         public async Task<IActionResult> GetPostPagingTeam([FromQuery] PostRequestParameter parameter)
         {
             var res = await _repo.GetPostPagingTeam(parameter);
@@ -111,7 +116,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Add post-react API
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpPost("add-react")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> AddReact(ReactModel model)
         {
             var res = await _repo.AddReact(model);
@@ -124,7 +135,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Delete post-react API
+        /// </summary>
+        /// <param name="model"></param>
+        /// <returns></returns>
         [HttpDelete("delete-react")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> DeleteReact([FromQuery] ReactModel model)
         {
             var res = await _repo.DeleteReact(model);
@@ -135,7 +152,14 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Search user for filter post API
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <param name="keyWord"></param>
+        /// <returns></returns>
         [HttpGet("search-user")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<UserResponse>>))]
         public async Task<IActionResult> SearchUser(string userId, string keyWord)
         {
             return Ok(new ApiResponse<List<UserResponse>>

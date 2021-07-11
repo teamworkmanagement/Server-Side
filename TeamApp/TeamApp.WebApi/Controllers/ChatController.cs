@@ -16,6 +16,7 @@ using Task = System.Threading.Tasks.Task;
 namespace TeamApp.WebApi.Controllers.Test
 {
     [ApiController]
+    [Authorize]
     [Route("api/chat")]
     public class ChatController : ControllerBase
     {
@@ -30,7 +31,11 @@ namespace TeamApp.WebApi.Controllers.Test
             _messageRepository = messageRepository;
         }
 
-        [Authorize]
+        /// <summary>
+        /// Send messenger API
+        /// </summary>
+        /// <param name="message"></param>
+        /// <returns></returns>
         [HttpPost("messages")]
         public async Task Post(ChatMessage message)
         {

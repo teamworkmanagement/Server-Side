@@ -21,35 +21,13 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("byteamid/{teamId}")]
-        public async Task<IActionResult> GetByTeamId(string teamId)
-        {
-            var res = await _repo.GetAllByTeamId(teamId);
-
-            var outPut = new ApiResponse<List<ParticipationResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpGet("team/{userId}")]
-        public async Task<IActionResult> GetTeamByUserId(string userId)
-        {
-            var res = await _repo.GetTeamByUserId(userId);
-
-            var outPut = new ApiResponse<List<string>>
-            {
-                Data = res,
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
+        /// <summary>
+        /// Leave team API
+        /// </summary>
+        /// <param name="participationDeleteRequest"></param>
+        /// <returns></returns>
         [HttpDelete]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> DeleteParticipation([FromQuery]ParticipationDeleteRequest participationDeleteRequest)
         {
             var res = await _repo.DeleteParticipation(participationDeleteRequest);
@@ -63,7 +41,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Add member of team API
+        /// </summary>
+        /// <param name="participationRequest"></param>
+        /// <returns></returns>
         [HttpPost]
+        [ProducesDefaultResponseType(typeof(ApiResponse<ParticipationResponse>))]
         public async Task<IActionResult> AddParticipation(ParticipationRequest participationRequest)
         {
             var outPut = await _repo.AddParticipation(participationRequest);

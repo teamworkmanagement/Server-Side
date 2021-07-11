@@ -22,7 +22,13 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
+        /// <summary>
+        /// Get pagination noti data API
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HttpGet]
+        [ProducesDefaultResponseType(typeof(ApiResponse<PagedResponse<NotificationResponse>>))]
         public async Task<IActionResult> GetPaging([FromQuery] NotificationRequestParameter parameter)
         {
             var res = await _repo.GetPaging(parameter);
@@ -36,7 +42,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Click noti API
+        /// </summary>
+        /// <param name="readNotiModel"></param>
+        /// <returns></returns>
         [HttpPost("read-noti")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> ReadNotificationSet([FromBody]ReadNotiModel readNotiModel)
         {
             var res = await _repo.ReadNotificationSet(readNotiModel);

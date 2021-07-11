@@ -23,42 +23,6 @@ namespace TeamApp.WebApi.Controllers
         }
 
         /// <summary>
-        /// Get comments by userId API
-        /// </summary>
-        /// <param name="userId"></param>
-        /// <returns></returns>
-        /*[HttpGet("byuserid/{userId}")]
-        [ProducesResponseType(typeof(ApiResponse<List<CommentResponse>>),200)]
-        public async Task<IActionResult> GetAllByUserId(string userId)
-        {
-            var outPut = new ApiResponse<List<CommentResponse>>()
-            {
-                Data = await _repo.GetAllByUserId(userId),
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }
-
-        /// <summary>
-        /// Get comment by teamId API
-        /// </summary>
-        /// <param name="teamId"></param>
-        /// <returns></returns>
-        [HttpGet("byteamid/{teamId}")]
-        [ProducesResponseType(typeof(ApiResponse<List<CommentResponse>>), 200)]
-        public async Task<IActionResult> GetAllByTeamId(string teamId)
-        {
-            var outPut = new ApiResponse<List<CommentResponse>>
-            {
-                Data = await _repo.GetAllByTeamId(teamId),
-                Succeeded = true,
-            };
-
-            return Ok(outPut);
-        }*/
-
-        /// <summary>
         /// Get pagination comment API for post
         /// </summary>
         /// <param name="parameter"></param>
@@ -93,7 +57,7 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        /// <summary>
+        /*/// <summary>
         /// Update comment API
         /// </summary>
         /// <param name="cmtId"></param>
@@ -109,10 +73,10 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
+        }*/
 
 
-        /// <summary>
+        /*/// <summary>
         /// Delete comment API
         /// </summary>
         /// <param name="commentId"></param>
@@ -127,7 +91,7 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
+        }*/
 
         /*[HttpGet("post/{postId}")]
         public async Task<IActionResult> GetCommentByPostId(string postId)

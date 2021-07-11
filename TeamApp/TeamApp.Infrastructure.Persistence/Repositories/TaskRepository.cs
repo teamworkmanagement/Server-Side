@@ -188,84 +188,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
-        public async Task<List<TaskResponse>> GetAllByTeamId(string teamId)
-        {
-            var entityList = from ta in _dbContext.Task
-                             where ta.TaskTeamId == teamId
-                             select ta;
-
-            var outPut = await entityList.Select(x => new TaskResponse
-            {
-                TaskId = x.TaskId,
-                TaskName = x.TaskName,
-                TaskDescription = x.TaskDescription,
-                TaskPoint = x.TaskPoint,
-                TaskCreatedAt = x.TaskCreatedAt.FormatTime(),
-                TaskStartDate = x.TaskStartDate.FormatTime(),
-                TaskDeadline = x.TaskDeadline.FormatTime(),
-                TaskStatus = x.TaskStatus,
-                TaskCompletedPercent = x.TaskCompletedPercent,
-                TaskTeamId = x.TaskTeamId,
-                TaskIsDeleted = x.TaskIsDeleted
-            }).ToListAsync();
-
-            return outPut;
-        }
-
-        public async Task<List<TaskResponse>> GetAllByUserId(string userId)
-        {
-            var entityList = from ta in _dbContext.Task
-                             join p in _dbContext.Participation on ta.TaskTeamId equals p.ParticipationTeamId
-                             join u in _dbContext.User on p.ParticipationUserId equals u.Id
-                             select new { ta, u };
-
-            entityList = entityList.Where(x => x.u.Id == userId);
-
-            var outPut = await entityList.Select(x => new TaskResponse
-            {
-                TaskId = x.ta.TaskId,
-                TaskName = x.ta.TaskName,
-                TaskDescription = x.ta.TaskDescription,
-                TaskPoint = x.ta.TaskPoint,
-                TaskCreatedAt = x.ta.TaskCreatedAt.FormatTime(),
-                TaskStartDate = x.ta.TaskStartDate.FormatTime(),
-                TaskDeadline = x.ta.TaskDeadline.FormatTime(),
-                TaskStatus = x.ta.TaskStatus,
-                TaskCompletedPercent = x.ta.TaskCompletedPercent,
-                TaskTeamId = x.ta.TaskTeamId,
-                TaskIsDeleted = x.ta.TaskIsDeleted
-            }).ToListAsync();
-
-            return outPut;
-        }
-
-        public async Task<List<TaskResponse>> GetAllByUserTeamId(string userId, string teamId)
-        {
-            var entityList = from ta in _dbContext.Task
-                             join p in _dbContext.Participation on ta.TaskTeamId equals p.ParticipationTeamId
-                             join u in _dbContext.User on p.ParticipationUserId equals u.Id
-                             select new { ta, u };
-
-            entityList = entityList.Where(x => x.u.Id == userId && x.ta.TaskTeamId == teamId);
-
-            var outPut = await entityList.Select(x => new TaskResponse
-            {
-                TaskId = x.ta.TaskId,
-                TaskName = x.ta.TaskName,
-                TaskDescription = x.ta.TaskDescription,
-                TaskPoint = x.ta.TaskPoint,
-                TaskCreatedAt = x.ta.TaskCreatedAt.FormatTime(),
-                TaskStartDate = x.ta.TaskStartDate.FormatTime(),
-                TaskDeadline = x.ta.TaskDeadline.FormatTime(),
-                TaskStatus = x.ta.TaskStatus,
-                TaskCompletedPercent = x.ta.TaskCompletedPercent,
-                TaskTeamId = x.ta.TaskTeamId,
-                TaskIsDeleted = x.ta.TaskIsDeleted
-            }).ToListAsync();
-
-            return outPut;
-        }
-
         public async Task<TaskResponse> GetById(string taskId)
         {
             var query = from t in _dbContext.Task.AsNoTracking()
@@ -308,30 +230,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 Files = listFiles,
                 TaskImageUrl = task.t.TaskImageUrl,
             };
-
-            return outPut;
-        }
-
-        public async Task<PagedResponse<TaskResponse>> GetPaging(RequestParameter parameter)
-        {
-            var query = _dbContext.Task.Skip(parameter.PageSize * parameter.PageNumber).Take(parameter.PageSize);
-
-            var entityList = await query.Select(x => new TaskResponse
-            {
-                TaskId = x.TaskId,
-                TaskName = x.TaskName,
-                TaskDescription = x.TaskDescription,
-                TaskPoint = x.TaskPoint,
-                TaskCreatedAt = x.TaskCreatedAt.FormatTime(),
-                TaskStartDate = x.TaskStartDate.FormatTime(),
-                TaskDeadline = x.TaskDeadline.FormatTime(),
-                TaskStatus = x.TaskStatus,
-                TaskCompletedPercent = x.TaskCompletedPercent,
-                TaskTeamId = x.TaskTeamId,
-                TaskIsDeleted = x.TaskIsDeleted,
-            }).ToListAsync();
-
-            var outPut = new PagedResponse<TaskResponse>(entityList, parameter.PageNumber, parameter.PageSize, await query.CountAsync());
 
             return outPut;
         }

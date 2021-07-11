@@ -479,27 +479,5 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return outPut;
 
         }
-
-        public async Task<bool> UpdatePost(string postId, PostRequest postReq)
-        {
-            var entity = await _dbContext.Post.FindAsync(postId);
-            if (entity == null)
-                return false;
-
-            entity.PostUserId = postReq.PostUserId;
-            entity.PostUserId = postReq.PostUserId;
-            entity.PostTeamId = postReq.PostTeamId;
-            entity.PostContent = postReq.PostContent;
-            entity.PostContent = postReq.PostContent;
-            entity.PostCreatedAt = postReq.PostCreatedAt;
-            entity.PostCommentCount = postReq.PostCommentCount;
-            entity.PostIsDeleted = postReq.PostIsDeleted;
-            entity.PostIsPinned = postReq.PostIsPinned;
-
-            _dbContext.Post.Update(entity);
-            await _dbContext.SaveChangesAsync();
-
-            return true;
-        }
     }
 }

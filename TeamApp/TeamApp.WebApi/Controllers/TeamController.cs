@@ -23,7 +23,13 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
+        /// <summary>
+        /// Get teams by user API
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpGet("byuserid/{userId}")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<TeamResponse>>))]
         public async Task<IActionResult> GetByUserId(string userId)
         {
             var res = await _repo.GetByUserId(userId);
@@ -37,7 +43,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Get team info detail API
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
         [HttpGet("{teamId}")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<TeamResponse>))]
         public async Task<IActionResult> GetById(string teamId)
         {
             var res = await _repo.GetById(teamId);
@@ -52,7 +64,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Create team API
+        /// </summary>
+        /// <param name="teamReq"></param>
+        /// <returns></returns>
         [HttpPost]
+        [ProducesDefaultResponseType(typeof(ApiResponse<TeamResponse>))]
         public async Task<IActionResult> AddTeam(TeamRequest teamReq)
         {
             var res = await _repo.AddTeam(teamReq);
@@ -67,7 +85,13 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
+        /// <summary>
+        /// Update Team API
+        /// </summary>
+        /// <param name="teamUpdateRequest"></param>
+        /// <returns></returns>
         [HttpPut]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> UpdateTeam(TeamUpdateRequest teamUpdateRequest)
         {
             var res = await _repo.UpdateTeam(teamUpdateRequest);
@@ -82,7 +106,7 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpDelete("{teamId}")]
+        /*[HttpDelete("{teamId}")]
         public async Task<IActionResult> DeleteById(string teamId)
         {
             var res = await _repo.DeleteTeam(teamId);
@@ -95,9 +119,15 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
+        }*/
 
+        /// <summary>
+        /// Get users by team API
+        /// </summary>
+        /// <param name="userParameter"></param>
+        /// <returns></returns>
         [HttpGet("getusers-paging")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<UserResponse>>))]
         public async Task<IActionResult> GetUsersByTeamIdPaging([FromQuery] TeamUserParameter userParameter)
         {
             var outPut = await _repo.GetUsersByTeamIdPagingSearch(userParameter);
@@ -108,7 +138,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Join team API
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPost("join-team")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<TeamResponse>))]
         public async Task<IActionResult> JoinTeam(JoinTeamRequest request)
         {
             var outPut = await _repo.JoinTeam(request);
@@ -120,7 +156,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Get admin team info API
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
         [HttpGet("get-admin/{teamId}")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<UserResponse>))]
         public async Task<IActionResult> GetAdmin(string teamId)
         {
             var outPut = await _repo.GetAdmin(teamId);
@@ -131,7 +173,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Search user for tag in post API
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
         [HttpGet("users-for-tag/{teamId}")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<UserResponse>>))]
         public async Task<IActionResult> GetUsersForTag(string teamId)
         {
             var outPut = await _repo.GetUsersForTag(teamId);
@@ -142,7 +190,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Get boards of team API
+        /// </summary>
+        /// <param name="teamId"></param>
+        /// <returns></returns>
         [HttpGet("boards-by-team/{teamId}")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<KanbanBoardResponse>>))]
         public async Task<IActionResult> GetBoardsByTeamId(string teamId)
         {
             var outPut = await _repo.GetBoardsByTeam(teamId);
@@ -153,7 +207,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// List recommend team in newsfeed API
+        /// </summary>
+        /// <param name="userId"></param>
+        /// <returns></returns>
         [HttpGet("teams-recommend-user/{userId}")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<List<TeamRecommendModel>>))]
         public async Task<IActionResult> GetTeamsRecommedUser(string userId)
         {
             var outPut = await _repo.GetRecommendTeamForUser(userId);
@@ -164,7 +224,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Change leader of team API
+        /// </summary>
+        /// <param name="changeTeamAdminModel"></param>
+        /// <returns></returns>
         [HttpPost("change-leader")]
+        [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
         public async Task<IActionResult> ChangeTeamLeader([FromBody] ChangeTeamAdminModel changeTeamAdminModel)
         {
             var outPut = await _repo.ChangeTeamLeader(changeTeamAdminModel);

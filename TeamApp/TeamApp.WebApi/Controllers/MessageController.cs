@@ -22,22 +22,13 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
-        [HttpGet("byuserid/{userId}")]
-        public async Task<IActionResult> GetAllByUserId(string userId)
-        {
-            var res = await _repo.GetAllByUserId(userId);
-
-            var outPut = new ApiResponse<List<MessageResponse>>
-            {
-                Data = res,
-                Succeeded = true,
-                Message = res == null ? "Nhóm không tồn tại" : null,
-            };
-
-            return Ok(outPut);
-        }
-
+        /// <summary>
+        /// Get pagination messages data API
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HttpGet]
+        [ProducesDefaultResponseType(typeof(ApiResponse<PagedResponse<MessageResponse>>))]
         public async Task<IActionResult> GetPaging([FromQuery] MessageRequestParameter parameter)
         {
             var res = await _repo.GetPaging(parameter);
@@ -49,47 +40,6 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
-
-        [HttpPost]
-        public async Task<IActionResult> AddMessage([FromForm] MessageRequest msgReq)
-        {
-            var res = await _repo.AddMessage(msgReq);
-
-            var outPut = new ApiResponse<string>
-            {
-                Data = res,
-                Succeeded = res == null ? false : true,
-                Message = res == null ? "Thêm thất bại" : null,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpDelete("{msgId}")]
-        public async Task<IActionResult> DeleteMessage(string msgId)
-        {
-            var res = await _repo.DeleteMessage(msgId);
-
-            var outPut = new ApiResponse<bool>
-            {
-                Data = res,
-                Succeeded = res,
-                Message = !res ? "Xóa thất bại" : null,
-            };
-
-            return Ok(outPut);
-        }
-
-        [HttpGet("groupid/{groupId}")]
-        public async Task<IActionResult> GetByGroupId(string groupId)
-        {
-            var outPut = await _repo.GetByGroupId(groupId);
-            return Ok(new ApiResponse<List<MessageResponse>>
-            {
-                Succeeded = true,
-                Data = outPut,
-            });
         }
     }
 }

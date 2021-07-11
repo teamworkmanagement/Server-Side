@@ -21,6 +21,12 @@ namespace TeamApp.WebApi.Controllers
             _repo = repo;
         }
 
+        /// <summary>
+        /// Get file by id API
+        /// </summary>
+        /// <param name="fileId"></param>
+        /// <returns></returns>
+        [ProducesResponseType(typeof(ApiResponse<FileResponse>), 200)]
         [HttpGet("{fileId}")]
         public async Task<IActionResult> GetById(string fileId)
         {
@@ -36,7 +42,7 @@ namespace TeamApp.WebApi.Controllers
             return Ok(outPut);
         }
 
-        [HttpPost("{taskId}")]
+        /*[HttpPost("{taskId}")]
         public async Task<IActionResult> AddFileTask(string taskId, [FromForm] FileRequest fileReq)
         {
             var res = await _repo.AddFileTask(taskId, fileReq);
@@ -49,16 +55,16 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }
+        }*/
 
         /// <summary>
-        /// Get file pagination in upload file
+        /// Get file pagination in upload file API
         /// </summary>
         /// <param name="parameter"></param>
         /// <returns></returns>
         [HttpGet]
         [ProducesResponseType(typeof(ApiResponse<FileResponse>), 200)]
-        public async Task<IActionResult> GetTask([FromQuery] FileRequestParameter parameter)
+        public async Task<IActionResult> GetFileByBelonged([FromQuery] FileRequestParameter parameter)
         {
             var outPut = await _repo.GetByBelong(parameter);
             return Ok(new ApiResponse<PagedResponse<FileResponse>>
@@ -68,7 +74,13 @@ namespace TeamApp.WebApi.Controllers
             }); ;
         }
 
+        /// <summary>
+        /// Add file API
+        /// </summary>
+        /// <param name="fileRequest"></param>
+        /// <returns></returns>
         [HttpPost]
+        [ProducesResponseType(typeof(ApiResponse<FileResponse>), 200)]
         public async Task<IActionResult> AddFile(FileRequest fileRequest)
         {
             var outPut = await _repo.AddFile(fileRequest);
@@ -79,7 +91,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Add image of post API
+        /// </summary>
+        /// <param name="postFileUploadRequest"></param>
+        /// <returns></returns>
         [HttpPost("upload-images-post")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), 200)]
         public async Task<IActionResult> UploadImagesForPost(PostFileUploadRequest postFileUploadRequest)
         {
             var outPut = await _repo.UploadImageForPost(postFileUploadRequest);
@@ -90,7 +108,13 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        /// <summary>
+        /// Get pagination file specify owner id API
+        /// </summary>
+        /// <param name="parameter"></param>
+        /// <returns></returns>
         [HttpGet("get-all")]
+        [ProducesResponseType(typeof(ApiResponse<List<FileResponse>>), 200)]
         public async Task<IActionResult> GetAllFiles([FromQuery] FileRequestParameter parameter)
         {
             var outPut = await _repo.GetAll(parameter);
@@ -101,7 +125,13 @@ namespace TeamApp.WebApi.Controllers
             }); ;
         }
 
+        /// <summary>
+        /// Change file from team to personal API
+        /// </summary>
+        /// <param name="copyFileToUserModel"></param>
+        /// <returns></returns>
         [HttpPost("copy-file")]
+        [ProducesResponseType(typeof(ApiResponse<bool>), 200)]
         public async Task<IActionResult> CopyFile(CopyFileToUserModel copyFileToUserModel)
         {
             var outPut = await _repo.CopyFileToUser(copyFileToUserModel);
