@@ -10,5 +10,6 @@ namespace TeamApp.Application.DTOs.Statistics
         //public List<UsersTaskDoneAndPointResponse> RequestModels { get; set; }
         public string RequestModels { get; set; }
         public IFormFile Image { get; set; }
+        public string BoardName { get; set; }
     }
 }

@@ -9,5 +9,6 @@ namespace TeamApp.Application.DTOs.Statistics
     {
         public IFormFile Image { get; set; }
         public string BoardTaskDone { get; set; }
+        public string BoardName { get; set; }
     }
 }

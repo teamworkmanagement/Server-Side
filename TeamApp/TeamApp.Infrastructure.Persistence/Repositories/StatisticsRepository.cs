@@ -4,11 +4,14 @@ using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 using Newtonsoft.Json;
 using OfficeOpenXml;
+using OfficeOpenXml.Drawing;
 using OfficeOpenXml.Style;
 using System;
 using System.Collections.Generic;
 using System.Data.SqlClient;
+using System.Drawing;
 using System.Globalization;
+using System.IO;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -422,21 +425,46 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<byte[]> ExportPersonalAndTeamsTask(ExportPersonalAndTeamsTaskRequest exportPersonal)
         {
+            byte[] fileBytes;
+            using (var ms = new MemoryStream())
+            {
+                exportPersonal.Image.CopyTo(ms);
+                fileBytes = ms.ToArray();
+            }
+
             var userStatis = JsonConvert.DeserializeObject<List<int>>(exportPersonal.UserStatis);
             var teamStatis = JsonConvert.DeserializeObject<List<int>>(exportPersonal.TeamStatis);
 
             var package = new ExcelPackage();
             var workSheet = package.Workbook.Worksheets.Add("Công việc cá nhân và nhóm");
+
+            var type = string.Empty;
+            switch (teamStatis.Count)
+            {
+                case 7:
+                    type = "tuần";
+                    break;
+                case 12:
+                    type = "năm";
+                    break;
+                default:
+                    type = "tháng";
+                    break;
+            }
+            workSheet.Cells["A1:F50"].Style.Font.Size = 13;
+            workSheet.Cells["A1:F50"].Style.Font.Name = "Times New Roman";
             // create title
             workSheet.Cells["A1:D1"].Merge = true;
-            workSheet.Cells["A1"].Value = "Công việc cá nhân và nhóm";
-            workSheet.Cells["A1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-            workSheet.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            workSheet.Cells["A1"].Style.Font.Bold = true;
+            workSheet.Cells["A1"].Value = DateTime.UtcNow.AddHours(7).ToString("dddd, dd MMMM yyyy HH:mm:ss", new CultureInfo("vi-VN"));
+            workSheet.Cells["A2:D2"].Merge = true;
+            workSheet.Cells["A2"].Value = "Thống kê công việc cá nhân và nhóm trong " + type;
+            workSheet.Cells["A2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            workSheet.Cells["A2"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            workSheet.Cells["A2"].Style.Font.Bold = true;
             // fill header
             List<string> listHeader = new List<string>()
             {
-                "A2","B2","C2","D2",
+                "A3","B3","C3","D3",
             };
             listHeader.ForEach(c =>
             {
@@ -463,10 +491,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     dt = DateTime.UtcNow.AddMonths(-(userStatis.Count - i - 1));
                 }
-                workSheet.Cells[i + 3, 1].Value = (i + 1).ToString();
-                workSheet.Cells[i + 3, 2].Value = userStatis.Count != 12 ? dt.ToString("dd/MM/yyyy", new CultureInfo("vi-VN")) : dt.ToString("MM/yyyy", new CultureInfo("vi-VN"));
-                workSheet.Cells[i + 3, 3].Value = userStatis[i];
-                workSheet.Cells[i + 3, 4].Value = teamStatis[i];
+                workSheet.Cells[i + 4, 1].Value = (i + 1).ToString();
+                workSheet.Cells[i + 4, 2].Value = userStatis.Count != 12 ? dt.ToString("dd/MM/yyyy", new CultureInfo("vi-VN")) : dt.ToString("MM/yyyy", new CultureInfo("vi-VN"));
+                workSheet.Cells[i + 4, 3].Value = userStatis[i];
+                workSheet.Cells[i + 4, 4].Value = teamStatis[i];
             }
             // format column width
             for (int i = 1; i < 5; i++)
@@ -474,13 +502,13 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 switch (i)
                 {
                     case 2:
-                        workSheet.Column(i).Width = 50;
+                        workSheet.Column(i).Width = 55;
                         break;
                     case 3:
-                        workSheet.Column(i).Width = 50;
+                        workSheet.Column(i).Width = 55;
                         break;
                     case 4:
-                        workSheet.Column(i).Width = 50;
+                        workSheet.Column(i).Width = 55;
                         break;
                     default:
                         workSheet.Column(i).Width = 20;
@@ -493,13 +521,29 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 for (int j = 1; j < 5; j++)
                 {
-                    workSheet.Cells[i + 3, j].Style.Font.Size = 10;
-                    workSheet.Cells[i + 3, j].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                    workSheet.Cells[i + 3, j].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                    workSheet.Cells[i + 3, j].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                    workSheet.Cells[i + 3, j].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Font.Size = 13;
+                    workSheet.Cells[i + 4, j].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 }
             }
+
+            using (var ms = new MemoryStream(fileBytes, 0, fileBytes.Length))
+            {
+                Image image = Image.FromStream(ms, true);
+
+                ExcelPicture pic = workSheet.Drawings.AddPicture("report_img", image);
+
+                pic.From.Column = 1;
+                pic.From.Row = userStatis.Count + 4;
+
+                //8+19 row, 8+14 column
+                workSheet.Cells[userStatis.Count + 4, 1, userStatis.Count + 4 + 19, 4].Merge = true;
+            }
+
+            await package.SaveAsync();
+
             return await package.GetAsByteArrayAsync();
         }
 
@@ -508,16 +552,44 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var boardTaskDone = JsonConvert.DeserializeObject<List<int>>(exportRequest.BoardTaskDone);
             var package = new ExcelPackage();
             var workSheet = package.Workbook.Worksheets.Add("Công việc nhóm");
+
+            workSheet.Cells["A1:F50"].Style.Font.Size = 13;
+            workSheet.Cells["A1:F50"].Style.Font.Name = "Times New Roman";
+
+            byte[] fileBytes;
+            using (var ms = new MemoryStream())
+            {
+                exportRequest.Image.CopyTo(ms);
+                fileBytes = ms.ToArray();
+            }
+
+            var type = string.Empty;
+            switch (boardTaskDone.Count)
+            {
+                case 7:
+                    type = "tuần";
+                    break;
+                case 12:
+                    type = "năm";
+                    break;
+                default:
+                    type = "tháng";
+                    break;
+            }
+
             // create title
-            workSheet.Cells["A1:D1"].Merge = true;
-            workSheet.Cells["A1"].Value = "Công việc nhóm";
-            workSheet.Cells["A1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-            workSheet.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            workSheet.Cells["A1"].Style.Font.Bold = true;
+            workSheet.Cells["A1:C1"].Merge = true;
+            workSheet.Cells["A2:C2"].Merge = true;
+
+            workSheet.Cells["A1"].Value = DateTime.UtcNow.AddHours(7).ToString("dddd, dd MMMM yyyy HH:mm:ss", new CultureInfo("vi-VN"));
+            workSheet.Cells["A2"].Value = "Thống kê công việc bảng " + exportRequest.BoardName + " trong " + type;
+            workSheet.Cells["A2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            workSheet.Cells["A2"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            workSheet.Cells["A2"].Style.Font.Bold = true;
             // fill header
             List<string> listHeader = new List<string>()
             {
-                "A2","B2","C2",
+                "A3","B3","C3",
             };
             listHeader.ForEach(c =>
             {
@@ -543,28 +615,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     dt = DateTime.UtcNow.AddMonths(-(boardTaskDone.Count - i - 1));
                 }
-                workSheet.Cells[i + 3, 1].Value = (i + 1).ToString();
-                workSheet.Cells[i + 3, 2].Value = boardTaskDone.Count != 12 ? dt.ToString("dd/MM/yyyy", new CultureInfo("vi-VN")) : dt.ToString("MM/yyyy", new CultureInfo("vi-VN"));
-                workSheet.Cells[i + 3, 3].Value = boardTaskDone[i];
+                workSheet.Cells[i + 4, 1].Value = (i + 1).ToString();
+                workSheet.Cells[i + 4, 2].Value = boardTaskDone.Count != 12 ? dt.ToString("dd/MM/yyyy", new CultureInfo("vi-VN")) : dt.ToString("MM/yyyy", new CultureInfo("vi-VN"));
+                workSheet.Cells[i + 4, 3].Value = boardTaskDone[i];
             }
             // format column width
             for (int i = 1; i < 4; i++)
             {
-                switch (i)
+                workSheet.Column(i).Width = i switch
                 {
-                    case 1:
-                        workSheet.Column(i).Width = 50;
-                        break;
-                    case 2:
-                        workSheet.Column(i).Width = 50;
-                        break;
-                    case 3:
-                        workSheet.Column(i).Width = 50;
-                        break;
-                    default:
-                        workSheet.Column(i).Width = 20;
-                        break;
-                }
+                    1 => 15,
+                    2 => 75,
+                    3 => 75,
+                    _ => 15,
+                };
             }
 
             // format cell border
@@ -572,13 +636,29 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 for (int j = 1; j < 4; j++)
                 {
-                    workSheet.Cells[i + 3, j].Style.Font.Size = 10;
-                    workSheet.Cells[i + 3, j].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                    workSheet.Cells[i + 3, j].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                    workSheet.Cells[i + 3, j].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                    workSheet.Cells[i + 3, j].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Font.Size = 13;
+                    workSheet.Cells[i + 4, j].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 }
             }
+
+            using (var ms = new MemoryStream(fileBytes, 0, fileBytes.Length))
+            {
+                Image image = Image.FromStream(ms, true);
+
+                ExcelPicture pic = workSheet.Drawings.AddPicture("report_img", image);
+
+                pic.From.Column = 1;
+                pic.From.Row = boardTaskDone.Count + 4;
+
+                //8+19 row, 8+14 column
+                workSheet.Cells[boardTaskDone.Count + 4, 1, boardTaskDone.Count + 4 + 19, 3].Merge = true;
+            }
+
+            await package.SaveAsync();
+
             return await package.GetAsByteArrayAsync();
         }
 
@@ -588,16 +668,29 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var package = new ExcelPackage();
             var workSheet = package.Workbook.Worksheets.Add("Công việc nhóm và tổng điểm");
+
+            workSheet.Cells["A1:F50"].Style.Font.Size = 13;
+            workSheet.Cells["A1:F50"].Style.Font.Name = "Times New Roman";
+
+            byte[] fileBytes;
+            using (var ms = new MemoryStream())
+            {
+                pointAndDoneRequest.Image.CopyTo(ms);
+                fileBytes = ms.ToArray();
+            }
+
             // create title
             workSheet.Cells["A1:D1"].Merge = true;
-            workSheet.Cells["A1"].Value = "Công việc nhóm và tổng điểm";
-            workSheet.Cells["A1"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
-            workSheet.Cells["A1"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
-            workSheet.Cells["A1"].Style.Font.Bold = true;
+            workSheet.Cells["A2:D2"].Merge = true;
+            workSheet.Cells["A1"].Value = DateTime.UtcNow.AddHours(7).ToString("dddd, dd MMMM yyyy HH:mm:ss", new CultureInfo("vi-VN"));
+            workSheet.Cells["A2"].Value = "Công việc nhóm và tổng điểm";
+            workSheet.Cells["A2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
+            workSheet.Cells["A2"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+            workSheet.Cells["A2"].Style.Font.Bold = true;
             // fill header
             List<string> listHeader = new List<string>()
             {
-                "A2","B2","C2","D2",
+                "A3","B3","C3","D3",
             };
             listHeader.ForEach(c =>
             {
@@ -616,10 +709,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             //fill data
             for (int i = 0; i < requestModels.Count; i++)
             {
-                workSheet.Cells[i + 3, 1].Value = (i + 1).ToString();
-                workSheet.Cells[i + 3, 2].Value = requestModels[i].UserFullName;
-                workSheet.Cells[i + 3, 3].Value = requestModels[i].Point;
-                workSheet.Cells[i + 3, 4].Value = requestModels[i].TaskDoneCount;
+                workSheet.Cells[i + 4, 1].Value = (i + 1).ToString();
+                workSheet.Cells[i + 4, 2].Value = requestModels[i].UserFullName;
+                workSheet.Cells[i + 4, 3].Value = requestModels[i].Point;
+                workSheet.Cells[i + 4, 4].Value = requestModels[i].TaskDoneCount;
             }
             // format column width
             for (int i = 1; i < 5; i++)
@@ -646,13 +739,29 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             {
                 for (int j = 1; j < 5; j++)
                 {
-                    workSheet.Cells[i + 3, j].Style.Font.Size = 10;
-                    workSheet.Cells[i + 3, j].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
-                    workSheet.Cells[i + 3, j].Style.Border.Top.Style = ExcelBorderStyle.Thin;
-                    workSheet.Cells[i + 3, j].Style.Border.Left.Style = ExcelBorderStyle.Thin;
-                    workSheet.Cells[i + 3, j].Style.Border.Right.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Font.Size = 13;
+                    workSheet.Cells[i + 4, j].Style.Border.Bottom.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Border.Top.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Border.Left.Style = ExcelBorderStyle.Thin;
+                    workSheet.Cells[i + 4, j].Style.Border.Right.Style = ExcelBorderStyle.Thin;
                 }
             }
+
+            using (var ms = new MemoryStream(fileBytes, 0, fileBytes.Length))
+            {
+                Image image = Image.FromStream(ms, true);
+
+                ExcelPicture pic = workSheet.Drawings.AddPicture("report_img", image);
+
+                pic.From.Column = 1;
+                pic.From.Row = requestModels.Count + 4;
+
+                //8+19 row, 8+14 column
+                workSheet.Cells[requestModels.Count + 4, 1, requestModels.Count + 4 + 19, 4].Merge = true;
+            }
+
+            await package.SaveAsync();
+
             return await package.GetAsByteArrayAsync();
         }
 
