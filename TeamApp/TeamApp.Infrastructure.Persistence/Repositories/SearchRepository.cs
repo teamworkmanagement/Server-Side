@@ -233,7 +233,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 TeamDescription = r.TeamDescription,
                 TeamCode = r.TeamCode,
                 TeamImage = string.IsNullOrEmpty(r.TeamImageUrl) ? $"https://ui-avatars.com/api/?name={r.TeamName}" : r.TeamImageUrl,
-                Link = $"team/{r.TeamId}",
+                Link = $"team/{r.TeamId}?tab=teaminfo",
             }).Skip(appSearchRequest.SkipItems).Take(appSearchRequest.PageSize).ToList();
 
             return new PagedResponse<TeamSearchResponse>(response, appSearchRequest.PageSize, count, skipRows: appSearchRequest.SkipItems);
