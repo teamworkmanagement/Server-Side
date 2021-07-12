@@ -65,6 +65,11 @@ namespace TeamApp.Infrastructure.Persistence.Services
             {
                 throw new ApiException($"Account Not Confirmed for '{request.Email}'.");
             }
+
+            if(request.IsAdmin && request.Email!= "admin@ezteam.tech")
+            {
+                throw new ApiException($"Not admin '{request.Email}'.");
+            }
             JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user);
             AuthenticationResponse response = new AuthenticationResponse();
             response.Id = user.Id;

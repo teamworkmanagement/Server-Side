@@ -44,14 +44,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     HandleTaskCreatedAt = DateTime.UtcNow,
                     HandleTaskIsDeleted = false,
                 });
+
+                await _dbContext.SaveChangesAsync();
             }
             else
             {
                 if (entity.HandleTaskUserId == reAssignModel.CurrentUserId)
+                {
                     checkExists = true;
-
-                entity.HandleTaskUserId = reAssignModel.CurrentUserId;
-                _dbContext.HandleTask.Update(entity);
+                }
+                else
+                {
+                    entity.HandleTaskUserId = reAssignModel.CurrentUserId;
+                    _dbContext.HandleTask.Update(entity);
+                    await _dbContext.SaveChangesAsync();
+                }
             }
 
 
@@ -67,6 +74,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
                                      where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
+                                     && u.ConnectionId != reAssignModel.ReqConnectionId
                                      select u.ConnectionId).ToListAsync();
 
                 if (reAssignModel.CurrentUserId != null)
@@ -79,6 +87,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         TaskId = reAssignModel.TaskId,
                         KanbanListId = task.TaskBelongedId,
                         UserFullName = user.FullName,
+                        CallUpdate = false,
                     };
 
                     await _kanbanHub.Clients.Clients(clients).ReAssignUser(obj);
@@ -98,13 +107,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         UserId = string.Empty,
                         UserAvatar = string.Empty,
                         TaskId = reAssignModel.TaskId,
-                        KanbanListId = task.TaskBelongedId
+                        KanbanListId = task.TaskBelongedId,
+                        CallUpdate = false,
                     };
 
                     await _kanbanHub.Clients.Clients(clients).ReAssignUser(obj);
                 }
             }
-            return await _dbContext.SaveChangesAsync() > 0;
+            return true;
         }
     }
 }
