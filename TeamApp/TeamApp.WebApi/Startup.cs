@@ -7,6 +7,7 @@ using System;
 using TeamApp.Application;
 using TeamApp.Application.Interfaces;
 using TeamApp.Infrastructure.Persistence;
+using TeamApp.Infrastructure.Persistence.Hubs.App;
 using TeamApp.Infrastructure.Persistence.Hubs.Chat;
 using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
 using TeamApp.Infrastructure.Persistence.Hubs.Notification;
@@ -84,6 +85,7 @@ namespace TeamApp.WebApi
                  endpoints.MapHub<HubPostClient>("/hubpost");
                  endpoints.MapHub<HubKanbanClient>("/hubkanban");
                  endpoints.MapHub<HubNotificationClient>("/hubnoti");
+                 endpoints.MapHub<HubAppClient>("/hubapp");
              });
         }
     }

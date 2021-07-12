@@ -55,7 +55,6 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IFeedbackRepository, FeedbackRepository>();
             services.AddTransient<ISearchRepository, SearchRepository>();
             #endregion
-            services.AddTransient<IFirebaseMessagingService, FirebaseMessagingService>();
             ConfigAuthService(services, configuration);
         }
         public static void ConfigAuthService(IServiceCollection services, IConfiguration configuration)
