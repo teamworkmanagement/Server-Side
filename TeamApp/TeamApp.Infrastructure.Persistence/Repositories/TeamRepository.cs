@@ -468,7 +468,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _hubApp.Clients.Clients(clients).UpdateTeamInfo(new
             {
                 TeamId = changeTeamAdminModel.TeamId,
-                Leader = true,
+                LeaderId = changeTeamAdminModel.LeaderId,
                 Time = DateTime.UtcNow
             });
 
