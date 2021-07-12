@@ -214,6 +214,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         join t in _dbContext.Team.AsNoTracking() on p.PostTeamId equals t.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
                         where t.TeamId == parameter.TeamId && p.PostIsDeleted == false
+                        orderby p.PostCreatedAt descending
                         select new { p, u, p.Comments.Count, RCount = p.PostReacts.Count, t.TeamName };
 
             //tìm kiếm nâng cao
@@ -339,6 +340,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         join listTeam in teamList on p.PostTeamId equals listTeam.TeamId
                         join u in _dbContext.User on p.PostUserId equals u.Id
                         where p.PostIsDeleted == false
+                        orderby p.PostCreatedAt descending
                         select new { p, u, p.Comments.Count, RCount = p.PostReacts.Count, listTeam.TeamName };
 
 

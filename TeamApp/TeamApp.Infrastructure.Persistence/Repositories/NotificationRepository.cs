@@ -289,5 +289,39 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             return true;
         }
+
+        public async Task PushNoti(NotiRequest notiRequest)
+        {
+            var notis = new List<Notification>();
+            var notiGroup = Guid.NewGuid().ToString();
+            var users = await _dbContext.User.Select(u => u.Id).ToListAsync();
+            foreach (var u in users)
+            {
+                notis.Add(new Notification
+                {
+                    NotificationId = Guid.NewGuid().ToString(),
+                    NotificationGroup = notiGroup,
+                    NotificationContent = notiRequest.NotiContent,
+                    NotificationCreatedAt = DateTime.UtcNow,
+                    NotificationStatus = false,
+                    NotificationUserId = u
+                });
+            }
+
+            var clients = await _dbContext.UserConnection
+                .Where(u => u.Type == "notification").Select(x => x.ConnectionId).ToListAsync();
+
+            await _dbContext.BulkInsertAsync(notis);
+
+            await _notiHub.Clients.Clients(clients).SendNoti(new
+            {
+                //NotificationActionFullName = actionUser.FullName,
+                //NotificationActionAvatar = actionUser.ImageUrl,
+                NotificationGroup = notiGroup,
+                NotificationContent = notiRequest.NotiContent,
+                NotificationStatus = false,
+                NotificationCreatedAt = DateTime.UtcNow,
+            });
+        }
     }
 }
