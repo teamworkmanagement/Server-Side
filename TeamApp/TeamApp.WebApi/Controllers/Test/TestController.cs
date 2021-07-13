@@ -41,9 +41,9 @@ namespace TeamApp.WebApi.Controllers.Test
             _environment = environment;
             _emailService = emailService;
         }
-        //[Authorize]
+
+        [Authorize]
         [HttpGet]
-        [Authorize(Policy = "AdminPolicy")]
         public IActionResult ShowTest()
         {
             return Ok(new
