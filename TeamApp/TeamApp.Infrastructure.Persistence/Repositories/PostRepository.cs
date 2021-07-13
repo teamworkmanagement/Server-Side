@@ -105,16 +105,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
                         where p.ParticipationTeamId == teamId && uc.Type == "post"
-                        select uc;
+                        select uc.ConnectionId;
 
             query = query.Distinct();
 
-            var clients = await query.AsNoTracking().Where(x => x.UserId != react.UserId).Select(x => x.ConnectionId).ToListAsync();
+            var clients = await query.ToListAsync();
 
             var readOnlyStr = new ReadOnlyCollection<string>(clients);
             await _postHub.Clients.Clients(readOnlyStr).NewAddReact(new
             {
-                react.PostId
+                react.PostId,
+                UserId = react.UserId,
             });
 
             await _dbContext.PostReact.AddAsync(entity);
@@ -152,16 +153,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
                         where p.ParticipationTeamId == teamId && uc.Type == "post"
-                        select uc;
+                        select uc.ConnectionId;
 
             query = query.Distinct();
 
-            var clients = await query.AsNoTracking().Where(x => x.UserId != react.UserId).Select(x => x.ConnectionId).ToListAsync();
+            var clients = await query.ToListAsync();
 
             var readOnlyStr = new ReadOnlyCollection<string>(clients);
             await _postHub.Clients.Clients(readOnlyStr).RemoveReact(new
             {
-                react.PostId
+                react.PostId,
+                UserId = react.UserId,
             });
 
             await _dbContext.SaveChangesAsync();
