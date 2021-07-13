@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Identity;
+using Microsoft.AspNetCore.SignalR;
 using Microsoft.AspNetCore.WebUtilities;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -21,6 +22,7 @@ using TeamApp.Application.Wrappers;
 using TeamApp.Domain.Settings;
 using TeamApp.Infrastructure.Persistence.Entities;
 using TeamApp.Infrastructure.Persistence.Helpers;
+using TeamApp.Infrastructure.Persistence.Hubs.App;
 using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.Infrastructure.Persistence.Services
@@ -33,13 +35,15 @@ namespace TeamApp.Infrastructure.Persistence.Services
         private readonly JWTSettings _jwtSettings;
         private readonly TeamAppContext _dbContext;
         private readonly IHttpContextAccessor _httpContextAccessor;
+        private readonly IHubContext<HubAppClient, IHubAppClient> _hubApp;
 
         public AccountService(UserManager<User> userManager,
             IOptions<JWTSettings> jwtSettings,
             SignInManager<User> signInManager,
             IEmailService emailService,
             TeamAppContext dbContext,
-            IHttpContextAccessor httpContextAccessor)
+            IHttpContextAccessor httpContextAccessor,
+            IHubContext<HubAppClient, IHubAppClient> hubApp)
         {
             _userManager = userManager;
             _jwtSettings = jwtSettings.Value;
@@ -47,6 +51,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             _emailService = emailService;
             _dbContext = dbContext;
             _httpContextAccessor = httpContextAccessor;
+            _hubApp = hubApp;
         }
 
         public async Task<ApiResponse<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, string ipAddress)
@@ -64,6 +69,11 @@ namespace TeamApp.Infrastructure.Persistence.Services
             if (!user.EmailConfirmed)
             {
                 throw new ApiException($"Account Not Confirmed for '{request.Email}'.");
+            }
+
+            if (request.IsAdmin && request.Email != "admin@ezteam.tech")
+            {
+                throw new ApiException($"Not admin '{request.Email}'.");
             }
             JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user);
             AuthenticationResponse response = new AuthenticationResponse();
@@ -486,6 +496,30 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 user.UserFacebookLink = updateInfoModel.UserFacebookLink;
 
                 await _userManager.UpdateAsync(user);
+
+                user = await _userManager.FindByEmailAsync(updateInfoModel.Email);
+
+                var userInfo = new
+                {
+                    Id = user.Id,
+                    FullName = user.FullName,
+                    Email = user.Email,
+                    UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
+                    UserDob = user.Dob.Value.Date,
+                    UserPhoneNumber = user.PhoneNumber,
+                    UserAddress = user.UserAddress,
+                    UserDescription = user.UserDescription,
+                    UserGithubLink = user.UserGithubLink,
+                    UserFacebookLink = user.UserFacebookLink,
+                    FirstTimeSocial = user.FirstTimeSocial,
+                };
+
+                var clients = await _dbContext.UserConnection.AsNoTracking()
+                    .Where(uc => uc.UserId == user.Id)
+                    .Select(uc => uc.ConnectionId)
+                    .ToListAsync();
+                await _hubApp.Clients.Clients(clients).UpdateUserInfo(userInfo);
+
                 return new ApiResponse<bool>
                 {
                     Data = true,

@@ -10,6 +10,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string FeedbackContent { get; set; }
         public string UserFeedbackId { get; set; }
         public DateTime? FeedbackCreatedAt { get; set; }
+        public bool? IsSeen { get; set; } = false;
 
         public virtual User UserFeedback { get; set; }
     }

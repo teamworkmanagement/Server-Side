@@ -38,5 +38,41 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = true,
             });
         }
+
+        [Authorize(Policy = "AdminPolicy")]
+        [HttpGet]
+        public async Task<IActionResult> GetFeedbacks()
+        {
+            var outPut = await _repo.GetFeedbacks();
+            return Ok(new ApiResponse<List<FeedbackResponse>>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
+        }
+
+        [Authorize(Policy = "AdminPolicy")]
+        [HttpPost("remove")]
+        public async Task<IActionResult> RemoveFeedbacks([FromBody] FeedbackUpdateRequest feedbackUpdateRequest)
+        {
+            var outPut = await _repo.RemoveFeedbacks(feedbackUpdateRequest.FeedbackIds);
+            return Ok(new ApiResponse<bool>
+            {
+                Succeeded = outPut,
+                Data = outPut,
+            });
+        }
+
+        [Authorize(Policy = "AdminPolicy")]
+        [HttpPost("seen")]
+        public async Task<IActionResult> UpdateSeenFeedbacks([FromBody] FeedbackUpdateRequest feedbackUpdateRequest)
+        {
+            var outPut = await _repo.MakeAsSeen(feedbackUpdateRequest.FeedbackIds);
+            return Ok(new ApiResponse<bool>
+            {
+                Succeeded = outPut,
+                Data = outPut,
+            });
+        }
     }
 }

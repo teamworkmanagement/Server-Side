@@ -10,5 +10,6 @@ namespace TeamApp.Application.DTOs.Task
         public string CurrentUserId { get; set; }
         public string TaskId { get; set; }
         public string UserActionId { get; set; }
+        public string ReqConnectionId { get; set; }
     }
 }

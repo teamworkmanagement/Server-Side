@@ -55,7 +55,6 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IFeedbackRepository, FeedbackRepository>();
             services.AddTransient<ISearchRepository, SearchRepository>();
             #endregion
-            services.AddTransient<IFirebaseMessagingService, FirebaseMessagingService>();
             ConfigAuthService(services, configuration);
         }
         public static void ConfigAuthService(IServiceCollection services, IConfiguration configuration)
@@ -116,30 +115,22 @@ namespace TeamApp.Infrastructure.Persistence
                         {
                             c.NoResult();
                             if (c.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                            {
-                                c.Response.Headers.Add("X-Token-Expired", "true");
-                                c.Response.Cookies.Append("TokenExpired", "true", new CookieOptions
-                                {
-                                    Domain = configuration["MyApp:Url"],
-                                    Expires = DateTime.UtcNow.AddMinutes(5),
-                                    Secure = true,
-                                    HttpOnly = false,
-                                    SameSite = SameSiteMode.None,
-                                });
+                            {                              
+                                    c.Response.Cookies.Append("TokenExpired", "true", new CookieOptions
+                                    {
+                                        Domain = configuration["MyApp:Url"],
+                                        Expires = DateTime.UtcNow.AddMinutes(5),
+                                        Secure = true,
+                                        HttpOnly = false,
+                                        SameSite = SameSiteMode.None,
+                                    });
                             }
-                            c.Response.StatusCode = 500;
+                            c.Response.StatusCode = 401;
                             c.Response.ContentType = "text/plain";
                             var responseModel = new ApiResponse<string>() { Succeeded = false, Message = c.Exception.ToString(), };
                             return c.Response.WriteAsync(JsonConvert.SerializeObject(responseModel));
                         },
-                        /*OnChallenge = context =>
-                        {
-                            context.HandleResponse();
-                            context.Response.StatusCode = 401;
-                            context.Response.ContentType = "application/json";
-                            var result = JsonConvert.SerializeObject(new ApiResponse<string>("You are not Authorized"));
-                            return context.Response.WriteAsync(result);
-                        },*/
+
                         OnForbidden = context =>
                         {
                             context.Response.StatusCode = 403;
@@ -153,7 +144,6 @@ namespace TeamApp.Infrastructure.Persistence
                             var path = context.HttpContext.Request.Path;
                             if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/hubchat"))
                             {
-
                                 context.Token = accessToken;
                             }
                             return System.Threading.Tasks.Task.CompletedTask;

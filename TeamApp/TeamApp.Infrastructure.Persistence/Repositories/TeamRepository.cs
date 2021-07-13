@@ -15,6 +15,8 @@ using TeamApp.Application.DTOs.KanbanBoard;
 using Microsoft.Extensions.Configuration;
 using MySql.Data.MySqlClient;
 using Dapper;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.App;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -22,20 +24,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
     {
         private readonly TeamAppContext _dbContext;
         private readonly IGroupChatRepository _groupChatRepository;
-        private readonly IGroupChatUserRepository _groupChatUserRepository;
         private readonly IParticipationRepository _participationRepository;
-        private readonly IKanbanBoardRepository _kanbanBoardRepository;
-        private readonly IKanbanListRepository _kanbanListRepository;
         private readonly IConfiguration _config;
+        private readonly IHubContext<HubAppClient, IHubAppClient> _hubApp;
         public TeamRepository(TeamAppContext dbContext, IGroupChatRepository groupChatRepository, IGroupChatUserRepository groupChatUserRepository
-            , IParticipationRepository participationRepository, IKanbanBoardRepository kanbanBoardRepository, IKanbanListRepository kanbanListRepository, IConfiguration config)
+            , IParticipationRepository participationRepository, IConfiguration config
+            , IHubContext<HubAppClient, IHubAppClient> hubApp)
         {
             _dbContext = dbContext;
             _groupChatRepository = groupChatRepository;
-            _groupChatUserRepository = groupChatUserRepository;
             _participationRepository = participationRepository;
-            _kanbanListRepository = kanbanListRepository;
-            _kanbanBoardRepository = kanbanBoardRepository;
+            _hubApp = hubApp;
             _config = config;
         }
         public async Task<TeamResponse> AddTeam(TeamRequest teamReq)
@@ -196,7 +195,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     TeamCode = team.t.TeamCode,
                     TeamIsDeleted = team.t.TeamIsDeleted,
                     TeamLeaderName = leader.FullName,
-                    TeamLeaderImageUrl = leader.ImageUrl,
+                    TeamLeaderImageUrl = string.IsNullOrEmpty(leader.ImageUrl) ? $"https://ui-avatars.com/api/?name={leader.FullName}" : leader.ImageUrl,
                     TeamMemberCount = team.Participation.Count,
                     TeamImageUrl = string.IsNullOrEmpty(team.t.TeamImageUrl) ? $"https://ui-avatars.com/api/?name={team.t.TeamName}" : team.t.TeamImageUrl,
                     TeamUsers = members,
@@ -229,6 +228,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             _dbContext.Team.Update(entity);
             await _dbContext.SaveChangesAsync();
+
+            var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                 join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                                 where p.ParticipationIsDeleted == false && p.ParticipationTeamId == teamUpdateRequest.TeamId
+                                 select uc.ConnectionId).ToListAsync();
+
+            await _hubApp.Clients.Clients(clients).UpdateTeamInfo(new
+            {
+                TeamId = teamUpdateRequest.TeamId,
+                Leader = false,
+                Time = DateTime.UtcNow
+            });
+
             return true;
         }
 
@@ -446,7 +458,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             team.TeamLeaderId = changeTeamAdminModel.LeaderId;
             _dbContext.Update(team);
 
-            return await _dbContext.SaveChangesAsync() > 0;
+            await _dbContext.SaveChangesAsync();
+
+            var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                 join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                                 where p.ParticipationIsDeleted == false && p.ParticipationTeamId == changeTeamAdminModel.TeamId
+                                 select uc.ConnectionId).ToListAsync();
+
+            await _hubApp.Clients.Clients(clients).UpdateTeamInfo(new
+            {
+                TeamId = changeTeamAdminModel.TeamId,
+                LeaderId = changeTeamAdminModel.LeaderId,
+                Time = DateTime.UtcNow
+            });
+
+            return true;
         }
 
         public async Task<PagedResponse<UserResponse>> GetUsersByTeamIdPagingSearch(TeamUserParameter userParameter)

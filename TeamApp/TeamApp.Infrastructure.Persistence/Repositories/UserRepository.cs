@@ -8,16 +8,20 @@ using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
 using Task = TeamApp.Infrastructure.Persistence.Entities.Task;
 using TeamApp.Application.Utils;
+using Microsoft.AspNetCore.SignalR;
+using TeamApp.Infrastructure.Persistence.Hubs.App;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
     public class UserRepository : IUserRepository
     {
         private readonly TeamAppContext _dbContext;
+        private readonly IHubContext<HubAppClient, IHubAppClient> _hubApp;
 
-        public UserRepository(TeamAppContext dbContext)
+        public UserRepository(TeamAppContext dbContext, IHubContext<HubAppClient, IHubAppClient> hubApp)
         {
             _dbContext = dbContext;
+            _hubApp = hubApp;
         }
 
         public async Task<List<UserResponse>> GetAllUserInTeam(string userId, string teamId = null)
@@ -285,7 +289,31 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 user.ImageUrl = updateImageModel.ImageUrl;
 
             _dbContext.User.Update(user);
-            return await _dbContext.SaveChangesAsync() > 0;
+            await _dbContext.SaveChangesAsync();
+
+            var userInfo = new
+            {
+                Id = user.Id,
+                FullName = user.FullName,
+                Email = user.Email,
+                UserAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
+                UserDob = user.Dob.Value.Date,
+                UserPhoneNumber = user.PhoneNumber,
+                UserAddress = user.UserAddress,
+                UserDescription = user.UserDescription,
+                UserGithubLink = user.UserGithubLink,
+                UserFacebookLink = user.UserFacebookLink,
+                FirstTimeSocial = user.FirstTimeSocial,
+            };
+
+            var clients = await _dbContext.UserConnection.AsNoTracking()
+                .Where(uc => uc.UserId == user.Id)
+                .Select(uc => uc.ConnectionId)
+                .ToListAsync();
+
+            await _hubApp.Clients.Clients(clients).UpdateUserInfo(userInfo);
+
+            return true;
         }
     }
 }

@@ -28,7 +28,7 @@ namespace TeamApp.WebApi.Controllers
         /// <returns></returns>
         [HttpDelete]
         [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
-        public async Task<IActionResult> DeleteParticipation([FromQuery]ParticipationDeleteRequest participationDeleteRequest)
+        public async Task<IActionResult> DeleteParticipation([FromQuery] ParticipationDeleteRequest participationDeleteRequest)
         {
             var res = await _repo.DeleteParticipation(participationDeleteRequest);
 
@@ -53,8 +53,8 @@ namespace TeamApp.WebApi.Controllers
             var outPut = await _repo.AddParticipation(participationRequest);
             return Ok(new ApiResponse<ParticipationResponse>
             {
-                Data=outPut,
-                Succeeded=outPut==null?false:true,
+                Data = outPut,
+                Succeeded = outPut == null ? false : true,
             });
         }
     }
