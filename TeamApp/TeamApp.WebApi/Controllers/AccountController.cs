@@ -44,7 +44,7 @@ namespace TeamApp.WebApi.Controllers
         [ProducesResponseType(typeof(ApiResponse<AuthenticationResponse>), 200)]
         public async Task<IActionResult> AuthenticateAsync(AuthenticationRequest request)
         {
-            var outPut = await _accountService.AuthenticateAsync(request, GenerateIPAddress());
+            var outPut = await _accountService.AuthenticateAsync(request);
             if (outPut.Succeeded)
             {
                 var data = outPut.Data;
@@ -129,13 +129,6 @@ namespace TeamApp.WebApi.Controllers
             var apiOrigin = string.Concat(scheme, "://", host);
             return Ok(await _accountService.ResetPassword(model));
         }
-        private string GenerateIPAddress()
-        {
-            if (Request.Headers.ContainsKey("X-Forwarded-For"))
-                return Request.Headers["X-Forwarded-For"];
-            else
-                return HttpContext.Connection.RemoteIpAddress.MapToIPv4().ToString();
-        }
 
         /// <summary>
         /// Refresh access token API
@@ -174,7 +167,7 @@ namespace TeamApp.WebApi.Controllers
         [ProducesResponseType(typeof(ApiResponse<AuthenticationResponse>), 200)]
         public async Task<IActionResult> LoginSocial([FromBody] SocialRequest request)
         {
-            var outPut = await _accountService.SocialLogin(request, GenerateIPAddress());
+             var outPut = await _accountService.SocialLogin(request);
             if (outPut.Succeeded)
             {
                 HttpContext.Response.Cookies.Append("access_token", outPut.Data.JWToken,
