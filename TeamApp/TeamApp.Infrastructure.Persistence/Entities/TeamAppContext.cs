@@ -32,7 +32,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<Notification> Notification { get; set; }
         public virtual DbSet<Participation> Participation { get; set; }
         public virtual DbSet<Post> Post { get; set; }
-        public virtual DbSet<Tag> Tag { get; set; }
         public virtual DbSet<Task> Task { get; set; }
         public virtual DbSet<TaskVersion> TaskVersion { get; set; }
         public virtual DbSet<Team> Team { get; set; }
@@ -603,29 +602,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .WithMany(p => p.Post)
                     .HasForeignKey(d => d.PostUserId)
                     .HasConstraintName("post_ibfk_1");
-            });
-
-            modelBuilder.Entity<Tag>(entity =>
-            {
-                entity.ToTable("tag");
-
-                entity.Property(e => e.TagId)
-                    .HasColumnName("tag_id")
-                    .HasColumnType("varchar(50)")
-                    .HasCollation("utf8mb4_0900_ai_ci")
-                    .HasCharSet("utf8mb4");
-
-                entity.Property(e => e.TagContent)
-                    .HasColumnName("tag_content")
-                    .HasColumnType("text")
-                    .HasCollation("utf8mb4_0900_ai_ci")
-                    .HasCharSet("utf8mb4");
-
-                entity.Property(e => e.TagLink)
-                    .HasColumnName("tag_link")
-                    .HasColumnType("varchar(200)")
-                    .HasCollation("utf8mb4_0900_ai_ci")
-                    .HasCharSet("utf8mb4");
             });
 
             modelBuilder.Entity<Task>(entity =>

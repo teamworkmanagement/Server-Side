@@ -46,9 +46,13 @@ namespace TeamApp.WebApi.Controllers.Test
         [HttpGet]
         public IActionResult ShowTest()
         {
+            var rank = Lexorank.genNewRank();
+            var ranks = Lexorank.CreateNewListRank(10);
             return Ok(new
             {
                 Text = "Okela",
+                Rank = rank,
+                Ranks = ranks,
             });
         }
 

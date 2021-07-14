@@ -54,7 +54,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             _hubApp = hubApp;
         }
 
-        public async Task<ApiResponse<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request, string ipAddress)
+        public async Task<ApiResponse<AuthenticationResponse>> AuthenticateAsync(AuthenticationRequest request)
         {
             var user = await _userManager.FindByEmailAsync(request.Email);
             if (user == null)
@@ -93,7 +93,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             response.UserGithubLink = user.UserGithubLink;
             response.UserFacebookLink = user.UserFacebookLink;
 
-            var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
+            var refreshToken = GenerateRefreshToken();
             refreshToken.UserId = user.Id;
             response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
 
@@ -216,7 +216,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             }
         }
 
-        private RefreshToken GenerateRefreshToken(string ipAddress)
+        private RefreshToken GenerateRefreshToken()
         {
             return new RefreshToken
             {
@@ -224,7 +224,6 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 Token = RandomTokenString(),
                 Expires = DateTime.UtcNow.AddDays(7),
                 Created = DateTime.UtcNow,
-                CreatedByIp = ipAddress
             };
         }
 
@@ -295,14 +294,14 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 throw new ApiException("Refresh token not match for this user");
 
             var jwtSecurityToken = await GenerateJWToken(user);
-            var refreshObj = GenerateRefreshToken(IpHelper.GetIpAddress());
+            var refreshObj = GenerateRefreshToken();
             refreshObj.UserId = userId;
 
             await _dbContext.RefreshToken.AddAsync(refreshObj);
             await _dbContext.SaveChangesAsync();
 
-            //_dbContext.RefreshToken.Remove(tokenObj);
-            //await _dbContext.SaveChangesAsync();
+            _dbContext.RefreshToken.Remove(tokenObj);
+            await _dbContext.SaveChangesAsync();
 
             var outPut = new ApiResponse<TokenModel>
             {
@@ -336,7 +335,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
             return principal;
         }
 
-        public async Task<ApiResponse<AuthenticationResponse>> SocialLogin(SocialRequest request, string ipAddress)
+        public async Task<ApiResponse<AuthenticationResponse>> SocialLogin(SocialRequest request)
         {
             AuthenticationResponse response = new AuthenticationResponse();
             var userWithSameEmail = await _dbContext.User.Where(x => x.Email == request.Email).FirstOrDefaultAsync();
@@ -359,7 +358,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 response.UserGithubLink = userWithSameEmail.UserGithubLink;
                 response.UserFacebookLink = userWithSameEmail.UserFacebookLink;
 
-                var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
+                var refreshToken = GenerateRefreshToken();
                 refreshToken.UserId = userWithSameEmail.Id;
                 response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
 
@@ -398,7 +397,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                 response.UserGithubLink = entity.UserGithubLink;
                 response.UserFacebookLink = entity.UserFacebookLink;
 
-                var refreshToken = GenerateRefreshToken(IpHelper.GetIpAddress());
+                var refreshToken = GenerateRefreshToken();
                 refreshToken.UserId = entity.Id;
                 response.RefreshToken = StringHelper.EncryptString(refreshToken.Token);
 
