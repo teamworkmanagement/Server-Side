@@ -31,14 +31,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 var user = (from t in _dbContext.Team.AsNoTracking()
                             join p in _dbContext.Participation.AsNoTracking() on t.TeamId equals p.ParticipationTeamId
                             join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
-                            where t.TeamId == teamId
+                            where t.TeamId == teamId && p.ParticipationIsDeleted == false
                             select new { u.Id, u.FullName, u.ImageUrl }).Distinct();
 
                 return await user.Select(x => new UserResponse
                 {
                     UserId = x.Id,
                     UserFullname = x.FullName,
-                    UserImageUrl = x.ImageUrl,
+                    UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
                 }).ToListAsync();
             }
 
@@ -47,6 +47,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 var teamList = from t in _dbContext.Team.AsNoTracking()
                                join par in _dbContext.Participation.AsNoTracking() on t.TeamId equals par.ParticipationTeamId
                                join u in _dbContext.User.AsNoTracking() on par.ParticipationUserId equals u.Id
+                               where par.ParticipationIsDeleted == false
                                select new { u, t.TeamId, t.TeamName };
 
                 //danh sách team mà user join
@@ -55,13 +56,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 var queryUser = await (from listTeam in teamList.AsNoTracking()
                                        join p in _dbContext.Participation.AsNoTracking() on listTeam.TeamId equals p.ParticipationTeamId
                                        join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
+                                       where p.ParticipationIsDeleted == false
                                        select new { u.Id, u.FullName, u.ImageUrl }).Distinct().ToListAsync();
 
                 return queryUser.Select(x => new UserResponse
                 {
                     UserId = x.Id,
                     UserFullname = x.FullName,
-                    UserImageUrl = x.ImageUrl,
+                    UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
                 }).ToList();
             }
         }
@@ -79,7 +81,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserFullname = entity.FullName,
                 UserDateOfBirth = entity.Dob,
                 UsePhoneNumber = entity.PhoneNumber,
-                UserImageUrl = entity.ImageUrl,
+                UserImageUrl = string.IsNullOrEmpty(entity.ImageUrl) ? $"https://ui-avatars.com/api/?name={entity.FullName}" : entity.ImageUrl,
                 UserCreatedAt = entity.CreatedAt,
                 UserDescription = entity.UserDescription,
                 UserAddress = entity.UserAddress,
@@ -91,13 +93,25 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<List<UserResponse>> SearchUser(string userId, string keyWord, bool email)
         {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(keyWord);
+                if (addr.Address == keyWord)
+                    email = true;
+                else
+                    email = false;
+            }
+            catch
+            {
+                email = false;
+            }
             var query = "";
             if (!email)
             {
                 query = "SELECT * FROM user " +
                 $"where user.user_id <> '{userId}' and user.user_fullname like '%{keyWord}%'";
 
-                var newQuery = "select u.user_id, u.user_fullname, u.user_image_url " +
+                var newQuery = "select distinct u.user_id, u.user_fullname, u.user_image_url " +
                               "from user u " +
                               "join " +
                               "(select distinct p.participation_user_id " +
@@ -105,7 +119,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                               "join " +
                               "(select t.team_id, p.participation_user_id " +
                               "from team t join participation p on t.team_id = p.participation_team_id " +
-                              $"where p.participation_user_id = '{userId}') teamIDs " +
+                              $"where p.participation_user_id = '{userId}' and p.participation_is_deleted = 0) teamIDs " +
                               "on p.participation_team_id = teamIDs.team_id) userIDs " +
                               "on u.user_id = userIDs.participation_user_id " +
                               $"where u.user_fullname like '%{keyWord}%'";
@@ -117,7 +131,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 query = "SELECT * FROM user " +
                 $"where user.user_id <> '{userId}' and user.user_email = '{keyWord}'";
 
-                var newQuery = "select u.user_id, u.user_fullname, u.user_image_url " +
+                var newQuery = "select distinct u.user_id, u.user_fullname, u.user_image_url " +
                               "from user u " +
                               "join " +
                               "(select distinct p.participation_user_id " +
@@ -125,7 +139,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                               "join " +
                               "(select t.team_id, p.participation_user_id " +
                               "from team t join participation p on t.team_id = p.participation_team_id " +
-                              $"where p.participation_user_id = '{userId}') teamIDs " +
+                              $"where p.participation_user_id = '{userId}' and p.participation_is_deleted = 0) teamIDs " +
                               "on p.participation_team_id = teamIDs.team_id) userIDs " +
                               "on u.user_id = userIDs.participation_user_id " +
                               $"where u.user_email = '{keyWord}'";
@@ -154,13 +168,26 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<List<UserResponse>> SearchUserAddToExistsChat(string userId, string grChatId, string keyWord, bool isEmail)
         {
+            try
+            {
+                var addr = new System.Net.Mail.MailAddress(keyWord);
+                if (addr.Address == keyWord)
+                    isEmail = true;
+                else
+                    isEmail = false;
+            }
+            catch
+            {
+                isEmail = false;
+            }
+
             var query = "";
             if (!isEmail)
             {
                 query = "SELECT * FROM user " +
                 $"where user.user_id <> '{userId}' and user.user_fullname like '%{keyWord}%'";
 
-                var newQuery = "select u.user_id, u.user_fullname, u.user_image_url " +
+                var newQuery = "select distinct u.user_id, u.user_fullname, u.user_image_url " +
                               "from user u " +
                               "join " +
                               "(select distinct p.participation_user_id " +
@@ -168,14 +195,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                               "join " +
                               "(select t.team_id, p.participation_user_id " +
                               "from team t join participation p on t.team_id = p.participation_team_id " +
-                              $"where p.participation_user_id = '{userId}') teamIDs " +
+                              $"where p.participation_user_id = '{userId}' and p.participation_is_deleted = 0) teamIDs " +
                               "on p.participation_team_id = teamIDs.team_id) userIDs " +
                               "on u.user_id = userIDs.participation_user_id " +
                               $"where u.user_fullname like '%{keyWord}%' and " +
                               $" u.user_id not in " +
                                "(select grc.group_chat_user_user_id " +
                                 "from group_chat_user grc " +
-                                $"where grc.group_chat_user_group_chat_id = '{grChatId}')";
+                                $"where grc.group_chat_user_group_chat_id = '{grChatId}' and grc.group_chat_user_is_deleted = 0)";
 
                 query = newQuery;
             }
@@ -184,7 +211,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 query = "SELECT * FROM user " +
                 $"where user.user_id <> '{userId}' and user.user_email = '{keyWord}'";
 
-                var newQuery = "select u.user_id, u.user_fullname, u.user_image_url " +
+                var newQuery = "select distinct u.user_id, u.user_fullname, u.user_image_url " +
                               "from user u " +
                               "join " +
                               "(select distinct p.participation_user_id " +
@@ -192,14 +219,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                               "join " +
                               "(select t.team_id, p.participation_user_id " +
                               "from team t join participation p on t.team_id = p.participation_team_id " +
-                              $"where p.participation_user_id = '{userId}') teamIDs " +
+                              $"where p.participation_user_id = '{userId}' and p.participation_is_deleted = 0) teamIDs " +
                               "on p.participation_team_id = teamIDs.team_id) userIDs " +
                               "on u.user_id = userIDs.participation_user_id " +
                               $"where u.user_email = '{keyWord}' and " +
                               $" u.user_id not in " +
                                "(select grc.group_chat_user_user_id " +
                                 "from group_chat_user grc " +
-                                $"where grc.group_chat_user_group_chat_id = '{grChatId}')";
+                                $"where grc.group_chat_user_group_chat_id = '{grChatId}' and grc.group_chat_user_is_deleted = 0)";
 
                 query = newQuery;
 
@@ -229,13 +256,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (kanbanBoard == null)
                 return null;
 
-            var query = "select user.user_id, user.user_fullname, user.user_image_url " +
+            var query = "select distinct user.user_id, user.user_fullname, user.user_image_url " +
                         "from participation " +
                         "join user on participation.participation_user_id = user.user_id " +
                         "where participation_team_id in " +
                         "(select kanban_board.kanban_board_teamid " +
                         "from kanban_board " +
-                        $"where kanban_board.kanban_board_id = '{userKanbanSearch.BoardId}') ";
+                        $"where kanban_board.kanban_board_id = '{userKanbanSearch.BoardId}') "
+                        + "and participation.participation_is_deleted = false";
 
             var listUsers = await Helpers.RawQuery.RawSqlQuery(_dbContext, query, (x) => new User
             {
@@ -250,31 +278,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 UserFullname = x.FullName,
                 UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
             }).ToList();
-        }
-
-        public async Task<List<UserResponse>> SearchUserNoJoinTeam(string teamId, string keyWord)
-        {
-            var query = await (from p in _dbContext.Participation.AsNoTracking()
-                               join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
-                               where p.ParticipationTeamId != teamId
-                               select u).Distinct().AsNoTracking().ToListAsync();
-
-            keyWord = keyWord.UnsignUnicode();
-
-            if (!string.IsNullOrEmpty(keyWord))
-                query = query.Where(x => x.FullName.UnsignUnicode().Contains(keyWord) || x.Email.UnsignUnicode().Contains(keyWord)).ToList();
-
-            var outPut = query.Select(x => new UserResponse
-            {
-                UserId = x.Id,
-
-                UserFullname = x.FullName,
-
-                UserImageUrl = x.ImageUrl,
-
-            }).ToList();
-
-            return outPut;
         }
 
         public async Task<bool> UpdateUserImage(UpdateImageModel updateImageModel)

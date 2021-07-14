@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TeamApp.Application.DTOs.KanbanBoard;
 using TeamApp.Application.DTOs.Team;
 using TeamApp.Application.DTOs.User;
+using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -18,9 +19,11 @@ namespace TeamApp.WebApi.Controllers
     public class TeamController : ControllerBase
     {
         private readonly ITeamRepository _repo;
-        public TeamController(ITeamRepository repo)
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        public TeamController(ITeamRepository repo, IAuthenticatedUserService authenticatedUserService)
         {
             _repo = repo;
+            _authenticatedUserService = authenticatedUserService;
         }
 
         /// <summary>
@@ -52,7 +55,7 @@ namespace TeamApp.WebApi.Controllers
         [ProducesDefaultResponseType(typeof(ApiResponse<TeamResponse>))]
         public async Task<IActionResult> GetById(string teamId)
         {
-            var res = await _repo.GetById(teamId);
+            var res = await _repo.GetById(teamId, _authenticatedUserService.UserId);
 
             var outPut = new ApiResponse<TeamResponse>
             {
@@ -165,7 +168,7 @@ namespace TeamApp.WebApi.Controllers
         [ProducesDefaultResponseType(typeof(ApiResponse<UserResponse>))]
         public async Task<IActionResult> GetAdmin(string teamId)
         {
-            var outPut = await _repo.GetAdmin(teamId);
+            var outPut = await _repo.GetAdmin(teamId, _authenticatedUserService.UserId);
             return Ok(new ApiResponse<UserResponse>
             {
                 Data = outPut,

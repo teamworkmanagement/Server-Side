@@ -12,6 +12,7 @@ using TeamApp.Application.Exceptions;
 using Newtonsoft.Json;
 using Microsoft.AspNetCore.SignalR;
 using TeamApp.Infrastructure.Persistence.Hubs.Notification;
+using TeamApp.Infrastructure.Persistence.Hubs.App;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -19,10 +20,12 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
     {
         private readonly TeamAppContext _dbContext;
         private readonly INotificationRepository _notiRepo;
-        public ParticipationRepository(TeamAppContext dbContext, INotificationRepository notiRepo)
+        private readonly IHubContext<HubAppClient, IHubAppClient> _hubApp;
+        public ParticipationRepository(TeamAppContext dbContext, INotificationRepository notiRepo, IHubContext<HubAppClient, IHubAppClient> hubApp)
         {
             _dbContext = dbContext;
             _notiRepo = notiRepo;
+            _hubApp = hubApp;
         }
 
         public async Task<ParticipationResponse> AddParticipation(ParticipationRequest participationRequest)
@@ -44,6 +47,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 user = await (from p in _dbContext.Participation.AsNoTracking()
                               join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
                               where u.Email == participationRequest.Email && p.ParticipationTeamId == participationRequest.ParticipationTeamId
+                              && p.ParticipationIsDeleted == false
                               select u).FirstOrDefaultAsync();
 
                 if (user != null)
@@ -74,7 +78,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 user = await (from p in _dbContext.Participation.AsNoTracking()
                               join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
-                              where u.Id == participationRequest.ParticipationUserId && p.ParticipationTeamId == participationRequest.ParticipationTeamId
+                              where u.Id == participationRequest.ParticipationUserId
+                              && p.ParticipationTeamId == participationRequest.ParticipationTeamId
+                              && p.ParticipationIsDeleted == false
                               select u).FirstOrDefaultAsync();
 
                 if (user != null)
@@ -114,6 +120,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     TeamId = participationRequest.ParticipationTeamId,
                 });
 
+                var clients = await (from uc in _dbContext.UserConnection.AsNoTracking()
+                                     join p in _dbContext.Participation.AsNoTracking()
+                                     on uc.UserId equals p.ParticipationUserId
+                                     where uc.Type == "app" && p.ParticipationIsDeleted == false
+                                     && p.ParticipationTeamId == entity.ParticipationTeamId
+                                     select uc.ConnectionId).ToListAsync();
+
+                await _hubApp.Clients.Clients(clients).JoinTeam(new
+                {
+                    UserId = entity.ParticipationUserId,
+                    TeamId = entity.ParticipationTeamId,
+                });
+
                 return new ParticipationResponse
                 {
                     ParticipationId = entity.ParticipationId,
@@ -130,7 +149,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<bool> DeleteParticipation(ParticipationDeleteRequest participationDeleteRequest)
         {
             var entity = await _dbContext.Participation.AsNoTracking().Where(x => x.ParticipationUserId == participationDeleteRequest.UserId
-             && x.ParticipationTeamId == participationDeleteRequest.TeamId).FirstOrDefaultAsync();
+             && x.ParticipationTeamId == participationDeleteRequest.TeamId
+             && x.ParticipationIsDeleted == false).FirstOrDefaultAsync();
 
             if (entity == null)
                 throw new KeyNotFoundException("Not found participation");
@@ -139,7 +159,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext.Participation.Update(entity);
             await _dbContext.SaveChangesAsync();
 
-            var gru = await _dbContext.GroupChatUser.Where(x => x.GroupChatUserGroupChatId == participationDeleteRequest.TeamId && x.GroupChatUserUserId == participationDeleteRequest.UserId)
+            var gru = await _dbContext.GroupChatUser.Where(
+                x => x.GroupChatUserGroupChatId == participationDeleteRequest.TeamId
+                && x.GroupChatUserUserId == participationDeleteRequest.UserId
+                && x.GroupChatUserIsDeleted == false)
                 .FirstOrDefaultAsync();
 
             if (gru != null)
@@ -148,6 +171,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 _dbContext.Update(gru);
                 await _dbContext.SaveChangesAsync();
             }
+
+            var clients = await (from uc in _dbContext.UserConnection.AsNoTracking()
+                                 join p in _dbContext.Participation.AsNoTracking()
+                                 on uc.UserId equals p.ParticipationUserId
+                                 where uc.Type == "app"
+                                 && p.ParticipationTeamId == entity.ParticipationTeamId
+                                 select uc.ConnectionId).Distinct().ToListAsync();
+
+            await _hubApp.Clients.Clients(clients).LeaveTeam(new
+            {
+                TeamId = participationDeleteRequest.TeamId,
+                UserId = participationDeleteRequest.UserId,
+            });
+
             return true;
         }
 

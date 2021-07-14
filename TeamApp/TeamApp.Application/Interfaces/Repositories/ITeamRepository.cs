@@ -12,7 +12,7 @@ namespace TeamApp.Application.Interfaces.Repositories
     public interface ITeamRepository
     {
         Task<List<TeamResponse>> GetByUserId(string userId);
-        Task<TeamResponse> GetById(string teamId);
+        Task<TeamResponse> GetById(string teamId, string userId);
         Task<TeamResponse> AddTeam(TeamRequest teamReq);
         Task<bool> UpdateTeam(TeamUpdateRequest teamUpdateRequest);
         Task<bool> DeleteTeam(string teamId);
@@ -22,7 +22,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         /// <param name="teamId"></param>
         /// <returns></returns>
         Task<PagedResponse<UserResponse>> GetUsersByTeamIdPaging(TeamUserParameter userParameter);
-        Task<UserResponse> GetAdmin(string teamId);
+        Task<UserResponse> GetAdmin(string teamId, string userId);
         Task<TeamResponse> JoinTeam(JoinTeamRequest request);
         Task<List<UserResponse>> GetUsersForTag(string teamId);
         Task<List<KanbanBoardResponse>> GetBoardsByTeam(string teamId);
