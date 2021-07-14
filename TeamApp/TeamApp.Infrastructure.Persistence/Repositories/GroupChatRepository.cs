@@ -242,7 +242,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     GroupChatId = gr.gc.GroupChatId,
                     GroupChatName = gr.gc.GroupChatName,
                     GroupChatUpdatedAt = lastest == null ? gr.gc.GroupChatUpdatedAt.FormatTime() : lastest.MessageCreatedAt.FormatTime(),
-                    NewMessage = gr.grc.GroupChatUserSeen,
                     GroupAvatar = gr.gc.GroupChatImageUrl,
                     LastestMes = lastest == null ? null : lastest.MessageType == "file" ? "[Tệp tin]" : lastest.MessageType == "image" ? "[Hình ảnh]" : lastest.MessageContent,
                 });

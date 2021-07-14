@@ -29,5 +29,6 @@ namespace TeamApp.Application.DTOs.Task
         public bool ShowPoint { get; set; }
         public List<CommentResponse> Comments { get; set; }
         public List<FileResponse> Files { get; set; }
+        public int CommentsCount { get; set; } = 0;
     }
 }

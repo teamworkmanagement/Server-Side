@@ -40,6 +40,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         orderby n.NotificationCreatedAt descending
                         where n.NotificationUserId == parameter.UserId
                         select n;
+
             var totalRecords = await query.CountAsync();
             query = query.AsNoTracking().Skip(parameter.SkipItems).Take(parameter.PageSize);
 
@@ -243,7 +244,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             Console.WriteLine("count = " + clientLists.Count());
             var readOnlyList = new ReadOnlyCollection<string>(clientLists);
 
-            var link = $"/team/{joinTeamNotification.TeamId}";
+            var link = $"/team/{joinTeamNotification.TeamId}?tab=teaminfo";
 
             var actionUser = await _dbContext.User.FindAsync(joinTeamNotification.ActionUserId);
 
@@ -252,7 +253,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationActionFullName = actionUser.FullName,
                 NotificationActionAvatar = actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
-                NotificationContent = "đã thêm vào một nhóm",
+                NotificationContent = "đã thêm bạn vào một nhóm",
                 NotificationStatus = false,
                 NotificationLink = link,
             });
@@ -263,7 +264,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationId = Guid.NewGuid().ToString(),
                 NotificationUserId = joinTeamNotification.UserId,
                 NotificationGroup = notiGroup,
-                NotificationContent = "đã thêm vào một nhóm",
+                NotificationContent = "đã thêm bạn vào một nhóm",
                 NotificationCreatedAt = DateTime.UtcNow,
                 NotificationStatus = false,
                 NotificationIsDeleted = false,

@@ -243,8 +243,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         join u in _dbContext.User.AsNoTracking() on th.HandleTaskUserId equals u.Id into tUser
 
                         from tu in tUser.DefaultIfEmpty()
-                        where t.TaskId == taskGetRequest.TaskId
-                        select new { t, tu.FullName, tu.Id, tu.ImageUrl };
+                        where t.TaskId == taskGetRequest.TaskId && t.TaskIsDeleted == false
+                        select new { t, tu.FullName, tu.Id, tu.ImageUrl, t.Comments.Count };
 
             var task = await query.AsNoTracking().FirstOrDefaultAsync();
 
@@ -289,7 +289,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             bool showPoint = false;
             if (!string.IsNullOrEmpty(kb.KanbanBoardTeamId))
             {
-                var admin = await _teamRepository.GetAdmin(kb.KanbanBoardTeamId);
+                var admin = await _teamRepository.GetAdmin(kb.KanbanBoardTeamId, userId);
                 if (admin.UserId == taskGetRequest.UserRequest)
                     showPoint = true;
             }
@@ -322,6 +322,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 Files = listFiles,
                 TaskImageUrl = task.t.TaskImageUrl,
                 ShowPoint = showPoint,
+                CommentsCount = task.Count,
             };
 
             return outPut;

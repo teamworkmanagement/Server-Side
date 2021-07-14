@@ -9,5 +9,7 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.App
     {
         Task UpdateUserInfo(object updateUserInfo);
         Task UpdateTeamInfo(object updateTeamInfo);
+        Task LeaveTeam(object leaveTeam);
+        Task JoinTeam(object joinTeam);
     }
 }

@@ -326,8 +326,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCollation("utf8mb4_0900_ai_ci")
                     .HasCharSet("utf8mb4");
 
-                entity.Property(e => e.GroupChatUserSeen).HasColumnName("group_chat_user_seen");
-
                 entity.HasOne(d => d.GroupChatUserGroupChat)
                     .WithMany(p => p.GroupChatUser)
                     .HasForeignKey(d => d.GroupChatUserGroupChatId)
@@ -578,8 +576,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasColumnType("timestamp");
 
                 entity.Property(e => e.PostIsDeleted).HasColumnName("post_is_deleted");
-
-                entity.Property(e => e.PostIsPinned).HasColumnName("post_is_pinned");
 
                 entity.Property(e => e.PostTeamId)
                     .HasColumnName("post_team_id")

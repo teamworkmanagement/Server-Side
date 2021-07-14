@@ -66,20 +66,5 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 GroupChatUserIsDeleted = x.GroupChatUserIsDeleted,
             }).ToListAsync();
         }
-
-        public async Task<bool> ToggleSeen(GroupChatUserSeenRequest request)
-        {
-            var grc = await _dbContext.GroupChatUser.Where(x => x.GroupChatUserGroupChatId == request.GroupId
-               && x.GroupChatUserUserId == request.UserId).FirstOrDefaultAsync();
-
-            if (grc == null)
-                return false;
-
-            grc.GroupChatUserSeen = request.IsSeen;
-
-            _dbContext.GroupChatUser.Update(grc);
-
-            return (await _dbContext.SaveChangesAsync() > 0);
-        }
     }
 }

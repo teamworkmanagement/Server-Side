@@ -19,7 +19,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public DateTime? PostCreatedAt { get; set; }
         public int? PostCommentCount { get; set; }
         public bool? PostIsDeleted { get; set; }
-        public bool? PostIsPinned { get; set; }
 
         public virtual Team PostTeam { get; set; }
         public virtual User PostUser { get; set; }

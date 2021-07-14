@@ -134,10 +134,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             return true;
         }
 
-        public async Task<TeamResponse> GetById(string teamId)
+        public async Task<TeamResponse> GetById(string teamId, string userId)
         {
             var entity = await _dbContext.Team.FindAsync(teamId);
             if (entity == null)
+                throw new KeyNotFoundException("Team not found");
+
+            var par = await (from p in _dbContext.Participation.AsNoTracking()
+                             where p.ParticipationUserId == userId && p.ParticipationTeamId == teamId
+                             && p.ParticipationIsDeleted == false
+                             select p).FirstOrDefaultAsync();
+
+            if (par == null)
                 throw new KeyNotFoundException("Team not found");
 
             return new TeamResponse
@@ -176,14 +184,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 {
                     var queryUsersTeam = from p in _dbContext.Participation.AsNoTracking()
                                          join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
-                                         where p.ParticipationTeamId == team.t.TeamId
+                                         where p.ParticipationTeamId == team.t.TeamId && p.ParticipationIsDeleted == false
                                          select new { u.FullName, u.ImageUrl };
 
                     members = await queryUsersTeam.Select(x => new TeamUserResponse
                     {
                         UserFullName = x.FullName,
                         UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
-                    }).ToListAsync();
+                    }).Take(3).ToListAsync();
                 }
                 outPut.Add(new TeamResponse
                 {
@@ -196,7 +204,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     TeamIsDeleted = team.t.TeamIsDeleted,
                     TeamLeaderName = leader.FullName,
                     TeamLeaderImageUrl = string.IsNullOrEmpty(leader.ImageUrl) ? $"https://ui-avatars.com/api/?name={leader.FullName}" : leader.ImageUrl,
-                    TeamMemberCount = team.Participation.Count,
+                    TeamMemberCount = membersCount,
                     TeamImageUrl = string.IsNullOrEmpty(team.t.TeamImageUrl) ? $"https://ui-avatars.com/api/?name={team.t.TeamName}" : team.t.TeamImageUrl,
                     TeamUsers = members,
                 });
@@ -290,7 +298,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var team2 = await (from t in _dbContext.Team.AsNoTracking()
                                join p in _dbContext.Participation.AsNoTracking() on t.TeamId equals p.ParticipationTeamId
-                               where t.TeamCode == request.TeamCode && p.ParticipationUserId == request.UserId
+                               where t.TeamCode == request.TeamCode && p.ParticipationUserId == request.UserId && p.ParticipationIsDeleted == false
                                select t).FirstOrDefaultAsync();
             //đã join
             if (team2 != null)
@@ -319,11 +327,19 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         }
 
 
-        public async Task<UserResponse> GetAdmin(string teamId)
+        public async Task<UserResponse> GetAdmin(string teamId, string userId)
         {
             var team = await _dbContext.Team.FindAsync(teamId);
 
             if (team == null)
+                throw new KeyNotFoundException("Team not found");
+
+            var par = await (from p in _dbContext.Participation.AsNoTracking()
+                             where p.ParticipationUserId == userId && p.ParticipationTeamId == teamId
+                             && p.ParticipationIsDeleted == false
+                             select p).FirstOrDefaultAsync();
+
+            if (par == null)
                 throw new KeyNotFoundException("Team not found");
 
             var admin = await _dbContext.User.FindAsync(team.TeamLeaderId);
@@ -346,7 +362,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join t in _dbContext.Team.AsNoTracking() on p.ParticipationTeamId equals t.TeamId
                         join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
-                        where t.TeamId == teamId
+                        where t.TeamId == teamId && p.ParticipationIsDeleted == false
                         select u;
 
             return await query.Select(u => new UserResponse

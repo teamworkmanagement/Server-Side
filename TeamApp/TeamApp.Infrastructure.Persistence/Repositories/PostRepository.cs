@@ -43,7 +43,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostCreatedAt = DateTime.UtcNow,
                 PostCommentCount = 0,
                 PostIsDeleted = false,
-                PostIsPinned = false,
             };
 
             await _dbContext.Post.AddAsync(entity);
@@ -191,7 +190,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostCreatedAt = x.p.PostCreatedAt.FormatTime(),
                 PostCommentCount = x.Count,
                 PostIsDeleted = x.p.PostIsDeleted,
-                PostIsPinned = x.p.PostIsPinned,
                 UserName = x.FullName,
                 UserAvatar = x.ImageUrl,
             }).ToListAsync();
@@ -295,7 +293,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostCreatedAt = x.q.p.PostCreatedAt.FormatTime(),
                 PostCommentCount = x.q.Count,
                 PostIsDeleted = x.q.p.PostIsDeleted,
-                PostIsPinned = x.q.p.PostIsPinned,
                 UserName = x.q.u.FullName,
                 UserAvatar = x.q.u.ImageUrl,
                 PostReactCount = x.q.RCount,
@@ -331,7 +328,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var teamList = from t in _dbContext.Team.AsNoTracking()
                            join par in _dbContext.Participation.AsNoTracking() on t.TeamId equals par.ParticipationTeamId
-                           where par.ParticipationUserId == parameter.UserId
+                           where par.ParticipationUserId == parameter.UserId && par.ParticipationIsDeleted == false
                            select new { par.ParticipationUserId, t.TeamId, t.TeamName };
             var test = await teamList.ToListAsync();
             /*    //danh sách team mà user join
@@ -425,7 +422,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 PostCreatedAt = x.q.p.PostCreatedAt.FormatTime(),
                 PostCommentCount = x.q.Count,
                 PostIsDeleted = x.q.p.PostIsDeleted,
-                PostIsPinned = x.q.p.PostIsPinned,
                 UserName = x.q.u.FullName,
                 UserAvatar = x.q.u.ImageUrl,
                 PostReactCount = x.q.RCount,
@@ -452,17 +448,18 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
         public async Task<List<UserResponse>> SearchUser(string userId, string keyWord)
         {
-            var teamList = from t in _dbContext.Team
-                           join par in _dbContext.Participation on t.TeamId equals par.ParticipationTeamId
-                           join u in _dbContext.User on par.ParticipationUserId equals u.Id
+            var teamList = from t in _dbContext.Team.AsNoTracking()
+                           join par in _dbContext.Participation.AsNoTracking() on t.TeamId equals par.ParticipationTeamId
+                           join u in _dbContext.User.AsNoTracking() on par.ParticipationUserId equals u.Id
+                           where par.ParticipationIsDeleted == false
                            select new { u, t.TeamId, t.TeamName };
 
             //danh sách team mà user join
             teamList = teamList.Where(x => x.u.Id == userId).Distinct();
 
             var query = await (from listTeam in teamList
-                               join p in _dbContext.Participation on listTeam.TeamId equals p.ParticipationTeamId
-                               join u in _dbContext.User on p.ParticipationUserId equals u.Id
+                               join p in _dbContext.Participation.AsNoTracking() on listTeam.TeamId equals p.ParticipationTeamId
+                               join u in _dbContext.User.AsNoTracking() on p.ParticipationUserId equals u.Id
                                select u).Distinct().ToListAsync();
 
             keyWord = keyWord.UnsignUnicode();
@@ -476,7 +473,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 UserFullname = x.FullName,
 
-                UserImageUrl = x.ImageUrl,
+                UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
 
             }).ToList();
 
