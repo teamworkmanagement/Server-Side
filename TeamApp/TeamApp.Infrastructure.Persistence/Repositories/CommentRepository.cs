@@ -104,6 +104,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     var query = from p in _dbContext.Participation.AsNoTracking()
                                 join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
                                 where p.ParticipationTeamId == board.KanbanBoardTeamId && uc.Type == "kanban"
+                                && p.ParticipationIsDeleted == false
                                 select uc.ConnectionId;
 
                     query = query.Distinct();

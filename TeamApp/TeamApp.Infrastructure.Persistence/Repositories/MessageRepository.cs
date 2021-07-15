@@ -46,6 +46,14 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var group = await _dbContext.GroupChat.FindAsync(parameter.GroupId);
             if (group == null) return null;
 
+            var gru = await (from gruser in _dbContext.GroupChatUser.AsNoTracking()
+                             where gruser.GroupChatUserGroupChatId == parameter.GroupId &&
+                             gruser.GroupChatUserUserId == parameter.UserId && gruser.GroupChatUserIsDeleted == false
+                             select gruser).FirstOrDefaultAsync();
+
+            if (gru == null)
+                throw new KeyNotFoundException("Not found groupchat");
+
             var query = from m in _dbContext.Message
                         join u in _dbContext.User on m.MessageUserId equals u.Id
                         where m.MessageGroupChatId == parameter.GroupId

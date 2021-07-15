@@ -74,8 +74,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
                                      where u.Type == "kanban" && p.ParticipationTeamId == board.KanbanBoardTeamId
-                                     && u.ConnectionId != reAssignModel.ReqConnectionId
-                                     select u.ConnectionId).ToListAsync();
+                                     && u.ConnectionId != reAssignModel.ReqConnectionId && p.ParticipationIsDeleted == false
+                                     select u.ConnectionId).Distinct().ToListAsync();
 
                 if (reAssignModel.CurrentUserId != null)
                 {

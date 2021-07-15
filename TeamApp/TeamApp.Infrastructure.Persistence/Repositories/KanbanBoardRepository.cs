@@ -349,8 +349,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                     where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId) && u.ConnectionId != swapListModel.ConnectionId
-                                     select u.ConnectionId).ToListAsync();
+                                     where u.Type == "kanban" && ((p.ParticipationTeamId == board.KanbanBoardTeamId && p.ParticipationIsDeleted == false) || p.ParticipationUserId == board.KanbanBoardUserId) && u.ConnectionId != swapListModel.ConnectionId
+                                     select u.ConnectionId).Distinct().ToListAsync();
 
                 await _hubKanban.Clients.Clients(clients).MoveList(swapListModel);
             }
@@ -525,15 +525,15 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             //toàn bộ task của 1 board
             var listTasksRes = await (from t in _dbContext.Task.AsNoTracking()
-                                        join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
+                                      join h in _dbContext.HandleTask.AsNoTracking() on t.TaskId equals h.HandleTaskTaskId into tHandle
 
-                                        from th in tHandle.DefaultIfEmpty()
-                                        join u in _dbContext.User.AsNoTracking() on th.HandleTaskUserId equals u.Id into tUser
+                                      from th in tHandle.DefaultIfEmpty()
+                                      join u in _dbContext.User.AsNoTracking() on th.HandleTaskUserId equals u.Id into tUser
 
-                                        from tu in tUser.DefaultIfEmpty()
-                                        where kbLists.Contains(t.TaskBelongedId) && t.TaskIsDeleted == false
+                                      from tu in tUser.DefaultIfEmpty()
+                                      where kbLists.Contains(t.TaskBelongedId) && t.TaskIsDeleted == false
 
-                                        select new { t, tu.ImageUrl, tu.FullName, tu.Id, t.Comments }).ToListAsync();
+                                      select new { t, tu.ImageUrl, tu.FullName, tu.Id, t.Comments }).ToListAsync();
             var taskName = string.Empty;
             var taskDescription = string.Empty;
 
@@ -564,7 +564,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             if (!string.IsNullOrEmpty(taskSearchModel.TaskDescription))
             {
-                listTasksRes = listTasksRes.Where(x => x.t.TaskDescription!=null && x.t.TaskDescription.UnsignUnicode().Contains(taskDescription)).ToList();
+                listTasksRes = listTasksRes.Where(x => x.t.TaskDescription != null && x.t.TaskDescription.UnsignUnicode().Contains(taskDescription)).ToList();
             }
 
             if (!string.IsNullOrEmpty(taskSearchModel.UserId))

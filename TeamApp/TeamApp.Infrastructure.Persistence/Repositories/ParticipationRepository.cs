@@ -125,7 +125,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                      on uc.UserId equals p.ParticipationUserId
                                      where uc.Type == "app" && p.ParticipationIsDeleted == false
                                      && p.ParticipationTeamId == entity.ParticipationTeamId
-                                     select uc.ConnectionId).ToListAsync();
+                                     select uc.ConnectionId).Distinct().ToListAsync();
 
                 await _hubApp.Clients.Clients(clients).JoinTeam(new
                 {

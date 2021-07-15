@@ -103,7 +103,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
-                        where p.ParticipationTeamId == teamId && uc.Type == "post"
+                        where p.ParticipationTeamId == teamId && uc.Type == "post" && p.ParticipationIsDeleted == false
                         select uc.ConnectionId;
 
             query = query.Distinct();
@@ -151,7 +151,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var query = from p in _dbContext.Participation.AsNoTracking()
                         join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
-                        where p.ParticipationTeamId == teamId && uc.Type == "post"
+                        where p.ParticipationTeamId == teamId && uc.Type == "post" && p.ParticipationIsDeleted == false
                         select uc.ConnectionId;
 
             query = query.Distinct();
