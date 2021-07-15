@@ -372,7 +372,7 @@ namespace TeamApp.Infrastructure.Persistence.Services
                     Id = request.Id.ToString(),
                     Email = request.Email,
                     FullName = request.FullName,
-                    ImageUrl = HttpUtility.UrlEncode(request.ImageUrl),
+                    ImageUrl = request.ImageUrl,
                     CreatedAt = DateTime.UtcNow,
                     EmailConfirmed = true,
                     UserName = request.Email,
