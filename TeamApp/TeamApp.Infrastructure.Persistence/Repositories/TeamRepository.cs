@@ -240,7 +240,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
                                  where p.ParticipationIsDeleted == false && p.ParticipationTeamId == teamUpdateRequest.TeamId
-                                 select uc.ConnectionId).ToListAsync();
+                                 select uc.ConnectionId).Distinct().ToListAsync();
 
             await _hubApp.Clients.Clients(clients).UpdateTeamInfo(new
             {
@@ -479,7 +479,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
                                  where p.ParticipationIsDeleted == false && p.ParticipationTeamId == changeTeamAdminModel.TeamId
-                                 select uc.ConnectionId).ToListAsync();
+                                 select uc.ConnectionId).Distinct().ToListAsync();
 
             await _hubApp.Clients.Clients(clients).UpdateTeamInfo(new
             {

@@ -39,8 +39,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                 where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
-                                 select u.ConnectionId).ToListAsync();
+                                 where u.Type == "kanban" && ((p.ParticipationTeamId == board.KanbanBoardTeamId && p.ParticipationIsDeleted == false) || p.ParticipationUserId == board.KanbanBoardUserId)
+                                 select u.ConnectionId).Distinct().ToListAsync();
 
             var response = new KanbanListUIResponse
             {
@@ -81,7 +81,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
                                  where u.Type == "kanban" && p.ParticipationIsDeleted == false && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
-                                 select u.ConnectionId).ToListAsync();
+                                 select u.ConnectionId).Distinct().ToListAsync();
 
             await _hubKanban.Clients.Clients(clients).RenameList(kanbanListChangeNameModel);
 
@@ -105,7 +105,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
                                  where u.Type == "kanban" && p.ParticipationIsDeleted == false && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
-                                 select u.ConnectionId).ToListAsync();
+                                 select u.ConnectionId).Distinct().ToListAsync();
 
             var response = new KanbanListUIResponse
             {

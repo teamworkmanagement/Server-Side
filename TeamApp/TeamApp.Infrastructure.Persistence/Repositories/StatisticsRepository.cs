@@ -683,7 +683,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             workSheet.Cells["A1:D1"].Merge = true;
             workSheet.Cells["A2:D2"].Merge = true;
             workSheet.Cells["A1"].Value = DateTime.UtcNow.AddHours(7).ToString("dddd, dd MMMM yyyy HH:mm:ss", new CultureInfo("vi-VN"));
-            workSheet.Cells["A2"].Value = "Công việc nhóm và tổng điểm";
+            workSheet.Cells["A2"].Value = "Thống kê công việc và tổng điểm trong bảng " + pointAndDoneRequest.BoardName;
             workSheet.Cells["A2"].Style.VerticalAlignment = ExcelVerticalAlignment.Center;
             workSheet.Cells["A2"].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
             workSheet.Cells["A2"].Style.Font.Bold = true;

@@ -103,8 +103,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                 where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
-                                 select u.ConnectionId).ToListAsync();
+                                 where u.Type == "kanban" && ((p.ParticipationTeamId == board.KanbanBoardTeamId && p.ParticipationIsDeleted == false) || p.ParticipationUserId == board.KanbanBoardUserId)
+                                 select u.ConnectionId).Distinct().ToListAsync();
 
             await _hubKanban.Clients.Clients(clients).AddNewTask(taskUIKanban);
 
@@ -132,8 +132,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                 where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
-                                 select u.ConnectionId).ToListAsync();
+                                 where u.Type == "kanban" && ((p.ParticipationTeamId == board.KanbanBoardTeamId && p.ParticipationIsDeleted == false) || p.ParticipationUserId == board.KanbanBoardUserId)
+                                 select u.ConnectionId).Distinct().ToListAsync();
 
             await _hubKanban.Clients.Clients(clients).RemoveTask(new TaskRemoveModel
             {
@@ -180,8 +180,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                     where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId) && u.ConnectionId != dragTaskModel.ConnectionId
-                                     select u.ConnectionId).ToListAsync();
+                                     where u.Type == "kanban" && ((p.ParticipationTeamId == board.KanbanBoardTeamId && p.ParticipationIsDeleted == false) || p.ParticipationUserId == board.KanbanBoardUserId) && u.ConnectionId != dragTaskModel.ConnectionId
+                                     select u.ConnectionId).Distinct().ToListAsync();
 
                 await _hubKanban.Clients.Clients(clients).MoveTask(dragTaskModel);
             }
@@ -391,8 +391,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                     where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
-                                     select u.ConnectionId).ToListAsync();
+                                     where u.Type == "kanban" && ((p.ParticipationTeamId == board.KanbanBoardTeamId && p.ParticipationIsDeleted == false) || p.ParticipationUserId == board.KanbanBoardUserId)
+                                     select u.ConnectionId).Distinct().ToListAsync();
 
                 await _hubKanban.Clients.Clients(clients).UpdateTask(GetTaskUIKanban(entity));
             }

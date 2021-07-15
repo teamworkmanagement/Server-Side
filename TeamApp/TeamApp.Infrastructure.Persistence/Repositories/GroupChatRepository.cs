@@ -208,11 +208,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             };
         }
 
-        public async Task<bool> DeleteGroupChat(string grChatId)
-        {
-            return await Task.FromResult(false);
-        }
-
         public async Task<CustomListGroupChatResponse> GetAllByUserId(GroupChatSearch search)
         {
             var responseCustom = new CustomListGroupChatResponse();
@@ -333,9 +328,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var connections = from gru in _dbContext.GroupChatUser.AsNoTracking()
                               join d in _dbContext.UserConnection.AsNoTracking() on gru.GroupChatUserUserId equals d.UserId
                               where d.Type == "chat" && gru.GroupChatUserGroupChatId == grChatReq.GroupChatId
+                              && gru.GroupChatUserIsDeleted == false
                               select d.ConnectionId;
 
-            var query = await connections.AsNoTracking().ToListAsync();
+            var query = await connections.AsNoTracking().Distinct().ToListAsync();
             var clients = new ReadOnlyCollection<string>(query);
             await _chatHub.Clients.Clients(clients).ChangeGroupAvatar(grChatReq);
 

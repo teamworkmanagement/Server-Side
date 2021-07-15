@@ -56,8 +56,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join u in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals u.UserId
-                                     where u.Type == "kanban" && (p.ParticipationTeamId == board.KanbanBoardTeamId || p.ParticipationUserId == board.KanbanBoardUserId)
-                                     select u.ConnectionId).ToListAsync();
+                                     where u.Type == "kanban" && ((p.ParticipationTeamId == board.KanbanBoardTeamId && p.ParticipationIsDeleted == false) || p.ParticipationUserId == board.KanbanBoardUserId)
+                                     select u.ConnectionId).Distinct().ToListAsync();
 
                 await _kanbanHub.Clients.Clients(clients).AddFile(new
                 {
@@ -179,7 +179,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         FilePostOwnerId = entity.f.FilePostOwnerId,
                         FileUploadTime = entity.f.FileUploadTime.FormatTime(),
                         FileUserUploadName = entity.FullName,
-                        UserImage = entity.ImageUrl,
+                        UserImage = string.IsNullOrEmpty(entity.ImageUrl) ? $"https://ui-avatars.com/api/?name={entity.FullName}" : entity.ImageUrl,
                     }).ToList();
                     break;
                 case "team":

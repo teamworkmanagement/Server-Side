@@ -35,5 +35,7 @@ namespace TeamApp.Application.Interfaces.Repositories
 
         Task<KanbanBoardUIResponse> SearchTasks(TaskSearchModel taskSearchModel);
         Task<List<TaskUIKanban>> SearchTasksListInBoard(TaskSearchModel taskSearchModel);
+        Task<bool> RebalanceTask(RebalanceTaskModel rebalanceTaskModel);
+        Task<bool> RebalanceList(RebalanceListModel rebalanceListModel);
     }
 }

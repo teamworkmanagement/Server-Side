@@ -6,6 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Message;
 using TeamApp.Application.Filters;
+using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -17,9 +18,11 @@ namespace TeamApp.WebApi.Controllers
     public class MessageController : ControllerBase
     {
         private readonly IMessageRepository _repo;
-        public MessageController(IMessageRepository repo)
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        public MessageController(IMessageRepository repo, IAuthenticatedUserService authenticatedUserService)
         {
             _repo = repo;
+            _authenticatedUserService = authenticatedUserService;
         }
 
         /// <summary>
@@ -31,6 +34,7 @@ namespace TeamApp.WebApi.Controllers
         [ProducesDefaultResponseType(typeof(ApiResponse<PagedResponse<MessageResponse>>))]
         public async Task<IActionResult> GetPaging([FromQuery] MessageRequestParameter parameter)
         {
+            parameter.UserId = _authenticatedUserService.UserId;
             var res = await _repo.GetPaging(parameter);
 
             var outPut = new ApiResponse<PagedResponse<MessageResponse>>
