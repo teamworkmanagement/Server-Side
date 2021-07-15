@@ -13,6 +13,7 @@ using TeamApp.Application.Utils;
 using Microsoft.AspNetCore.SignalR;
 using TeamApp.Infrastructure.Persistence.Hubs.Kanban;
 using TeamApp.Application.DTOs.TaskVersion;
+using Newtonsoft.Json;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -356,6 +357,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             if (entity == null)
                 throw new KeyNotFoundException("Task not found");
 
+            var oldTaskStr = JsonConvert.SerializeObject(entity);
+
             entity.TaskDescription = taskReq.TaskDescription ?? entity.TaskDescription;
             entity.TaskName = taskReq.TaskName ?? entity.TaskName;
 
@@ -394,8 +397,17 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 await _hubKanban.Clients.Clients(clients).UpdateTask(GetTaskUIKanban(entity));
             }
 
-            var taskVersion = MapTaskToTaskVersionRequest(entity, taskReq.UserActionId);
-            await _taskVersionRepository.AddTaskVersion(taskVersion);
+            var oldTask = JsonConvert.DeserializeObject<Entities.Task>(oldTaskStr);
+
+            if (oldTask.TaskName != entity.TaskName || oldTask.TaskDescription != entity.TaskDescription
+                || oldTask.TaskDeadline != entity.TaskDeadline || oldTask.TaskStatus != entity.TaskStatus
+                || oldTask.TaskCompletedPercent != entity.TaskCompletedPercent || oldTask.TaskPoint != entity.TaskPoint
+                )
+            {
+                var taskVersion = MapTaskToTaskVersionRequest(entity, taskReq.UserActionId);
+                await _taskVersionRepository.AddTaskVersion(taskVersion);
+            }
+
 
             return check;
         }

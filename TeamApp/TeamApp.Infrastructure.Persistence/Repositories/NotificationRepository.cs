@@ -62,7 +62,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     NotificationGroup = noti.NotificationGroup,
                     NotificationImage = "https://firebasestorage.googleapis.com/v0/b/fir-fcm-5eb6f.appspot.com/o/notification_500px.png?alt=media&token=e68bc511-fdd4-4f76-90d9-11e86a143f21",
                     NotificationActionFullName = user.FullName,
-                    NotificationActionAvatar = user.ImageUrl,
+                    NotificationActionAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
                 };
 
                 entityList.Add(notiResObj);
@@ -96,7 +96,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new NotificationResponse
             {
                 NotificationActionFullName = actionUser.FullName,
-                NotificationActionAvatar = actionUser.ImageUrl,
+                NotificationActionAvatar = string.IsNullOrEmpty(actionUser.ImageUrl) ? $"https://ui-avatars.com/api/?name={actionUser.FullName}" : actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
                 NotificationContent = "đã nhắc đến bạn trong 1 bài viết",
                 NotificationStatus = false,
@@ -144,7 +144,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {
                 NotificationActionFullName = actionUser.FullName,
-                NotificationActionAvatar = actionUser.ImageUrl,
+                NotificationActionAvatar = string.IsNullOrEmpty(actionUser.ImageUrl) ? $"https://ui-avatars.com/api/?name={actionUser.FullName}" : actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
                 NotificationContent = "đã giao cho bạn 1 công việc",
                 NotificationStatus = false,
@@ -202,7 +202,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {
                 NotificationActionFullName = actionUser.FullName,
-                NotificationActionAvatar = actionUser.ImageUrl,
+                NotificationActionAvatar = string.IsNullOrEmpty(actionUser.ImageUrl) ? $"https://ui-avatars.com/api/?name={actionUser.FullName}" : actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
                 NotificationContent = "đã nhắc đến bạn trong 1 bình luận",
                 NotificationStatus = false,
@@ -251,7 +251,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _notiHub.Clients.Clients(readOnlyList).SendNoti(new
             {
                 NotificationActionFullName = actionUser.FullName,
-                NotificationActionAvatar = actionUser.ImageUrl,
+                NotificationActionAvatar = string.IsNullOrEmpty(actionUser.ImageUrl) ? $"https://ui-avatars.com/api/?name={actionUser.FullName}" : actionUser.ImageUrl,
                 NotificationGroup = notiGroup,
                 NotificationContent = "đã thêm bạn vào một nhóm",
                 NotificationStatus = false,
