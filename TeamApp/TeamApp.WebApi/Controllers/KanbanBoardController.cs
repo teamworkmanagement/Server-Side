@@ -163,5 +163,27 @@ namespace TeamApp.WebApi.Controllers
                 Data = outPut,
             });
         }
+
+        [HttpPost("rebalance-task")]
+        public async Task<IActionResult> RebalanceTask([FromBody] RebalanceTaskModel rebalanceTaskModel)
+        {
+            var outPut = await _repo.RebalanceTask(rebalanceTaskModel);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
+            });
+        }
+
+        [HttpPost("rebalance-list")]
+        public async Task<IActionResult> RebalanceList([FromBody] RebalanceListModel rebalanceListModel)
+        {
+            var outPut = await _repo.RebalanceList(rebalanceListModel);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
+            });
+        }
     }
 }

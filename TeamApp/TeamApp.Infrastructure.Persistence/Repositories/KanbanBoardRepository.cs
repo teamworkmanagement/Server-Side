@@ -607,5 +607,78 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             return responses;
         }
+
+        public async Task<bool> RebalanceTask(RebalanceTaskModel rebalanceTaskModel)
+        {
+            var tasks = await (from t in _dbContext.Task
+                               where t.TaskIsDeleted == false && t.TaskBelongedId == rebalanceTaskModel.KanbanListId
+                               orderby t.TaskRankInList ascending
+                               select t).ToListAsync();
+            var done = 0;
+            if (tasks != null)
+            {
+                for (int i = 0; i < tasks.Count; i++)
+                {
+                    using (var transaction = _dbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            tasks[i].TaskRankInList = rebalanceTaskModel.Ranks[i];
+                            _dbContext.Task.Update(tasks[i]);
+                            await _dbContext.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                            done++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                }
+
+                if (done == tasks.Count)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
+        public async Task<bool> RebalanceList(RebalanceListModel rebalanceListModel)
+        {
+            var lists = await (from kl in _dbContext.KanbanList
+                               where kl.KanbanListIsDeleted == false && kl.KanbanListBoardBelongedId == rebalanceListModel.KanbanBoardId
+                               orderby kl.KanbanListRankInBoard ascending
+                               select kl).ToListAsync();
+            var done = 0;
+            if (lists != null)
+            {
+                for (int i = 0; i < lists.Count; i++)
+                {
+                    using (var transaction = _dbContext.Database.BeginTransaction())
+                    {
+                        try
+                        {
+                            lists[i].KanbanListRankInBoard = rebalanceListModel.Ranks[i];
+                            _dbContext.KanbanList.Update(lists[i]);
+                            await _dbContext.SaveChangesAsync();
+                            await transaction.CommitAsync();
+                            done++;
+                        }
+                        catch (Exception ex)
+                        {
+                            Console.WriteLine(ex.ToString());
+                        }
+                    }
+                }
+
+                if (done == lists.Count)
+                {
+                    return true;
+                }
+            }
+
+            return false;
+        }
     }
 }
