@@ -6,20 +6,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
+using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
 using Task = System.Threading.Tasks.Task;
 
 namespace TeamApp.Infrastructure.Persistence.Hubs.App
 {
     [Authorize]
-    public class HubAppClient: Hub<IHubAppClient>
+    public class HubAppClient : Hub<IHubAppClient>
     {
         private readonly TeamAppContext _dbContext;
         private readonly UserManager<User> _userManager;
-        public HubAppClient(TeamAppContext dbContext, UserManager<User> userManager)
+        private readonly IServiceProvider _serviceProvider;
+        public HubAppClient(TeamAppContext dbContext, UserManager<User> userManager, IServiceProvider serviceProvider)
         {
             _dbContext = dbContext;
             _userManager = userManager;
+            _serviceProvider = serviceProvider;
         }
         public override async Task OnConnectedAsync()
         {
@@ -44,9 +47,20 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.App
             Console.WriteLine("App disconnected: " + userId);
             var userCon = await _dbContext.UserConnection.Where(x => x.UserId == userId && x.ConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
 
+            var meetingUser = await _dbContext.MeetingUser.Where(u => u.UserConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
             _dbContext.UserConnection.Remove(userCon);
 
             await _dbContext.SaveChangesAsync();
+
+            if (meetingUser != null)
+            {
+                var meetingRepo = (IMeetingRepository)_serviceProvider.GetService(typeof(IMeetingRepository));
+
+                await meetingRepo.LeaveMeetingSignalR(new Application.DTOs.Meeting.LeaveMeetingModel
+                {
+                    ConnectionId = Context.ConnectionId,
+                });
+            }
 
             await base.OnDisconnectedAsync(exception);
         }
