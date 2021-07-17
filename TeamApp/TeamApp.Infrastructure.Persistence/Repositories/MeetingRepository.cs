@@ -218,6 +218,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationGroup = notiGroup,
                 NotificationContent = "đã mời bạn tham gia 1 cuộc họp",
                 NotificationStatus = false,
+                NotificationCreatedAt = DateTime.UtcNow,
                 NotificationLink = JsonConvert.SerializeObject(new { MeetingId = inviteMemberModel.MeetingId }),
             });
 
