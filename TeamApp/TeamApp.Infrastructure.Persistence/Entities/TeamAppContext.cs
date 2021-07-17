@@ -76,6 +76,16 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                     .HasCharSet("utf8mb4");
             });
 
+            modelBuilder.Entity<Meeting>(entity =>
+            {
+                entity.ToTable("meeting");
+            });
+
+            modelBuilder.Entity<MeetingUser>(entity =>
+            {
+                entity.ToTable("meeting_user");
+            });
+
             modelBuilder.Entity<Feedback>(entity =>
             {
                 entity.ToTable("feedback");
