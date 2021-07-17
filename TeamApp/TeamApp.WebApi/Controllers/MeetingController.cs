@@ -57,6 +57,7 @@ namespace TeamApp.WebApi.Controllers
         [HttpPost("join-meeting")]
         public async Task<IActionResult> JoinMeeting([FromBody] JoinMeetingModel joinMeetingModel)
         {
+            joinMeetingModel.UserId = _authenticatedUserService.UserId;
             var outPut = await _repo.JoinMeeting(joinMeetingModel);
             return Ok(new ApiResponse<bool>
             {
@@ -87,10 +88,11 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
-        [HttpGet("{meetingId}")]
-        public async Task<IActionResult> GetById(string meetingId)
+        [HttpGet]
+        public async Task<IActionResult> Get([FromQuery] GetMeetingRequest getMeetingRequest)
         {
-            var outPut = await _repo.GetById(meetingId);
+            getMeetingRequest.UserId = _authenticatedUserService.UserId;
+            var outPut = await _repo.Get(getMeetingRequest);
             return Ok(new ApiResponse<MeetingResponse>
             {
                 Data = outPut,

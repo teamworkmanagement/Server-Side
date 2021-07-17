@@ -14,6 +14,7 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task<bool> JoinMeeting(JoinMeetingModel joinMeetingModel);
         Task<bool> LeaveMeeting(LeaveMeetingModel leaveMeetingModel);
         Task<bool> InviteMembers(InviteMemberModel inviteMemberModel);
-        Task<MeetingResponse> GetById(string meetingId);
+        Task<MeetingResponse> Get(GetMeetingRequest getMeetingRequest);
+        Task<bool> LeaveMeetingSignalR(LeaveMeetingModel leaveMeetingModel);
     }
 }

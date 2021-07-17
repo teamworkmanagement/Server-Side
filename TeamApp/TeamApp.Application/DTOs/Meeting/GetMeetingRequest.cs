@@ -4,10 +4,10 @@ using System.Text;
 
 namespace TeamApp.Application.DTOs.Meeting
 {
-    public class LeaveMeetingModel
+    public class GetMeetingRequest
     {
-        public string MeetingId { get; set; }
         public string UserId { get; set; }
-        public string ConnectionId { get; set; }
+        public string MeetingId { get; set; }
+        public string TeamId { get; set; }
     }
 }

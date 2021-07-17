@@ -42,17 +42,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.Meeting.AddAsync(meeting);
             await _dbContext.SaveChangesAsync();
 
-            var meetingUser = new MeetingUser
-            {
-                Id = Guid.NewGuid().ToString(),
-                UserId = meetingRequest.UserCreateId,
-                UserConnectionId = meetingRequest.ConnectionId,
-                MeetingId = meeting.MeetingId,
-            };
-
-            await _dbContext.AddAsync(meetingUser);
-            await _dbContext.SaveChangesAsync();
-
             var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                  join uc in _dbContext.UserConnection.AsNoTracking()
                                  on p.ParticipationUserId equals uc.UserId
@@ -116,13 +105,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                      where mu.UserId == joinMeetingModel.UserId && m.MeetingId == joinMeetingModel.MeetingId
                                      select mu).FirstOrDefaultAsync();
 
-            //đã join = 1 connection khác
-            if (meetingUser != null && meetingUser.UserConnectionId == joinMeetingModel.UserConnectionId)
-            {
-                return true;
-            }
-
-            if (meetingUser != null && meetingUser.UserConnectionId != joinMeetingModel.UserConnectionId)
+            if (meetingUser != null)
             {
                 return false;
             }
@@ -187,6 +170,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var notis = new List<Notification>();
             var inviteUser = await _dbContext.User.FindAsync(inviteMemberModel.UserInvite);
+
+            var meeting = await _dbContext.Meeting.FindAsync(inviteMemberModel.MeetingId);
             foreach (var u in inviteMemberModel.UserIds)
             {
                 notis.Add(new Notification
@@ -197,7 +182,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     NotificationGroup = notiGroup,
                     NotificationContent = "đã mời bạn tham gia 1 cuộc họp",
                     NotificationStatus = false,
-                    NotificationLink = JsonConvert.SerializeObject(new { MeetingId = inviteMemberModel.MeetingId }),
+                    NotificationLink = JsonConvert.SerializeObject(new { inviteMemberModel.MeetingId, meeting.TeamId }),
                     NotificationIsDeleted = false,
                     NotificationUserId = u,
                 });
@@ -219,36 +204,81 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationContent = "đã mời bạn tham gia 1 cuộc họp",
                 NotificationStatus = false,
                 NotificationCreatedAt = DateTime.UtcNow,
-                NotificationLink = JsonConvert.SerializeObject(new { MeetingId = inviteMemberModel.MeetingId }),
+                NotificationLink = JsonConvert.SerializeObject(new { inviteMemberModel.MeetingId, meeting.TeamId }),
             });
 
             return true;
         }
 
-        public async Task<MeetingResponse> GetById(string meetingId)
+        public async Task<MeetingResponse> Get(GetMeetingRequest getMeetingRequest)
         {
             var meeting = await (from m in _dbContext.Meeting.AsNoTracking()
-                                 join u in _dbContext.User.AsNoTracking() on m.UserCreateId equals u.Id
-                                 where m.MeetingId == meetingId
-                                 select new { m, u.FullName, u.ImageUrl }).FirstOrDefaultAsync();
+                                 join t in _dbContext.Team.AsNoTracking() on m.TeamId equals t.TeamId
+                                 join p in _dbContext.Participation.AsNoTracking() on t.TeamId equals p.ParticipationTeamId
+                                 where p.ParticipationIsDeleted == false && m.MeetingId == getMeetingRequest.MeetingId
+                                 && m.TeamId == getMeetingRequest.TeamId
+                                 select m).FirstOrDefaultAsync();
+
 
             if (meeting == null)
             {
                 throw new KeyNotFoundException("Meeting not found");
             }
 
+            var userCreated = await _dbContext.User.FindAsync(meeting.UserCreateId);
             return new MeetingResponse
             {
-                MeetingId = meeting.m.MeetingId,
-                MeetingName = meeting.m.MeetingName,
-                UserCreateId = meeting.m.UserCreateId,
-                UserCreateName = meeting.FullName,
-                UserCreateAvatar = meeting.ImageUrl,
-                CreatedAt = meeting.m.CreatedAt,
-                TeamId = meeting.m.TeamId,
-                Status = meeting.m.Status,
-                Password = meeting.m.Password,
+                MeetingId = meeting.MeetingId,
+                MeetingName = meeting.MeetingName,
+                UserCreateId = meeting.UserCreateId,
+                UserCreateName = userCreated.FullName,
+                UserCreateAvatar = userCreated.ImageUrl,
+                CreatedAt = meeting.CreatedAt,
+                TeamId = meeting.TeamId,
+                Status = meeting.Status,
+                Password = meeting.Password,
             };
+        }
+
+        public async Task<bool> LeaveMeetingSignalR(LeaveMeetingModel leaveMeetingModel)
+        {
+            var meetingUser = await (from mu in _dbContext.MeetingUser
+                                     where mu.UserConnectionId == leaveMeetingModel.ConnectionId
+                                     select mu).FirstOrDefaultAsync();
+
+            if (meetingUser == null)
+                return false;
+
+            _dbContext.Remove(meetingUser);
+            await _dbContext.SaveChangesAsync();
+
+            var meetingUsersCount = await (from mu in _dbContext.MeetingUser.AsNoTracking()
+                                           where mu.MeetingId == leaveMeetingModel.MeetingId
+                                           select mu.Id).CountAsync();
+            //họp kết thúc
+            if (meetingUsersCount == 0)
+            {
+                var meeting = await (from m in _dbContext.Meeting
+                                     where m.MeetingId == meetingUser.MeetingId
+                                     select m).FirstOrDefaultAsync();
+
+                _dbContext.Remove(meeting);
+                await _dbContext.SaveChangesAsync();
+
+                //push noti rt
+                var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                     join uc in _dbContext.UserConnection.AsNoTracking()
+                                     on p.ParticipationUserId equals uc.UserId
+                                     where p.ParticipationIsDeleted == false && p.ParticipationTeamId == meeting.TeamId
+                                     select uc.ConnectionId).Distinct().ToListAsync();
+
+                await _hubApp.Clients.Clients(clients).RemoveMeeting(new
+                {
+                    MeetingId = meeting.MeetingId,
+                    TeamId = meeting.TeamId,
+                });
+            }
+            return true;
         }
     }
 }
