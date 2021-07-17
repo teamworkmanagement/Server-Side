@@ -10,6 +10,7 @@ using Task = TeamApp.Infrastructure.Persistence.Entities.Task;
 using TeamApp.Application.Utils;
 using Microsoft.AspNetCore.SignalR;
 using TeamApp.Infrastructure.Persistence.Hubs.App;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -317,6 +318,38 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _hubApp.Clients.Clients(clients).UpdateUserInfo(userInfo);
 
             return true;
+        }
+
+        public async Task<List<UserResponse>> SearchUsersForInviteMeeting(UserMeetingSearchModel userMeetingSearch)
+        {
+            var meeting = await _dbContext.Meeting.FindAsync(userMeetingSearch.MeetingId);
+
+            //all users in meeting
+
+            var usersMeeting = await (from mu in _dbContext.MeetingUser.AsNoTracking()
+                                      where mu.MeetingId == meeting.MeetingId
+                                      select mu.UserId).Distinct().ToListAsync();
+
+            //all users in team
+            var usersInTeam = await (from p in _dbContext.Participation.AsNoTracking()
+                                     join u in _dbContext.User.AsNoTracking()
+                                     on p.ParticipationUserId equals u.Id
+                                     where p.ParticipationIsDeleted == false && p.ParticipationTeamId == meeting.TeamId
+                                     select new { u.Id, u.FullName, u.ImageUrl }).Distinct().ToListAsync();
+
+            //all users not join meeting
+            var userNotJoin = usersInTeam.Where(x => !usersMeeting.Contains(x.Id)).ToList();
+
+            var keyWord = userMeetingSearch.KeyWord.UnsignUnicode();
+
+            var response = userNotJoin.Where(x => x.FullName.UnsignUnicode().Contains(keyWord)).Select(x => new UserResponse
+            {
+                UserId = x.Id,
+                UserFullname = x.FullName,
+                UserImageUrl = string.IsNullOrEmpty(x.ImageUrl) ? $"https://ui-avatars.com/api/?name={x.FullName}" : x.ImageUrl,
+            }).ToList();
+
+            return response;
         }
     }
 }

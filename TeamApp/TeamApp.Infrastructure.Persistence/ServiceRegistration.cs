@@ -54,6 +54,7 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IStatisticsRepository, StatisticsRepository>();
             services.AddTransient<IFeedbackRepository, FeedbackRepository>();
             services.AddTransient<ISearchRepository, SearchRepository>();
+            services.AddTransient<IMeetingRepository, MeetingRepository>();
             #endregion
             ConfigAuthService(services, configuration);
         }
@@ -115,15 +116,15 @@ namespace TeamApp.Infrastructure.Persistence
                         {
                             c.NoResult();
                             if (c.Exception.GetType() == typeof(SecurityTokenExpiredException))
-                            {                              
-                                    c.Response.Cookies.Append("TokenExpired", "true", new CookieOptions
-                                    {
-                                        Domain = configuration["MyApp:Url"],
-                                        Expires = DateTime.UtcNow.AddMinutes(5),
-                                        Secure = true,
-                                        HttpOnly = false,
-                                        SameSite = SameSiteMode.None,
-                                    });
+                            {
+                                c.Response.Cookies.Append("TokenExpired", "true", new CookieOptions
+                                {
+                                    Domain = configuration["MyApp:Url"],
+                                    Expires = DateTime.UtcNow.AddMinutes(5),
+                                    Secure = true,
+                                    HttpOnly = false,
+                                    SameSite = SameSiteMode.None,
+                                });
                             }
                             c.Response.StatusCode = 401;
                             c.Response.ContentType = "text/plain";

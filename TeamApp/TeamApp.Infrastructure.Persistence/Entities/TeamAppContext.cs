@@ -42,6 +42,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<KanbanBoard> KanbanBoard { get; set; }
         public virtual DbSet<KanbanList> KanbanList { get; set; }
         public virtual DbSet<Feedback> Feedback { get; set; }
+        public virtual DbSet<Meeting> Meeting { get; set; }
+        public virtual DbSet<MeetingUser> MeetingUser { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {

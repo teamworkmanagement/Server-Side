@@ -134,5 +134,16 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = outPut,
             }));
         }
+
+        [HttpGet("search-invite-meeting")]
+        public async Task<IActionResult> SearchInviteMeeting([FromQuery] UserMeetingSearchModel userMeetingSearch)
+        {
+            var outPut = await _repo.SearchUsersForInviteMeeting(userMeetingSearch);
+            return Ok(new ApiResponse<List<UserResponse>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
     }
 }
