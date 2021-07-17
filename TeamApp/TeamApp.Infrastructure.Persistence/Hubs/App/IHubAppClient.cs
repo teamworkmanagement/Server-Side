@@ -11,5 +11,7 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.App
         Task UpdateTeamInfo(object updateTeamInfo);
         Task LeaveTeam(object leaveTeam);
         Task JoinTeam(object joinTeam);
+        Task CreateMeeting(object createMeeting);
+        Task RemoveMeeting(object removeMeeting);
     }
 }
