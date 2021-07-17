@@ -113,7 +113,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var meetingUser = await (from m in _dbContext.Meeting.AsNoTracking()
                                      join mu in _dbContext.MeetingUser.AsNoTracking()
                                      on m.MeetingId equals mu.MeetingId
-                                     where mu.UserId == joinMeetingModel.UserId
+                                     where mu.UserId == joinMeetingModel.UserId && m.MeetingId == joinMeetingModel.MeetingId
                                      select mu).FirstOrDefaultAsync();
 
             //đã join = 1 connection khác

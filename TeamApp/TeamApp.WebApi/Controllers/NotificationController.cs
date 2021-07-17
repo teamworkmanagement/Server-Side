@@ -49,7 +49,7 @@ namespace TeamApp.WebApi.Controllers
         /// <returns></returns>
         [HttpPost("read-noti")]
         [ProducesDefaultResponseType(typeof(ApiResponse<bool>))]
-        public async Task<IActionResult> ReadNotificationSet([FromBody]ReadNotiModel readNotiModel)
+        public async Task<IActionResult> ReadNotificationSet([FromBody] ReadNotiModel readNotiModel)
         {
             var res = await _repo.ReadNotificationSet(readNotiModel);
 
@@ -60,6 +60,13 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
+        }
+
+        [HttpPost("push")]
+        public async Task<IActionResult> PushNoti([FromBody] NotiRequest notiRequest)
+        {
+            await _repo.PushNoti(notiRequest);
+            return Ok();
         }
     }
 }

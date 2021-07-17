@@ -36,7 +36,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<PagedResponse<NotificationResponse>> GetPaging(NotificationRequestParameter parameter)
         {
             var query = from n in _dbContext.Notification.AsNoTracking()
-                        join u in _dbContext.User.AsNoTracking() on n.NotificationUserId equals u.Id
+                        join u in _dbContext.User.AsNoTracking() on n.NotificationUserId equals u.Id into notiuser
                         orderby n.NotificationCreatedAt descending
                         where n.NotificationUserId == parameter.UserId
                         select n;
@@ -61,8 +61,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     NotificationIsDeleted = noti.NotificationIsDeleted,
                     NotificationGroup = noti.NotificationGroup,
                     NotificationImage = "https://firebasestorage.googleapis.com/v0/b/fir-fcm-5eb6f.appspot.com/o/notification_500px.png?alt=media&token=e68bc511-fdd4-4f76-90d9-11e86a143f21",
-                    NotificationActionFullName = user.FullName,
-                    NotificationActionAvatar = string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
+                    NotificationActionFullName = user == null ? null : user.FullName,
+                    NotificationActionAvatar = user == null ? "../images/app/logoteam.png" : string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
                 };
 
                 entityList.Add(notiResObj);
