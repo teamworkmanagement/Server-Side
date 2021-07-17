@@ -36,7 +36,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         public async Task<PagedResponse<NotificationResponse>> GetPaging(NotificationRequestParameter parameter)
         {
             var query = from n in _dbContext.Notification.AsNoTracking()
-                        join u in _dbContext.User.AsNoTracking() on n.NotificationUserId equals u.Id into notiuser
+                        join u in _dbContext.User.AsNoTracking() on n.NotificationUserId equals u.Id
                         orderby n.NotificationCreatedAt descending
                         where n.NotificationUserId == parameter.UserId
                         select n;
