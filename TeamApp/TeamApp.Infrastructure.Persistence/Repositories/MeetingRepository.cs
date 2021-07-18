@@ -136,11 +136,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             _dbContext.Remove(meetingUser);
             await _dbContext.SaveChangesAsync();
 
-            var meetingUsers = await (from mu in _dbContext.MeetingUser.AsNoTracking()
+            var meetingUsersCount = await (from mu in _dbContext.MeetingUser.AsNoTracking()
                                       where mu.MeetingId == leaveMeetingModel.MeetingId
-                                      select mu.Id).ToListAsync();
+                                      select mu.Id).CountAsync();
             //họp kết thúc
-            if (meetingUsers.Count == 0)
+            if (meetingUsersCount == 0)
             {
                 var meeting = await (from m in _dbContext.Meeting
                                      where m.MeetingId == leaveMeetingModel.MeetingId
@@ -253,7 +253,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.SaveChangesAsync();
 
             var meetingUsersCount = await (from mu in _dbContext.MeetingUser.AsNoTracking()
-                                           where mu.MeetingId == leaveMeetingModel.MeetingId
+                                           where mu.MeetingId == meetingUser.MeetingId
                                            select mu.Id).CountAsync();
             //họp kết thúc
             if (meetingUsersCount == 0)
@@ -279,6 +279,21 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 });
             }
             return true;
+        }
+
+        public async Task<bool> CheckIsCalling(string userId)
+        {
+            var meetingUser = await (from mu in _dbContext.MeetingUser.AsNoTracking()
+                                     where mu.UserId == userId
+                                     select mu).FirstOrDefaultAsync();
+            //đang call
+            if (meetingUser != null)
+            {
+                return true;
+            }
+
+            //đang rảnh
+            return false;
         }
     }
 }
