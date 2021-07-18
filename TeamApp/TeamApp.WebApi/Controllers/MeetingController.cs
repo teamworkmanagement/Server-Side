@@ -99,5 +99,16 @@ namespace TeamApp.WebApi.Controllers
                 Succeeded = true,
             });
         }
+
+        [HttpGet("check-call")]
+        public async Task<IActionResult> CheckIsCalling()
+        {
+            var outPut = await _repo.CheckIsCalling(_authenticatedUserService.UserId);
+            return Ok(new ApiResponse<bool>
+            {
+                Succeeded = true,
+                Data = outPut,
+            });
+        }
     }
 }
