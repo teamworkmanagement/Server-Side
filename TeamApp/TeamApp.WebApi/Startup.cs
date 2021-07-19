@@ -1,3 +1,5 @@
+using Hangfire;
+using Hangfire.MemoryStorage;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Configuration;
@@ -6,6 +8,7 @@ using Microsoft.Extensions.Hosting;
 using System;
 using TeamApp.Application;
 using TeamApp.Application.Interfaces;
+using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence;
 using TeamApp.Infrastructure.Persistence.Hubs.App;
 using TeamApp.Infrastructure.Persistence.Hubs.Chat;
@@ -33,7 +36,15 @@ namespace TeamApp.WebApi
             services.AddControllers();
             services.AddHealthChecks();
 
+            services.AddHangfire(config =>
+            {
+                config.SetDataCompatibilityLevel(CompatibilityLevel.Version_170)
+                .UseSimpleAssemblyNameTypeSerializer()
+                .UseMemoryStorage();
+            });
+
             services.AddSignalR();
+            services.AddHangfireServer();
             services.AddCors(options =>
             {
                 options.AddPolicy("ClientPermission", policy =>
@@ -52,7 +63,7 @@ namespace TeamApp.WebApi
             services.AddScoped<IAuthenticatedUserService, AuthenticatedUserService>();
         }
 
-        public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
+        public void Configure(IApplicationBuilder app, IWebHostEnvironment env, IRecurringJobManager recurringJobManager, IServiceProvider serviceProvider)
         {
             if (env.IsDevelopment())
             {
@@ -74,7 +85,7 @@ namespace TeamApp.WebApi
 
 
             app.UseSwaggerExtension();
-            
+
 
             app.UseHealthChecks("/health");
 
@@ -87,6 +98,12 @@ namespace TeamApp.WebApi
                  endpoints.MapHub<HubNotificationClient>("/hubnoti");
                  endpoints.MapHub<HubAppClient>("/hubapp");
              });
+
+            recurringJobManager.AddOrUpdate(
+                "Run nmins interval",
+                () => serviceProvider.GetService<INotificationRepository>().Reminder()
+                ,
+                "*/1 * * * *");
         }
     }
 }

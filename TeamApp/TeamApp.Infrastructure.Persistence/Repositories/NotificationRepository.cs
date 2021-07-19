@@ -324,5 +324,44 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 NotificationCreatedAt = DateTime.UtcNow,
             });
         }
+
+        public async Task Reminder()
+        {
+            Console.WriteLine("abc");
+            var appointments = await (from ap in _dbContext.Appointment.AsNoTracking()
+                                      join u in _dbContext.User.AsNoTracking()
+                                      on ap.UserCreateId equals u.Id
+                                      where ap.Date >= DateTime.UtcNow && ap.Date <= DateTime.UtcNow.AddMinutes(1)
+                                      select new { ap, u.ImageUrl, u.FullName }).ToListAsync();
+
+            if (appointments.Count > 0)
+            {
+                foreach (var appoint in appointments)
+                {
+                    var clients = await (from p in _dbContext.Participation.AsNoTracking()
+                                         join uc in _dbContext.UserConnection.AsNoTracking() on p.ParticipationUserId equals uc.UserId
+                                         where p.ParticipationIsDeleted == false && p.ParticipationTeamId == appoint.ap.TeamId
+                                         select uc.ConnectionId).Distinct().ToListAsync();
+                    await _notiHub.Clients.Clients(clients).Reminder(new
+                    {
+                        Id = appoint.ap.Id,
+                        Name = appoint.ap.Name,
+                        UserCreateName = appoint.FullName,
+                        UserCreateAvatar = appoint.ImageUrl,
+                        Date = appoint.ap.Date.FormatTime(),
+                        Description = appoint.ap.Description,
+                        Type = appoint.ap.Type,
+                        TeamId = appoint.ap.TeamId,
+                    });
+                }
+            }
+            else
+            {
+                await _notiHub.Clients.All.Reminder(new
+                {
+                    Data = "zzzzz"
+                });
+            }
+        }
     }
 }

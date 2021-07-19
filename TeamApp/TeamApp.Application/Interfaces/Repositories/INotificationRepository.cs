@@ -21,5 +21,6 @@ namespace TeamApp.Application.Interfaces.Repositories
         Task PushNotiJoinTeam(JoinTeamNotification joinTeamNotification);
         Task PushNotiAssignTask(AssignNotiModel assignNotiModel);
         Task PushNoti(NotiRequest notiRequest);
+        Task Reminder();
     }
 }
