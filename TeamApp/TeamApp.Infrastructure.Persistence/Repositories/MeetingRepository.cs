@@ -137,8 +137,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             await _dbContext.SaveChangesAsync();
 
             var meetingUsersCount = await (from mu in _dbContext.MeetingUser.AsNoTracking()
-                                      where mu.MeetingId == leaveMeetingModel.MeetingId
-                                      select mu.Id).CountAsync();
+                                           where mu.MeetingId == leaveMeetingModel.MeetingId
+                                           select mu.Id).CountAsync();
             //họp kết thúc
             if (meetingUsersCount == 0)
             {
@@ -232,7 +232,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 MeetingName = meeting.MeetingName,
                 UserCreateId = meeting.UserCreateId,
                 UserCreateName = userCreated.FullName,
-                UserCreateAvatar = userCreated.ImageUrl,
+                UserCreateAvatar = string.IsNullOrEmpty(userCreated.ImageUrl) ? $"https://ui-avatars.com/api/?name={userCreated.FullName}" : userCreated.ImageUrl,
                 CreatedAt = meeting.CreatedAt,
                 TeamId = meeting.TeamId,
                 Status = meeting.Status,

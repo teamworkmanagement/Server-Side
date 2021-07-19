@@ -10,8 +10,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public string Name { get; set; }
         public string UserCreateId { get; set; }
         public DateTime? Date { get; set; }
-        public int? Hour { get; set; }
-        public int? Minute { get; set; }
+        //public int? Hour { get; set; }
+        //public int? Minute { get; set; }
         public string Description { get; set; }
         public string Type { get; set; }
         public string TeamId { get; set; }

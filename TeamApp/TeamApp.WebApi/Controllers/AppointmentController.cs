@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TeamApp.Application.DTOs.Appoinment;
+using TeamApp.Application.DTOs.Appointment;
 using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
@@ -51,6 +51,28 @@ namespace TeamApp.WebApi.Controllers
         public async Task<IActionResult> GetByTeam(string teamId)
         {
             var outPut = await _repo.GetByTeam(teamId);
+            return Ok(new ApiResponse<List<AppointmentResponse>>
+            {
+                Data = outPut,
+                Succeeded = true,
+            });
+        }
+
+        [HttpPut]
+        public async Task<IActionResult> UpdateAppointment([FromBody] UpdateAppointmentRequest updateAppointmentRequest)
+        {
+            var outPut = await _repo.UpdateAppointment(updateAppointmentRequest);
+            return Ok(new ApiResponse<bool>
+            {
+                Data = outPut,
+                Succeeded = outPut,
+            });
+        }
+
+        [HttpGet("user")]
+        public async Task<IActionResult> GetByUser()
+        {
+            var outPut = await _repo.GetByUser(_authenticatedUserService.UserId);
             return Ok(new ApiResponse<List<AppointmentResponse>>
             {
                 Data = outPut,
