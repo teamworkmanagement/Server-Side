@@ -13,6 +13,7 @@ namespace TeamApp.Application.DTOs.Post
         public string UserAvatar { get; set; }
         public string UserName { get; set; }
         public string Status { get; set; }
+        public string PostId { get; set; }
         public List<object> Images { get; set; }
     }
 }

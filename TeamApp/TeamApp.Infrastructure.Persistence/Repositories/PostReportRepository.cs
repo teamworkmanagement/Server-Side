@@ -126,6 +126,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     UserName = pr.FullName,
                     Status = pr.Status,
                     Images = images,
+                    PostId = pr.PostId,
                 });
             }
 
