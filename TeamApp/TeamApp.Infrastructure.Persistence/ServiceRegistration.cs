@@ -55,6 +55,8 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IFeedbackRepository, FeedbackRepository>();
             services.AddTransient<ISearchRepository, SearchRepository>();
             services.AddTransient<IMeetingRepository, MeetingRepository>();
+            services.AddTransient<IPostReportRepository, PostReportRepository>();
+            services.AddTransient<IAppoinmentRespository, AppoinmentRepository>();
             #endregion
             ConfigAuthService(services, configuration);
         }

@@ -44,6 +44,8 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<Feedback> Feedback { get; set; }
         public virtual DbSet<Meeting> Meeting { get; set; }
         public virtual DbSet<MeetingUser> MeetingUser { get; set; }
+        public virtual DbSet<PostReport> PostReport { get; set; }
+        public virtual DbSet<Appointment> Appointment { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -57,6 +59,20 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             modelBuilder.Entity<RefreshToken>(entity =>
             {
                 entity.ToTable("refresh_token");
+            });
+
+            modelBuilder.Entity<PostReport>(entity =>
+            {
+                entity.ToTable("post_report");
+            });
+
+            modelBuilder.Entity<Appointment>(entity =>
+            {
+                entity.ToTable("appointment");
+                entity.Property(e => e.CreatedAt)
+                    .HasColumnType("timestamp");
+                entity.Property(e => e.Date)
+                    .HasColumnType("timestamp");
             });
 
             modelBuilder.Entity<UserConnection>(entity =>
