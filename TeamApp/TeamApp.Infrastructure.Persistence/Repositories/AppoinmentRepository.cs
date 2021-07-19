@@ -92,7 +92,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var appointments = await (from ap in _dbContext.Appointment.AsNoTracking()
                                       join u in _dbContext.User.AsNoTracking()
                                       on ap.UserCreateId equals u.Id
-                                      where ap.TeamId == teamId
+                                      where ap.TeamId == teamId && ap.Date >= DateTime.UtcNow
                                       orderby ap.CreatedAt descending
                                       select new { ap, u.FullName, u.ImageUrl }).ToListAsync();
 
@@ -118,7 +118,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             var appointments = await (from ap in _dbContext.Appointment.AsNoTracking()
                                       join u in _dbContext.User.AsNoTracking() on ap.UserCreateId equals u.Id
-                                      where teams.Contains(ap.TeamId)
+                                      where teams.Contains(ap.TeamId) && ap.Date >= DateTime.UtcNow
                                       orderby ap.CreatedAt descending
                                       select new { ap, u.FullName, u.ImageUrl }).ToListAsync();
 
