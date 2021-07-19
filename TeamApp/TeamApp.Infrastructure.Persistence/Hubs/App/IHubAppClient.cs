@@ -13,5 +13,6 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.App
         Task JoinTeam(object joinTeam);
         Task CreateMeeting(object createMeeting);
         Task RemoveMeeting(object removeMeeting);
+        Task ReloadAppointment(object reloadAppoinment);
     }
 }
