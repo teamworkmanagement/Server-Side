@@ -75,6 +75,12 @@ namespace TeamApp.Infrastructure.Persistence.Services
             {
                 throw new ApiException($"Not admin '{request.Email}'.");
             }
+
+            if (!request.IsAdmin && request.Email == "admin@ezteam.tech")
+            {
+                throw new ApiException($"Can't login '{request.Email}'.");
+            }
+
             JwtSecurityToken jwtSecurityToken = await GenerateJWToken(user);
             AuthenticationResponse response = new AuthenticationResponse();
             response.Id = user.Id;

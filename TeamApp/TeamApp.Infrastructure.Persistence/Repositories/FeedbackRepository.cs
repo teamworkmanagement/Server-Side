@@ -47,6 +47,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 Id = f.FeedbackId,
                 Content = f.FeedbackContent,
                 UserName = f.FullName,
+                UserAvatar = string.IsNullOrEmpty(f.ImageUrl) ? $"https://ui-avatars.com/api/?name={f.FullName}" : f.ImageUrl,
                 CreatedDate = f.FeedbackCreatedAt.FormatTime(),
                 Status = f.IsSeen == true ? 1 : 0,
             }).ToList();
