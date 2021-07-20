@@ -7,6 +7,7 @@ using TeamApp.Application.DTOs.Post;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Infrastructure.Persistence.Entities;
 using System.Linq;
+using TeamApp.Application.Utils;
 
 namespace TeamApp.Infrastructure.Persistence.Repositories
 {
@@ -100,7 +101,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                      join p in _dbContext.Post.AsNoTracking() on pr.PostId equals p.PostId
                                      join u in _dbContext.User.AsNoTracking() on p.PostUserId equals u.Id
                                      orderby pr.ReportCount descending
-                                     select new { pr.Id, pr.PostId, p.PostContent, u.ImageUrl, u.FullName, p.PostCreatedAt, pr.Status })
+                                     select new { pr.Id, pr.PostId, p.PostContent, pr.ReportCount, u.ImageUrl, u.FullName, p.PostCreatedAt, pr.Status })
                                    .ToListAsync();
 
             var response = new List<PostReportResponse>();
@@ -127,6 +128,8 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     Status = pr.Status,
                     Images = images,
                     PostId = pr.PostId,
+                    ReportCounts = pr.ReportCount,
+                    CreatedDate = pr.PostCreatedAt.FormatTime(),
                 });
             }
 

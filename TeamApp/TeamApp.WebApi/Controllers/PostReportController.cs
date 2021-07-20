@@ -11,7 +11,6 @@ using TeamApp.Application.Wrappers;
 
 namespace TeamApp.WebApi.Controllers
 {
-    [Authorize(Policy = "AdminPolicy")]
     [ApiController]
     [Route("api/post-report")]
     public class PostReportController : ControllerBase
@@ -24,6 +23,7 @@ namespace TeamApp.WebApi.Controllers
             _authenticatedUserService = authenticatedUserService;
         }
 
+        [Authorize]
         [HttpPost]
         public async Task<IActionResult> AddReport([FromBody] CreateReportRequest createReportRequest)
         {
@@ -36,6 +36,7 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        [Authorize(Policy = "AdminPolicy")]
         [HttpGet]
         public async Task<IActionResult> GetReports()
         {
@@ -47,6 +48,7 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        [Authorize(Policy = "AdminPolicy")]
         [HttpPost("remove")]
         public async Task<IActionResult> RemoveFromReport([FromBody] ReportListWrap reportListWrap)
         {
@@ -58,6 +60,7 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        [Authorize(Policy = "AdminPolicy")]
         [HttpPost("accept")]
         public async Task<IActionResult> ChangePostStatusAccept([FromBody] PostListWrap postListWrap)
         {
@@ -69,6 +72,7 @@ namespace TeamApp.WebApi.Controllers
             });
         }
 
+        [Authorize(Policy = "AdminPolicy")]
         [HttpPost("deny")]
         public async Task<IActionResult> ChangePostStatusDeny([FromBody] PostListWrap postListWrap)
         {

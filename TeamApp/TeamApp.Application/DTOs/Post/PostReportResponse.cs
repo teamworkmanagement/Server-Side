@@ -14,6 +14,8 @@ namespace TeamApp.Application.DTOs.Post
         public string UserName { get; set; }
         public string Status { get; set; }
         public string PostId { get; set; }
+        public int ReportCounts { get; set; }
+        public DateTime? CreatedDate { get; set; }
         public List<object> Images { get; set; }
     }
 }
