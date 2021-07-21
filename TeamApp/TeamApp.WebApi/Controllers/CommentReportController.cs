@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using TeamApp.Application.DTOs.Post;
+using TeamApp.Application.DTOs.Comment;
 using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
@@ -12,22 +12,23 @@ using TeamApp.Application.Wrappers;
 namespace TeamApp.WebApi.Controllers
 {
     [ApiController]
-    [Route("api/post-report")]
-    public class PostReportController : ControllerBase
+    [Authorize]
+    [Route("api/comment-report")]
+    public class CommentReportController: ControllerBase
     {
-        private readonly IPostReportRepository _repo;
+        private readonly ICommentReportRepository _repo;
         private readonly IAuthenticatedUserService _authenticatedUserService;
-        public PostReportController(IPostReportRepository repo, IAuthenticatedUserService authenticatedUserService)
+        public CommentReportController(ICommentReportRepository repo, IAuthenticatedUserService authenticatedUserService)
         {
             _repo = repo;
             _authenticatedUserService = authenticatedUserService;
         }
 
-        [Authorize]
+        
         [HttpPost]
-        public async Task<IActionResult> AddReport([FromBody] CreateReportRequest createReportRequest)
+        public async Task<IActionResult> AddReport([FromBody] CreateCommentReport createReportRequest)
         {
-            createReportRequest.UserReportId = _authenticatedUserService.UserId;
+            createReportRequest.UserId = _authenticatedUserService.UserId;
             var outPut = await _repo.AddReport(createReportRequest);
             return Ok(new ApiResponse<string>
             {
@@ -41,7 +42,7 @@ namespace TeamApp.WebApi.Controllers
         public async Task<IActionResult> GetReports()
         {
             var outPut = await _repo.GetReports();
-            return Ok(new ApiResponse<List<PostReportResponse>>
+            return Ok(new ApiResponse<List<CommentReportResponse>>
             {
                 Data = outPut,
                 Succeeded = true,
@@ -50,9 +51,9 @@ namespace TeamApp.WebApi.Controllers
 
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost("remove")]
-        public async Task<IActionResult> RemoveFromReport([FromBody] PostListWrap reportListWrap)
+        public async Task<IActionResult> RemoveFromReport([FromBody] CommentListWrap reportListWrap)
         {
-            var outPut = await _repo.RemoveFromReport(reportListWrap.PostIds);
+            var outPut = await _repo.RemoveFromReport(reportListWrap.CommentIds);
             return Ok(new ApiResponse<bool>
             {
                 Data = outPut,
@@ -62,9 +63,9 @@ namespace TeamApp.WebApi.Controllers
 
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost("accept")]
-        public async Task<IActionResult> ChangePostStatusAccept([FromBody] PostListWrap postListWrap)
+        public async Task<IActionResult> ChangeCommentStatusAccept([FromBody] CommentListWrap commentListWrap)
         {
-            var outPut = await _repo.ChangePostStatusAccept(postListWrap.PostIds);
+            var outPut = await _repo.ChangeCommentStatusAccept(commentListWrap.CommentIds);
             return Ok(new ApiResponse<bool>
             {
                 Data = outPut,
@@ -74,9 +75,9 @@ namespace TeamApp.WebApi.Controllers
 
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost("deny")]
-        public async Task<IActionResult> ChangePostStatusDeny([FromBody] PostListWrap postListWrap)
+        public async Task<IActionResult> ChangeCommentStatusDeny([FromBody] CommentListWrap commentListWrap)
         {
-            var outPut = await _repo.ChangePostStatusDeny(postListWrap.PostIds);
+            var outPut = await _repo.ChangeCommentStatusDeny(commentListWrap.CommentIds);
             return Ok(new ApiResponse<bool>
             {
                 Data = outPut,

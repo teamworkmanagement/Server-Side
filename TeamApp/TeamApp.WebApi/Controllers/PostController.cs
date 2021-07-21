@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using TeamApp.Application.DTOs.Post;
 using TeamApp.Application.DTOs.User;
 using TeamApp.Application.Filters;
+using TeamApp.Application.Interfaces;
 using TeamApp.Application.Interfaces.Repositories;
 using TeamApp.Application.Wrappers;
 
@@ -18,11 +19,11 @@ namespace TeamApp.WebApi.Controllers
     public class PostController : ControllerBase
     {
         private readonly IPostRepository _repo;
-        private readonly ITeamRepository _teamRepo;
-        public PostController(IPostRepository repo, ITeamRepository teamRepo)
+        private readonly IAuthenticatedUserService _authenticatedUserService;
+        public PostController(IPostRepository repo, IAuthenticatedUserService authenticatedUserService)
         {
             _repo = repo;
-            _teamRepo = teamRepo;
+            _authenticatedUserService = authenticatedUserService;
         }
 
         /*[HttpGet]
@@ -59,10 +60,10 @@ namespace TeamApp.WebApi.Controllers
 
             return Ok(outPut);
         }
-        
+
 
         [HttpDelete("{postId}")]
-        /*public async Task<IActionResult> DeletePost(string postId)
+        public async Task<IActionResult> DeletePost(string postId)
         {
             var res = await _repo.DeletePost(postId);
 
@@ -74,7 +75,7 @@ namespace TeamApp.WebApi.Controllers
             };
 
             return Ok(outPut);
-        }*/
+        }
 
         /// <summary>
         /// Get post pagination for user API
@@ -85,6 +86,7 @@ namespace TeamApp.WebApi.Controllers
         [ProducesDefaultResponseType(typeof(ApiResponse<PagedResponse<PostResponse>>))]
         public async Task<IActionResult> GetMultiPagingUser([FromQuery] PostRequestParameter parameter)
         {
+            parameter.UserId = _authenticatedUserService.UserId;
             var res = await _repo.GetPostPagingUser(parameter);
 
             var outPut = new ApiResponse<PagedResponse<PostResponse>>
@@ -105,6 +107,7 @@ namespace TeamApp.WebApi.Controllers
         [ProducesDefaultResponseType(typeof(ApiResponse<PagedResponse<PostResponse>>))]
         public async Task<IActionResult> GetPostPagingTeam([FromQuery] PostRequestParameter parameter)
         {
+            parameter.UserId = _authenticatedUserService.UserId;
             var res = await _repo.GetPostPagingTeam(parameter);
 
             var outPut = new ApiResponse<PagedResponse<PostResponse>>

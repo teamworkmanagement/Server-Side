@@ -245,6 +245,35 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.ToTable("comment");
                 });
 
+            modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.CommentReport", b =>
+                {
+                    b.Property<string>("CommentReportId")
+                        .HasColumnName("comment_report_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("CommentReportCommentId")
+                        .HasColumnName("comment_report_commentid")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("CommentReportUserId")
+                        .HasColumnName("comment_report_userid")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.HasKey("CommentReportId");
+
+                    b.HasIndex("CommentReportCommentId");
+
+                    b.HasIndex("CommentReportUserId");
+
+                    b.ToTable("comment_report");
+                });
+
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Feedback", b =>
                 {
                     b.Property<string>("FeedbackId")
@@ -836,22 +865,29 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.PostReport", b =>
                 {
-                    b.Property<string>("Id")
-                        .HasColumnType("varchar(255) CHARACTER SET utf8mb4");
+                    b.Property<string>("PostReportId")
+                        .HasColumnName("post_report_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<string>("PostId")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                    b.Property<string>("PostReportPostId")
+                        .HasColumnName("post_report_postid")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<int>("ReportCount")
-                        .HasColumnType("int");
+                    b.Property<string>("PostReportUserId")
+                        .HasColumnName("post_report_userid")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
 
-                    b.Property<string>("Status")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                    b.HasKey("PostReportId");
 
-                    b.Property<string>("UserReportId")
-                        .HasColumnType("longtext CHARACTER SET utf8mb4");
+                    b.HasIndex("PostReportPostId");
 
-                    b.HasKey("Id");
+                    b.HasIndex("PostReportUserId");
 
                     b.ToTable("post_report");
                 });
@@ -1315,6 +1351,17 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasConstraintName("comment_ibfk_2");
                 });
 
+            modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.CommentReport", b =>
+                {
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Comment", "Comment")
+                        .WithMany("CommentReports")
+                        .HasForeignKey("CommentReportCommentId");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "UserReport")
+                        .WithMany("CommentReports")
+                        .HasForeignKey("CommentReportUserId");
+                });
+
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Feedback", b =>
                 {
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "UserFeedback")
@@ -1449,6 +1496,17 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "UserReact")
                         .WithMany("PostReacts")
                         .HasForeignKey("PostReactUserId");
+                });
+
+            modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.PostReport", b =>
+                {
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Post", "Post")
+                        .WithMany("PostReports")
+                        .HasForeignKey("PostReportPostId");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "UserReport")
+                        .WithMany("PostReports")
+                        .HasForeignKey("PostReportUserId");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.RefreshToken", b =>

@@ -315,6 +315,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 lists.AddRange(listImage);
 
                 ent.PostImages = lists;
+                ent.ShowDelete = team.TeamLeaderId == parameter.UserId || parameter.UserId == ent.PostUserId ? true : false;
             }
 
             return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
@@ -340,7 +341,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         join u in _dbContext.User on p.PostUserId equals u.Id
                         where p.PostIsDeleted == false
                         orderby p.PostCreatedAt descending
-                        select new { p, u, p.Comments.Count, RCount = p.PostReacts.Count, listTeam.TeamName };
+                        select new { p, u, p.Comments.Count, p.PostTeamId, RCount = p.PostReacts.Count, listTeam.TeamName };
 
 
             //tìm kiếm nâng cao
@@ -441,6 +442,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 lists.AddRange(listImage);
 
                 ent.PostImages = lists;
+
+                var team = await _dbContext.Team.FindAsync(ent.PostTeamId);
+                if (team.TeamLeaderId == parameter.UserId || ent.PostUserId == parameter.UserId)
+                    ent.ShowDelete = true;
             }
 
             return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());

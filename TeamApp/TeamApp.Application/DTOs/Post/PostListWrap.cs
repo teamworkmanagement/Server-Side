@@ -8,9 +8,4 @@ namespace TeamApp.Application.DTOs.Post
     {
         public List<string> PostIds { get; set; }
     }
-
-    public class ReportListWrap
-    {
-        public List<string> ReportIds { get; set; }
-    }
 }
