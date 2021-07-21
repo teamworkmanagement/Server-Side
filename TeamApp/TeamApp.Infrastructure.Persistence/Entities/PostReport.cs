@@ -6,10 +6,11 @@ namespace TeamApp.Infrastructure.Persistence.Entities
 {
     public class PostReport
     {
-        public string Id { get; set; }
-        public string PostId { get; set; }
-        public string UserReportId { get; set; }
-        public string Status { get; set; }
-        public int ReportCount { get; set; } = 0;
+        public string PostReportId { get; set; }
+        public string PostReportPostId { get; set; }
+        public string PostReportUserId { get; set; }
+
+        public virtual User UserReport { get; set; }
+        public virtual Post Post { get; set; }
     }
 }

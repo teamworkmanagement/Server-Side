@@ -946,6 +946,39 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 .HasForeignKey(e => e.PostReactUserId);
             });
 
+            modelBuilder.Entity<PostReport>(entity =>
+            {
+                entity.ToTable("post_report");
+
+                entity.HasKey(e => e.PostReportId);
+
+                entity.Property(e => e.PostReportId)
+                    .HasColumnName("post_report_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.PostReportPostId)
+                    .HasColumnName("post_report_postid")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.PostReportUserId)
+                    .HasColumnName("post_report_userid")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.HasOne(e => e.Post)
+                .WithMany(p => p.PostReports)
+                .HasForeignKey(e => e.PostReportPostId);
+
+                entity.HasOne(e => e.UserReport)
+                .WithMany(u => u.PostReports)
+                .HasForeignKey(e => e.PostReportUserId);
+            });
+
 
 
             modelBuilder.Entity<KanbanList>(entity =>

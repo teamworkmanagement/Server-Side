@@ -26,6 +26,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             NotificationActionUsers = new HashSet<Notification>();
             TaskVersions = new HashSet<TaskVersion>();
             Feedbacks = new HashSet<Feedback>();
+            PostReports = new HashSet<PostReport>();
         }
 
 
@@ -59,6 +60,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<KanbanBoard> Boards { get; set; }
         public virtual ICollection<TaskVersion> TaskVersions { get; set; }
         public virtual ICollection<Feedback> Feedbacks { get; set; }
+        public virtual ICollection<PostReport> PostReports { get; set; }
 
 
         public bool OwnsToken(string token)

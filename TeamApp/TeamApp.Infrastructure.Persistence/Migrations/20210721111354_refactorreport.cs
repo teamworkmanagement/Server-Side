@@ -4,10 +4,28 @@ using Microsoft.EntityFrameworkCore.Migrations;
 
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
-    public partial class fixnotimodel : Migration
+    public partial class refactorreport : Migration
     {
         protected override void Up(MigrationBuilder migrationBuilder)
         {
+            migrationBuilder.CreateTable(
+                name: "appointment",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    Name = table.Column<string>(nullable: true),
+                    UserCreateId = table.Column<string>(nullable: true),
+                    Date = table.Column<DateTime>(type: "timestamp", nullable: true),
+                    Description = table.Column<string>(nullable: true),
+                    Type = table.Column<string>(nullable: true),
+                    TeamId = table.Column<string>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(type: "timestamp", nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_appointment", x => x.Id);
+                });
+
             migrationBuilder.CreateTable(
                 name: "group_chat",
                 columns: table => new
@@ -21,11 +39,46 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     group_chat_type = table.Column<string>(type: "enum('double','multi')", nullable: true)
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    group_chat_updated_at = table.Column<DateTime>(type: "timestamp", nullable: true)
+                    group_chat_updated_at = table.Column<DateTime>(type: "timestamp", nullable: true),
+                    group_chat_imageurl = table.Column<string>(type: "varchar(500)", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    group_chat_is_of_team = table.Column<bool>(nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_group_chat", x => x.group_chat_id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "meeting",
+                columns: table => new
+                {
+                    MeetingId = table.Column<string>(nullable: false),
+                    MeetingName = table.Column<string>(nullable: true),
+                    UserCreateId = table.Column<string>(nullable: true),
+                    CreatedAt = table.Column<DateTime>(nullable: true),
+                    TeamId = table.Column<string>(nullable: true),
+                    Status = table.Column<string>(nullable: true),
+                    Password = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_meeting", x => x.MeetingId);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "meeting_user",
+                columns: table => new
+                {
+                    Id = table.Column<string>(nullable: false),
+                    UserId = table.Column<string>(nullable: true),
+                    UserConnectionId = table.Column<string>(nullable: true),
+                    MeetingId = table.Column<string>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_meeting_user", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -40,25 +93,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_role", x => x.Id);
-                });
-
-            migrationBuilder.CreateTable(
-                name: "tag",
-                columns: table => new
-                {
-                    tag_id = table.Column<string>(type: "varchar(50)", nullable: false)
-                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    tag_content = table.Column<string>(type: "text", nullable: true)
-                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
-                        .Annotation("MySql:CharSet", "utf8mb4"),
-                    tag_link = table.Column<string>(type: "varchar(200)", nullable: true)
-                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
-                        .Annotation("MySql:CharSet", "utf8mb4")
-                },
-                constraints: table =>
-                {
-                    table.PrimaryKey("PK_tag", x => x.tag_id);
                 });
 
             migrationBuilder.CreateTable(
@@ -97,7 +131,19 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     user_created_at = table.Column<DateTime>(type: "timestamp", nullable: true),
                     LastTimeOnline = table.Column<DateTime>(nullable: true),
-                    user_firstime_social = table.Column<bool>(nullable: true, defaultValue: false)
+                    user_firstime_social = table.Column<bool>(nullable: true, defaultValue: false),
+                    user_description = table.Column<string>(type: "text", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    user_address = table.Column<string>(type: "varchar(350)", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    user_github_link = table.Column<string>(type: "varchar(350)", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    user_facebook_link = table.Column<string>(type: "varchar(350)", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4")
                 },
                 constraints: table =>
                 {
@@ -126,6 +172,31 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "feedback",
+                columns: table => new
+                {
+                    feedback_id = table.Column<string>(type: "varchar(50)", nullable: false)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    feedback_content = table.Column<string>(type: "text", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    UserFeedbackId = table.Column<string>(nullable: true),
+                    feedback_created_at = table.Column<DateTime>(type: "timestamp", nullable: true),
+                    IsSeen = table.Column<bool>(nullable: true)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_feedback", x => x.feedback_id);
+                    table.ForeignKey(
+                        name: "FK_feedback_user_UserFeedbackId",
+                        column: x => x.UserFeedbackId,
+                        principalTable: "user",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "group_chat_user",
                 columns: table => new
                 {
@@ -138,8 +209,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     group_chat_user_group_chat_id = table.Column<string>(type: "varchar(50)", nullable: true)
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    group_chat_user_is_deleted = table.Column<bool>(nullable: true),
-                    group_chat_user_seen = table.Column<bool>(nullable: true)
+                    group_chat_user_is_deleted = table.Column<bool>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -249,10 +319,6 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     Token = table.Column<string>(nullable: true),
                     Expires = table.Column<DateTime>(nullable: false),
                     Created = table.Column<DateTime>(nullable: false),
-                    CreatedByIp = table.Column<string>(nullable: true),
-                    Revoked = table.Column<DateTime>(nullable: true),
-                    RevokedByIp = table.Column<string>(nullable: true),
-                    ReplacedByToken = table.Column<string>(nullable: true),
                     UserId = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
@@ -499,8 +565,7 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     post_created_at = table.Column<DateTime>(type: "timestamp", nullable: true),
                     post_comment_count = table.Column<int>(nullable: true),
-                    post_is_deleted = table.Column<bool>(nullable: true),
-                    post_is_pinned = table.Column<bool>(nullable: true)
+                    post_is_deleted = table.Column<bool>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -533,7 +598,8 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     kanban_list_rank_in_board = table.Column<string>(type: "varchar(50)", nullable: true),
-                    kanban_list_is_deleted = table.Column<bool>(nullable: true, defaultValue: false)
+                    kanban_list_is_deleted = table.Column<bool>(nullable: true, defaultValue: false),
+                    kanban_list_default = table.Column<bool>(nullable: true)
                 },
                 constraints: table =>
                 {
@@ -578,6 +644,37 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 });
 
             migrationBuilder.CreateTable(
+                name: "post_report",
+                columns: table => new
+                {
+                    post_report_id = table.Column<string>(type: "varchar(50)", nullable: false)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    post_report_postid = table.Column<string>(type: "varchar(50)", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4"),
+                    post_report_userid = table.Column<string>(type: "varchar(50)", nullable: true)
+                        .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .Annotation("MySql:CharSet", "utf8mb4")
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_post_report", x => x.post_report_id);
+                    table.ForeignKey(
+                        name: "FK_post_report_post_post_report_postid",
+                        column: x => x.post_report_postid,
+                        principalTable: "post",
+                        principalColumn: "post_id",
+                        onDelete: ReferentialAction.Restrict);
+                    table.ForeignKey(
+                        name: "FK_post_report_user_post_report_userid",
+                        column: x => x.post_report_userid,
+                        principalTable: "user",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Restrict);
+                });
+
+            migrationBuilder.CreateTable(
                 name: "task",
                 columns: table => new
                 {
@@ -611,7 +708,8 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                     task_image_url = table.Column<string>(type: "varchar(200)", nullable: true)
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
-                    task_deadline = table.Column<DateTime>(type: "timestamp", nullable: true)
+                    task_deadline = table.Column<DateTime>(type: "timestamp", nullable: true),
+                    task_done_date = table.Column<DateTime>(type: "timestamp", nullable: true)
                 },
                 constraints: table =>
                 {
@@ -798,16 +896,24 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     task_version_task_point = table.Column<int>(nullable: true),
+                    TaskVersionStartDate = table.Column<DateTime>(nullable: true),
                     task_version_task_deadline = table.Column<DateTime>(type: "timestamp", nullable: true),
+                    TaskVersionDoneDate = table.Column<DateTime>(nullable: true),
                     task_version_task_status = table.Column<string>(type: "enum('todo','doing','done')", nullable: true)
                         .Annotation("MySql:Collation", "utf8mb4_0900_ai_ci")
                         .Annotation("MySql:CharSet", "utf8mb4"),
                     task_version_task_completed_percent = table.Column<int>(nullable: true),
-                    task_version_task_is_deleted = table.Column<bool>(nullable: true)
+                    TaskVersionActionUserId = table.Column<string>(nullable: true)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_task_version", x => x.task_version_id);
+                    table.ForeignKey(
+                        name: "FK_task_version_user_TaskVersionActionUserId",
+                        column: x => x.TaskVersionActionUserId,
+                        principalTable: "user",
+                        principalColumn: "user_id",
+                        onDelete: ReferentialAction.Restrict);
                     table.ForeignKey(
                         name: "task_version_ibfk_1",
                         column: x => x.task_version_task_id,
@@ -830,6 +936,11 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 name: "comment_user_id",
                 table: "comment",
                 column: "comment_user_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_feedback_UserFeedbackId",
+                table: "feedback",
+                column: "UserFeedbackId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_file_file_postowner_id",
@@ -942,6 +1053,16 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 column: "post_react_userid");
 
             migrationBuilder.CreateIndex(
+                name: "IX_post_report_post_report_postid",
+                table: "post_report",
+                column: "post_report_postid");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_post_report_post_report_userid",
+                table: "post_report",
+                column: "post_report_userid");
+
+            migrationBuilder.CreateIndex(
                 name: "IX_refresh_token_UserId",
                 table: "refresh_token",
                 column: "UserId");
@@ -966,6 +1087,11 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 name: "task_team_id",
                 table: "task",
                 column: "task_team_id");
+
+            migrationBuilder.CreateIndex(
+                name: "IX_task_version_TaskVersionActionUserId",
+                table: "task_version",
+                column: "TaskVersionActionUserId");
 
             migrationBuilder.CreateIndex(
                 name: "task_version_task_id",
@@ -1002,7 +1128,13 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
         protected override void Down(MigrationBuilder migrationBuilder)
         {
             migrationBuilder.DropTable(
+                name: "appointment");
+
+            migrationBuilder.DropTable(
                 name: "comment");
+
+            migrationBuilder.DropTable(
+                name: "feedback");
 
             migrationBuilder.DropTable(
                 name: "file");
@@ -1012,6 +1144,12 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
 
             migrationBuilder.DropTable(
                 name: "handle_task");
+
+            migrationBuilder.DropTable(
+                name: "meeting");
+
+            migrationBuilder.DropTable(
+                name: "meeting_user");
 
             migrationBuilder.DropTable(
                 name: "message");
@@ -1026,13 +1164,13 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                 name: "post_react");
 
             migrationBuilder.DropTable(
+                name: "post_report");
+
+            migrationBuilder.DropTable(
                 name: "refresh_token");
 
             migrationBuilder.DropTable(
                 name: "role_claims");
-
-            migrationBuilder.DropTable(
-                name: "tag");
 
             migrationBuilder.DropTable(
                 name: "task_version");

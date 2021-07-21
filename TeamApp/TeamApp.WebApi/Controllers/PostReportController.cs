@@ -50,9 +50,9 @@ namespace TeamApp.WebApi.Controllers
 
         [Authorize(Policy = "AdminPolicy")]
         [HttpPost("remove")]
-        public async Task<IActionResult> RemoveFromReport([FromBody] ReportListWrap reportListWrap)
+        public async Task<IActionResult> RemoveFromReport([FromBody] PostListWrap reportListWrap)
         {
-            var outPut = await _repo.RemoveFromReport(reportListWrap.ReportIds);
+            var outPut = await _repo.RemoveFromReport(reportListWrap.PostIds);
             return Ok(new ApiResponse<bool>
             {
                 Data = outPut,
