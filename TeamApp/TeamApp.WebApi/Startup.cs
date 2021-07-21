@@ -26,6 +26,7 @@ namespace TeamApp.WebApi
         public Startup(IConfiguration configuration)
         {
             _config = configuration;
+            //abc
         }
         public void ConfigureServices(IServiceCollection services)
         {
