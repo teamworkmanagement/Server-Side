@@ -352,13 +352,6 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     });
                 }
             }
-            else
-            {
-                await _notiHub.Clients.All.Reminder(new
-                {
-                    Data = "zzzzz"
-                });
-            }
         }
     }
 }
