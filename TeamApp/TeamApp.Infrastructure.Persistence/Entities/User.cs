@@ -27,6 +27,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
             TaskVersions = new HashSet<TaskVersion>();
             Feedbacks = new HashSet<Feedback>();
             PostReports = new HashSet<PostReport>();
+            CommentReports = new HashSet<CommentReport>();
         }
 
 
@@ -61,11 +62,6 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual ICollection<TaskVersion> TaskVersions { get; set; }
         public virtual ICollection<Feedback> Feedbacks { get; set; }
         public virtual ICollection<PostReport> PostReports { get; set; }
-
-
-        public bool OwnsToken(string token)
-        {
-            return this.RefreshTokens?.Find(x => x.Token == token) != null;
-        }
+        public virtual ICollection<CommentReport> CommentReports { get; set; }
     }
 }

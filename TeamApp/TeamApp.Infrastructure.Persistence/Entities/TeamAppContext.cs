@@ -46,6 +46,7 @@ namespace TeamApp.Infrastructure.Persistence.Entities
         public virtual DbSet<MeetingUser> MeetingUser { get; set; }
         public virtual DbSet<PostReport> PostReport { get; set; }
         public virtual DbSet<Appointment> Appointment { get; set; }
+        public virtual DbSet<CommentReport> CommentReport { get; set; }
 
         protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
         {
@@ -977,6 +978,39 @@ namespace TeamApp.Infrastructure.Persistence.Entities
                 entity.HasOne(e => e.UserReport)
                 .WithMany(u => u.PostReports)
                 .HasForeignKey(e => e.PostReportUserId);
+            });
+
+            modelBuilder.Entity<CommentReport>(entity =>
+            {
+                entity.ToTable("comment_report");
+
+                entity.HasKey(e => e.CommentReportId);
+
+                entity.Property(e => e.CommentReportId)
+                    .HasColumnName("comment_report_id")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.CommentReportCommentId)
+                    .HasColumnName("comment_report_commentid")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.Property(e => e.CommentReportUserId)
+                    .HasColumnName("comment_report_userid")
+                    .HasColumnType("varchar(50)")
+                    .HasCollation("utf8mb4_0900_ai_ci")
+                    .HasCharSet("utf8mb4");
+
+                entity.HasOne(e => e.Comment)
+                .WithMany(p => p.CommentReports)
+                .HasForeignKey(e => e.CommentReportCommentId);
+
+                entity.HasOne(e => e.UserReport)
+                .WithMany(u => u.CommentReports)
+                .HasForeignKey(e => e.CommentReportUserId);
             });
 
 

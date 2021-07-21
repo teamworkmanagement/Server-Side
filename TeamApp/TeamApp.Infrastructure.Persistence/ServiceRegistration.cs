@@ -41,7 +41,6 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<ITaskRepository, TaskRepository>();
             services.AddTransient<IPostRepository, PostRepository>();
             services.AddTransient<ICommentRepository, CommentRepository>();
-            //services.AddTransient<ITagRepository, TagRepository>();
             services.AddTransient<IHandleTaskRepository, HandleTaskRepository>();
             services.AddTransient<INotificationRepository, NotificationRepository>();
             services.AddTransient<ITaskVersionRepository, TaskVersionRepository>();
@@ -57,13 +56,12 @@ namespace TeamApp.Infrastructure.Persistence
             services.AddTransient<IMeetingRepository, MeetingRepository>();
             services.AddTransient<IPostReportRepository, PostReportRepository>();
             services.AddTransient<IAppoinmentRespository, AppoinmentRepository>();
+            services.AddTransient<ICommentReportRepository, CommentReportRepository>();
             #endregion
             ConfigAuthService(services, configuration);
         }
         public static void ConfigAuthService(IServiceCollection services, IConfiguration configuration)
         {
-            services.AddSingleton<IAuthorizationHandler, IpCheckHandler>();
-            services.AddSingleton<IAuthorizationHandler, TeamCheckHandler>();
             services.AddSingleton<IAuthorizationHandler, AdminCheckHandler>();
             services.AddIdentity<User, IdentityRole>(options =>
             {
@@ -83,12 +81,6 @@ namespace TeamApp.Infrastructure.Persistence
             services.Configure<MyAppSettings>(configuration.GetSection("MyApp"));
             services.AddAuthorization(options =>
             {
-                options.AddPolicy("SameIpPolicy",
-                    policy => policy.Requirements.Add(new IpCheckRequirement { IpClaimRequired = true }));
-
-                options.AddPolicy("TeamPolicy",
-                    policy => policy.Requirements.Add(new TeamCheckRequirement { }));
-
                 options.AddPolicy("AdminPolicy",
                     policy => policy.Requirements.Add(new AdminCheckRequirement { }));
             });

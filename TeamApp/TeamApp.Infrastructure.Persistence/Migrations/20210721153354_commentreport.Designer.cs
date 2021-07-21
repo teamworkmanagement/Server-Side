@@ -9,8 +9,8 @@ using TeamApp.Infrastructure.Persistence.Entities;
 namespace TeamApp.Infrastructure.Persistence.Migrations
 {
     [DbContext(typeof(TeamAppContext))]
-    [Migration("20210721111354_refactorreport")]
-    partial class refactorreport
+    [Migration("20210721153354_commentreport")]
+    partial class commentreport
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
@@ -245,6 +245,35 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .HasName("comment_user_id");
 
                     b.ToTable("comment");
+                });
+
+            modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.CommentReport", b =>
+                {
+                    b.Property<string>("CommentReportId")
+                        .HasColumnName("comment_report_id")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("CommentReportCommentId")
+                        .HasColumnName("comment_report_commentid")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.Property<string>("CommentReportUserId")
+                        .HasColumnName("comment_report_userid")
+                        .HasColumnType("varchar(50)")
+                        .HasAnnotation("MySql:Collation", "utf8mb4_0900_ai_ci")
+                        .HasAnnotation("MySql:CharSet", "utf8mb4");
+
+                    b.HasKey("CommentReportId");
+
+                    b.HasIndex("CommentReportCommentId");
+
+                    b.HasIndex("CommentReportUserId");
+
+                    b.ToTable("comment_report");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Feedback", b =>
@@ -1322,6 +1351,17 @@ namespace TeamApp.Infrastructure.Persistence.Migrations
                         .WithMany("Comment")
                         .HasForeignKey("CommentUserId")
                         .HasConstraintName("comment_ibfk_2");
+                });
+
+            modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.CommentReport", b =>
+                {
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.Comment", "Comment")
+                        .WithMany("CommentReports")
+                        .HasForeignKey("CommentReportCommentId");
+
+                    b.HasOne("TeamApp.Infrastructure.Persistence.Entities.User", "UserReport")
+                        .WithMany("CommentReports")
+                        .HasForeignKey("CommentReportUserId");
                 });
 
             modelBuilder.Entity("TeamApp.Infrastructure.Persistence.Entities.Feedback", b =>

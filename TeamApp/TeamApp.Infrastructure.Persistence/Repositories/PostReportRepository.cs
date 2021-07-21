@@ -107,10 +107,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                   {
                                       PostId = p,
                                       Content = post.PostContent,
-                                      UserAvatar = u.ImageUrl,
+                                      UserAvatar = string.IsNullOrEmpty(u.ImageUrl) ? $"https://ui-avatars.com/api/?name={u.FullName}" : u.ImageUrl,
                                       UserName = u.FullName,
                                       ReportCounts = post.PostReports.Count,
-                                      CreatedDate = post.PostCreatedAt,
+                                      CreatedDate = post.PostCreatedAt.FormatTime(),
                                   }).FirstOrDefaultAsync();
 
                 responses.Add(data);
