@@ -313,8 +313,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
 
             await _notiHub.Clients.All.SendNoti(new
             {
-                //NotificationActionFullName = actionUser.FullName,
-                //NotificationActionAvatar = actionUser.ImageUrl,
+                NotificationActionAvatar = "https://firebasestorage.googleapis.com/v0/b/teamappstorage.appspot.com/o/notification_500px.png?alt=media&token=ef0ec680-83ca-476a-8991-3214e1ec1267",
                 NotificationGroup = notiGroup,
                 NotificationContent = notiRequest.NotiContent,
                 NotificationStatus = false,
