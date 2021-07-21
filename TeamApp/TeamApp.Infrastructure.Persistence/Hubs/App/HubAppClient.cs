@@ -47,20 +47,9 @@ namespace TeamApp.Infrastructure.Persistence.Hubs.App
             Console.WriteLine("App disconnected: " + userId);
             var userCon = await _dbContext.UserConnection.Where(x => x.UserId == userId && x.ConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
 
-            var meetingUser = await _dbContext.MeetingUser.Where(u => u.UserConnectionId == Context.ConnectionId).FirstOrDefaultAsync();
             _dbContext.UserConnection.Remove(userCon);
 
             await _dbContext.SaveChangesAsync();
-
-            if (meetingUser != null)
-            {
-                var meetingRepo = (IMeetingRepository)_serviceProvider.GetService(typeof(IMeetingRepository));
-
-                await meetingRepo.LeaveMeetingSignalR(new Application.DTOs.Meeting.LeaveMeetingModel
-                {
-                    ConnectionId = Context.ConnectionId,
-                });
-            }
 
             await base.OnDisconnectedAsync(exception);
         }

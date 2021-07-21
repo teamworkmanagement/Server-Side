@@ -130,11 +130,20 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                                      && mu.UserId == leaveMeetingModel.UserId
                                      select mu).FirstOrDefaultAsync();
 
-            if (meetingUser == null)
+            var meet = await (from m in _dbContext.Meeting.AsNoTracking()
+                              where m.MeetingId == leaveMeetingModel.MeetingId
+                              select m).FirstOrDefaultAsync();
+
+            //không tồn tại
+            if (meetingUser == null && meet == null)
                 return false;
 
-            _dbContext.Remove(meetingUser);
-            await _dbContext.SaveChangesAsync();
+            //tồn tại user
+            if (meetingUser != null)
+            {
+                _dbContext.Remove(meetingUser);
+                await _dbContext.SaveChangesAsync();
+            }
 
             var meetingUsersCount = await (from mu in _dbContext.MeetingUser.AsNoTracking()
                                            where mu.MeetingId == leaveMeetingModel.MeetingId
@@ -149,7 +158,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 _dbContext.Remove(meeting);
                 await _dbContext.SaveChangesAsync();
 
-                //push noti rt
+                //push trigger rt
                 var clients = await (from p in _dbContext.Participation.AsNoTracking()
                                      join uc in _dbContext.UserConnection.AsNoTracking()
                                      on p.ParticipationUserId equals uc.UserId

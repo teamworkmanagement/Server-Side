@@ -68,6 +68,7 @@ namespace TeamApp.WebApi.Controllers
         [HttpPost("leave-meeting")]
         public async Task<IActionResult> LeaveMeeting([FromBody] LeaveMeetingModel leaveMeetingModel)
         {
+            leaveMeetingModel.UserId = _authenticatedUserService.UserId;
             var outPut = await _repo.LeaveMeeting(leaveMeetingModel);
             return Ok(new ApiResponse<bool>
             {

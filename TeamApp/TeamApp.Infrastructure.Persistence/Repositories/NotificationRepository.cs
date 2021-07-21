@@ -344,7 +344,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                         Id = appoint.ap.Id,
                         Name = appoint.ap.Name,
                         UserCreateName = appoint.FullName,
-                        UserCreateAvatar = appoint.ImageUrl,
+                        UserCreateAvatar = string.IsNullOrEmpty(appoint.ImageUrl) ? $"https://ui-avatars.com/api/?name={appoint.FullName}" : appoint.ImageUrl,
                         Date = appoint.ap.Date.FormatTime(),
                         Description = appoint.ap.Description,
                         Type = appoint.ap.Type,
