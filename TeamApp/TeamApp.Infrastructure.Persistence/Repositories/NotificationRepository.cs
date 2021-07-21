@@ -309,12 +309,9 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 });
             }
 
-            var clients = await _dbContext.UserConnection
-                .Where(u => u.Type == "notification").Select(x => x.ConnectionId).ToListAsync();
-
             await _dbContext.BulkInsertAsync(notis);
 
-            await _notiHub.Clients.Clients(clients).SendNoti(new
+            await _notiHub.Clients.All.SendNoti(new
             {
                 //NotificationActionFullName = actionUser.FullName,
                 //NotificationActionAvatar = actionUser.ImageUrl,
