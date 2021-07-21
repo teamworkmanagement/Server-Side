@@ -62,7 +62,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                     NotificationGroup = noti.NotificationGroup,
                     NotificationImage = "https://firebasestorage.googleapis.com/v0/b/fir-fcm-5eb6f.appspot.com/o/notification_500px.png?alt=media&token=e68bc511-fdd4-4f76-90d9-11e86a143f21",
                     NotificationActionFullName = user == null ? null : user.FullName,
-                    NotificationActionAvatar = user == null ? "../images/app/logoteam.png" : string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
+                    NotificationActionAvatar = user == null ? "https://firebasestorage.googleapis.com/v0/b/teamappstorage.appspot.com/o/notification_500px.png?alt=media&token=ef0ec680-83ca-476a-8991-3214e1ec1267" : string.IsNullOrEmpty(user.ImageUrl) ? $"https://ui-avatars.com/api/?name={user.FullName}" : user.ImageUrl,
                 };
 
                 entityList.Add(notiResObj);
