@@ -26,7 +26,6 @@ namespace TeamApp.WebApi
         public Startup(IConfiguration configuration)
         {
             _config = configuration;
-            //abc
         }
         public void ConfigureServices(IServiceCollection services)
         {
@@ -53,10 +52,6 @@ namespace TeamApp.WebApi
                     policy.AllowAnyHeader()
                         .AllowAnyMethod()
                         .SetIsOriginAllowed(origin => true)
-                        /*.WithOrigins("http://localhost:3000", "http://localhost:3001", "http://localhost:3002", "http://192.168.137.1:3000",
-                        "https://localhost:3000", "https://localhost:3001", "https://localhost:3002", "https://192.168.137.1:3000",
-                        "http://localhost:9000", "http://localhost:9001",
-                        "https://ezteamapp.space", "https://*.ezteamapp.space")*/
                         .AllowCredentials();
                 });
             });
@@ -75,7 +70,7 @@ namespace TeamApp.WebApi
                 app.UseExceptionHandler("/Error");
                 app.UseHsts();
             }
-            //app.UseHttpsRedirection();
+            
             app.UseCors("ClientPermission");
             app.UseRouting();
 
