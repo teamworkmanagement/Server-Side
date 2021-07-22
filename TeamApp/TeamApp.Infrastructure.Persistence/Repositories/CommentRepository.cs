@@ -268,7 +268,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
             var query = from c in _dbContext.Comment.AsNoTracking()
                         join t in _dbContext.Task.AsNoTracking() on c.CommentTaskId equals t.TaskId
                         join u in _dbContext.User.AsNoTracking() on c.CommentUserId equals u.Id
-                        where t.TaskId == taskId
+                        where t.TaskId == taskId && c.CommentIsDeleted == false
                         orderby c.CommentCreatedAt descending
                         select new { c, u.FullName, u.ImageUrl };
 
@@ -294,6 +294,7 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
         {
             var query = from c in _dbContext.Comment
                         join u in _dbContext.User on c.CommentUserId equals u.Id
+                        where c.CommentIsDeleted == false
                         select new { c, u.ImageUrl, u.FullName };
 
             var outQuery = query.Where(x => x.c.CommentPostId == parameter.PostId);

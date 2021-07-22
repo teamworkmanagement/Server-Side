@@ -315,6 +315,10 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 lists.AddRange(listImage);
 
                 ent.PostImages = lists;
+                ent.PostCommentCount = await (from c in _dbContext.Comment.AsNoTracking()
+                                              where c.CommentPostId == ent.PostId
+                                              && c.CommentIsDeleted == false
+                                              select c.CommentId).CountAsync();
                 ent.ShowDelete = team.TeamLeaderId == parameter.UserId || parameter.UserId == ent.PostUserId ? true : false;
             }
 
@@ -446,6 +450,11 @@ namespace TeamApp.Infrastructure.Persistence.Repositories
                 var team = await _dbContext.Team.FindAsync(ent.PostTeamId);
                 if (team.TeamLeaderId == parameter.UserId || ent.PostUserId == parameter.UserId)
                     ent.ShowDelete = true;
+
+                ent.PostCommentCount = await (from c in _dbContext.Comment.AsNoTracking()
+                                              where c.CommentPostId == ent.PostId
+                                              && c.CommentIsDeleted == false
+                                              select c.CommentId).CountAsync();
             }
 
             return new PagedResponse<PostResponse>(entityList, parameter.PageSize, await query.CountAsync());
