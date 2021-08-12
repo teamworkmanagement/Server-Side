@@ -1,4 +1,4 @@
-# EZTeam Application (Teamwork Manager)
+# EZTeam Server-side
 <p align="center">
   <img width="250" height="100" src="https://github.com/teamworkmanagement/Client-Side/blob/main/public/images/introduction/ezteamlogo.svg">
 </p>
