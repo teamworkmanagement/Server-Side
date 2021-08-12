@@ -9,7 +9,7 @@ on:
 jobs:
   build:
 
-    runs-on: self-hosted
+    runs-on: ubuntu-lastest
 
     steps:
     - uses: actions/checkout@v2
@@ -23,7 +23,8 @@ jobs:
       run: dotnet build
     - name: Test
       run: dotnet test --no-build --verbosity normal
-    - name: Release
-      run: dotnet publish -c Release
-    - name: Restart
-      run: systemctl restart teamapiprod.service
+    #- name: Release
+    #  run: dotnet publish -c Release
+    # a
+    #- name: Restart
+     # run: systemctl restart teamapiprod.service
